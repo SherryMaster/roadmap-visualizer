@@ -3,7 +3,8 @@ import RoadmapHeader from "./RoadmapHeader";
 import PhaseList from "./PhaseList";
 import RoadmapUploader from "./RoadmapUploader";
 import SearchBar from "./SearchBar";
-import ThemeToggle from "./ThemeToggle";
+import ThemeSelector from "./ThemeSelector";
+
 import { TaskCompletionProvider } from "../context/TaskCompletionContext";
 import sampleRoadmap from "../data/sampleRoadmap.json";
 import schema from "../data/schema.json";
@@ -170,11 +171,11 @@ const RoadmapVisualizer = () => {
     <TaskCompletionProvider roadmapData={roadmapData}>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="flex justify-between items-center mb-4">
-          <ThemeToggle />
+          <ThemeSelector />
           <div className="flex space-x-2">
             <button
               onClick={toggleUploader}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
               {showUploader ? "Cancel Upload" : "Upload Roadmap"}
             </button>

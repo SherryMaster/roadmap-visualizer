@@ -60,7 +60,7 @@ const EstimatedTime = ({
     <div className="space-y-1">
       <div className="flex items-center">
         <svg
-          className="h-5 w-5 text-gray-500 mr-2"
+          className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

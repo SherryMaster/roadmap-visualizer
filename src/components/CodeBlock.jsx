@@ -4,6 +4,7 @@ import {
   oneDark,
   oneLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useTheme } from "../context/ThemeContext";
 
 const CodeBlock = ({
   code,
@@ -15,27 +16,9 @@ const CodeBlock = ({
   maxHeight = 400,
   collapsible = true,
 }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode } = useTheme();
   const [copiedStates, setCopiedStates] = useState({});
   const [expandedStates, setExpandedStates] = useState({});
-
-  // Detect theme changes
-  useEffect(() => {
-    const checkTheme = () => {
-      setDarkMode(document.documentElement.classList.contains("dark"));
-    };
-
-    checkTheme();
-
-    // Watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   // Handle both old format (code string) and new format (code_blocks array)
   const codeData =
@@ -237,7 +220,7 @@ const CodeBlock = ({
                 {showLanguage && block.language && (
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                       {block.language}
                     </span>
                   </div>
