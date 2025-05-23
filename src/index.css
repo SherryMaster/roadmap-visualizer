@@ -20,6 +20,89 @@
   .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  /* Enhanced dependency navigation highlight effect */
+  .dependency-highlight {
+    @apply ring-4 ring-blue-500 ring-opacity-90 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/50 dark:to-indigo-900/50;
+    animation: dependency-highlight-pulse 2s ease-in-out !important;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
+      inset 0 0 20px rgba(59, 130, 246, 0.1) !important;
+    transform: scale(1.03) !important;
+    z-index: 20 !important;
+    position: relative !important;
+    border: 3px solid transparent !important;
+    background-clip: padding-box !important;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.1),
+      rgba(99, 102, 241, 0.1)
+    ) !important;
+  }
+
+  /* Animated border effect for dependency highlighting */
+  .dependency-highlight::before {
+    content: "" !important;
+    position: absolute !important;
+    top: -3px !important;
+    left: -3px !important;
+    right: -3px !important;
+    bottom: -3px !important;
+    background: linear-gradient(
+      45deg,
+      #3b82f6,
+      #8b5cf6,
+      #06b6d4,
+      #3b82f6
+    ) !important;
+    background-size: 300% 300% !important;
+    border-radius: inherit !important;
+    z-index: -1 !important;
+    animation: dependency-border-flow 1.5s ease-in-out infinite !important;
+  }
+
+  /* Pulsing glow effect */
+  .dependency-highlight::after {
+    content: "" !important;
+    position: absolute !important;
+    top: -8px !important;
+    left: -8px !important;
+    right: -8px !important;
+    bottom: -8px !important;
+    background: radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.3) 0%,
+      transparent 70%
+    ) !important;
+    border-radius: inherit !important;
+    z-index: -2 !important;
+    animation: dependency-glow-pulse 1s ease-in-out infinite alternate !important;
+  }
+
+  /* Enhanced task title highlighting during navigation */
+  .dependency-highlight .task-title-highlight {
+    @apply text-blue-700 dark:text-blue-300 font-bold;
+    animation: dependency-title-glow 1s ease-in-out infinite alternate;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    position: relative;
+  }
+
+  .dependency-highlight .task-title-highlight::before {
+    content: "📍 ";
+    animation: dependency-icon-bounce 0.6s ease-in-out infinite;
+  }
+
+  /* Active title state for enhanced visibility */
+  .dependency-title-active {
+    @apply text-blue-700 dark:text-blue-300 font-bold;
+    animation: dependency-title-glow 1s ease-in-out infinite alternate;
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    position: relative;
+  }
+
+  .dependency-title-active::before {
+    content: "📍 ";
+    animation: dependency-icon-bounce 0.6s ease-in-out infinite;
+  }
 }
 
 @keyframes spin {
@@ -38,5 +121,101 @@
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+@keyframes dependency-highlight-pulse {
+  0% {
+    @apply ring-4 ring-blue-500 ring-opacity-90;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
+      inset 0 0 20px rgba(59, 130, 246, 0.1);
+    transform: scale(1.03);
+  }
+  25% {
+    @apply ring-6 ring-blue-400 ring-opacity-95;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
+      inset 0 0 25px rgba(59, 130, 246, 0.15);
+    transform: scale(1.035);
+  }
+  50% {
+    @apply ring-8 ring-blue-300 ring-opacity-100;
+    box-shadow: 0 0 50px rgba(59, 130, 246, 1),
+      inset 0 0 30px rgba(59, 130, 246, 0.2);
+    transform: scale(1.04);
+  }
+  75% {
+    @apply ring-6 ring-blue-400 ring-opacity-95;
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
+      inset 0 0 25px rgba(59, 130, 246, 0.15);
+    transform: scale(1.035);
+  }
+  100% {
+    @apply ring-4 ring-blue-500 ring-opacity-90;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
+      inset 0 0 20px rgba(59, 130, 246, 0.1);
+    transform: scale(1.03);
+  }
+}
+
+@keyframes dependency-border-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes dependency-glow-pulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes dependency-title-glow {
+  0% {
+    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  }
+  100% {
+    text-shadow: 0 0 16px rgba(59, 130, 246, 0.9),
+      0 0 24px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes dependency-icon-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes dependency-attention-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
   }
 }

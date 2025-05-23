@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Phase from "./Phase";
 import ProgressIndicator from "./ProgressIndicator";
 
 const PhaseList = ({ phases }) => {
-  const [expandedPhase, setExpandedPhase] = useState(null);
+  const [expandedPhases, setExpandedPhases] = useState(new Set());
 
   // Sort phases by phase_number
   const sortedPhases = [...phases].sort(
@@ -11,8 +11,66 @@ const PhaseList = ({ phases }) => {
   );
 
   const handlePhaseClick = (phaseNumber) => {
-    setExpandedPhase(expandedPhase === phaseNumber ? null : phaseNumber);
+    setExpandedPhases((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(phaseNumber)) {
+        newSet.delete(phaseNumber);
+      } else {
+        newSet.add(phaseNumber);
+      }
+      return newSet;
+    });
   };
+
+  // Function to expand a specific phase (for dependency navigation)
+  const expandPhase = (phaseNumber) => {
+    setExpandedPhases((prev) => new Set(prev).add(phaseNumber));
+  };
+
+  // Listen for navigation events that require phase expansion
+  useEffect(() => {
+    const handleNavigateToTask = (event) => {
+      const { phaseId, taskId } = event.detail;
+
+      // Find the phase number from phase_id
+      const targetPhase = sortedPhases.find(
+        (phase) => phase.phase_id === phaseId
+      );
+
+      if (targetPhase) {
+        const wasExpanded = expandedPhases.has(targetPhase.phase_number);
+
+        if (!wasExpanded) {
+          expandPhase(targetPhase.phase_number);
+
+          // Emit a phase expansion event to notify Phase components
+          setTimeout(() => {
+            const phaseExpandedEvent = new CustomEvent("phaseExpanded", {
+              detail: {
+                phaseId,
+                taskId,
+                phaseNumber: targetPhase.phase_number,
+              },
+              bubbles: true,
+            });
+            document.dispatchEvent(phaseExpandedEvent);
+          }, 100);
+        } else {
+          // Phase already expanded, immediately notify Phase components
+          const phaseExpandedEvent = new CustomEvent("phaseExpanded", {
+            detail: { phaseId, taskId, phaseNumber: targetPhase.phase_number },
+            bubbles: true,
+          });
+          document.dispatchEvent(phaseExpandedEvent);
+        }
+      }
+    };
+
+    document.addEventListener("navigateToTask", handleNavigateToTask);
+    return () => {
+      document.removeEventListener("navigateToTask", handleNavigateToTask);
+    };
+  }, [sortedPhases, expandedPhases]);
 
   return (
     <div>
@@ -23,8 +81,8 @@ const PhaseList = ({ phases }) => {
           <Phase
             key={phase.phase_number}
             phase={phase}
-            isExpanded={expandedPhase === phase.phase_number}
-            isActive={expandedPhase === phase.phase_number}
+            isExpanded={expandedPhases.has(phase.phase_number)}
+            isActive={expandedPhases.has(phase.phase_number)}
             onClick={() => handlePhaseClick(phase.phase_number)}
           />
         ))}

@@ -1,8 +1,10 @@
+import { useEffect, useRef } from "react";
 import TaskList from "./TaskList";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
 
 const Phase = ({ phase, isExpanded, isActive, onClick }) => {
-  const { phase_number, phase_title, phase_tasks } = phase;
+  const { phase_number, phase_title, phase_tasks, phase_id } = phase;
+  const taskListRef = useRef(null);
   const { getCompletedTasksInPhase } = useTaskCompletion();
 
   const completedTasks = getCompletedTasksInPhase(
@@ -16,6 +18,32 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
 
   const isCompleted =
     completedTasks === phase_tasks.length && phase_tasks.length > 0;
+
+  // Handle navigation events for this phase
+  useEffect(() => {
+    const handlePhaseExpanded = (event) => {
+      const { taskId, phaseId, phaseNumber: targetPhaseNumber } = event.detail;
+
+      // Only handle if this is the target phase
+      if (targetPhaseNumber === phase_number && phaseId === phase_id) {
+        // Forward the event to TaskList - use a delay to ensure DOM is ready
+        setTimeout(() => {
+          if (taskListRef.current) {
+            const taskListEvent = new CustomEvent("expandTask", {
+              detail: { taskId },
+              bubbles: false,
+            });
+            taskListRef.current.dispatchEvent(taskListEvent);
+          }
+        }, 150); // Increased delay to ensure phase expansion animation completes
+      }
+    };
+
+    document.addEventListener("phaseExpanded", handlePhaseExpanded);
+    return () => {
+      document.removeEventListener("phaseExpanded", handlePhaseExpanded);
+    };
+  }, [phase_number, phase_id]);
 
   return (
     <div
@@ -116,7 +144,11 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
 
       {isExpanded && (
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-          <TaskList tasks={phase_tasks} phaseNumber={phase_number} />
+          <TaskList
+            ref={taskListRef}
+            tasks={phase_tasks}
+            phaseNumber={phase_number}
+          />
         </div>
       )}
     </div>

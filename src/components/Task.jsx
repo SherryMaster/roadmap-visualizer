@@ -3,19 +3,65 @@ import TaskDetail from "./TaskDetail";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
 
 const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
-  const { task_title, task_summary } = task;
-  const { toggleTaskCompletion, isTaskCompleted } = useTaskCompletion();
+  const { task_title, task_summary, task_dependencies } = task;
+  const {
+    toggleTaskCompletion,
+    toggleTaskCompletionWithValidation,
+    isTaskCompleted,
+    getDependencyStatus,
+    areRequiredDependenciesCompleted,
+  } = useTaskCompletion();
   const [completed, setCompleted] = useState(false);
   const [animateCompletion, setAnimateCompletion] = useState(false);
+  const [canComplete, setCanComplete] = useState(true);
+  const [dependencyStatus, setDependencyStatus] = useState(null);
 
-  // Check if task is completed on initial render
+  // Check if task is completed and dependencies on initial render and updates
   useEffect(() => {
     setCompleted(isTaskCompleted(phaseNumber, taskIndex));
-  }, [phaseNumber, taskIndex, isTaskCompleted]);
+
+    // Check dependency status
+    if (task_dependencies && task_dependencies.length > 0) {
+      const depStatus = getDependencyStatus(task_dependencies);
+      setDependencyStatus(depStatus);
+      setCanComplete(depStatus.canComplete);
+    } else {
+      setCanComplete(true);
+      setDependencyStatus(null);
+    }
+  }, [
+    phaseNumber,
+    taskIndex,
+    isTaskCompleted,
+    task_dependencies,
+    getDependencyStatus,
+  ]);
 
   const handleCheckboxClick = (e) => {
     e.stopPropagation(); // Prevent expanding/collapsing when clicking checkbox
-    toggleTaskCompletion(phaseNumber, taskIndex);
+
+    // If trying to complete a task, check dependencies first
+    if (!completed && task_dependencies && task_dependencies.length > 0) {
+      const success = toggleTaskCompletionWithValidation(
+        phaseNumber,
+        taskIndex,
+        task_dependencies
+      );
+
+      if (!success) {
+        // Task completion was blocked due to dependencies
+        // Show a visual indication or alert
+        alert(
+          `Cannot complete this task. Please complete all required dependencies first.\n\nRequired: ${
+            dependencyStatus?.requiredCompleted || 0
+          }/${dependencyStatus?.requiredTotal || 0} completed`
+        );
+        return;
+      }
+    } else {
+      // No dependencies or unchecking, proceed normally
+      toggleTaskCompletion(phaseNumber, taskIndex);
+    }
 
     // If task is being marked as completed, trigger animation
     if (!completed) {
@@ -31,6 +77,8 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
       className={`bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 ${
         completed ? "border-l-4 border-green-500" : ""
       } ${animateCompletion ? "animate-pulse" : ""}`}
+      data-task-id={task.task_id}
+      data-phase-id={task.phase_id || `P${phaseNumber}`}
     >
       <div
         className={`px-4 py-3 cursor-pointer ${
@@ -44,7 +92,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
         <div className="flex justify-between items-center">
           <div className="flex items-center flex-1" onClick={onClick}>
             <h3
-              className={`text-md font-medium ml-2 ${
+              className={`text-md font-medium ml-2 task-title-highlight ${
                 completed
                   ? "text-green-700 dark:text-green-400 line-through"
                   : "text-gray-800 dark:text-white"
@@ -62,8 +110,20 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
               <input
                 type="checkbox"
                 checked={completed}
+                disabled={!completed && !canComplete}
                 onChange={() => {}} // Handled by onClick to prevent event bubbling issues
-                className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer transition-colors"
+                className={`h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500 transition-colors ${
+                  !completed && !canComplete
+                    ? "cursor-not-allowed opacity-50 bg-gray-100"
+                    : "cursor-pointer"
+                }`}
+                title={
+                  !completed && !canComplete
+                    ? `Complete required dependencies first (${
+                        dependencyStatus?.requiredCompleted || 0
+                      }/${dependencyStatus?.requiredTotal || 0})`
+                    : ""
+                }
               />
               {animateCompletion && (
                 <span className="absolute flex h-10 w-10 -top-2.5 -left-2.5">
@@ -101,6 +161,34 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
           >
             {task_summary}
           </p>
+
+          {/* Dependency status indicator */}
+          {!completed &&
+            dependencyStatus &&
+            dependencyStatus.requiredTotal > 0 && (
+              <div
+                className={`text-xs mt-2 px-2 py-1 rounded ${
+                  canComplete
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200"
+                }`}
+              >
+                {canComplete ? (
+                  <span>✅ All required dependencies completed</span>
+                ) : (
+                  <span>
+                    ⚠️ Dependencies: {dependencyStatus.requiredCompleted}/
+                    {dependencyStatus.requiredTotal} required
+                    {dependencyStatus.recommendedTotal > 0 && (
+                      <span className="ml-2">
+                        • {dependencyStatus.recommendedCompleted}/
+                        {dependencyStatus.recommendedTotal} recommended
+                      </span>
+                    )}
+                  </span>
+                )}
+              </div>
+            )}
         </div>
       </div>
 

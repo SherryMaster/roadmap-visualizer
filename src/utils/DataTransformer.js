@@ -14,23 +14,23 @@ class DataTransformer {
 
     try {
       const transformed = {
-        title: schemaData.title || 'Untitled Roadmap',
-        description: schemaData.description || '',
+        title: schemaData.title || "Untitled Roadmap",
+        description: schemaData.description || "",
         tags: schemaData.tags || [],
-        project_level: schemaData.project_level || 'beginner',
-        roadmap: []
+        project_level: schemaData.project_level || "beginner",
+        roadmap: [],
       };
 
       // Transform phases
       if (schemaData.roadmap && schemaData.roadmap.phases) {
-        transformed.roadmap = schemaData.roadmap.phases.map((phase, index) => 
+        transformed.roadmap = schemaData.roadmap.phases.map((phase, index) =>
           this.transformPhase(phase, index + 1)
         );
       }
 
       return transformed;
     } catch (error) {
-      console.error('Error transforming data to UI format:', error);
+      console.error("Error transforming data to UI format:", error);
       return null;
     }
   }
@@ -47,17 +47,18 @@ class DataTransformer {
       phase_details: phase.phase_details || [],
       phase_dependencies: phase.phase_dependencies || [],
       key_milestones: phase.key_milestones || [],
-      success_indicators: phase.succes_indicators || phase.success_indicators || [],
-      phase_tasks: (phase.phase_tasks || []).map((task, index) => 
-        this.transformTask(task, index)
-      )
+      success_indicators:
+        phase.succes_indicators || phase.success_indicators || [],
+      phase_tasks: (phase.phase_tasks || []).map((task, index) =>
+        this.transformTask(task, index, phase.phase_id)
+      ),
     };
   }
 
   /**
    * Transforms a task from schema format to UI format
    */
-  static transformTask(task, taskIndex) {
+  static transformTask(task, taskIndex, phaseId) {
     const transformed = {
       task_index: taskIndex,
       task_id: task.task_id,
@@ -65,7 +66,8 @@ class DataTransformer {
       task_summary: task.task_summary,
       task_dependencies: task.task_dependencies || [],
       task_tags: task.task_tags || [],
-      task_priority: task.task_priority || 'mid'
+      task_priority: task.task_priority || "mid",
+      phase_id: phaseId, // Add phase_id to each task
     };
 
     // Transform task detail
@@ -81,9 +83,9 @@ class DataTransformer {
    */
   static transformTaskDetail(detail) {
     const transformed = {
-      detail: detail.explanation || '',
+      detail: detail.explanation || "",
       code_blocks: detail.code_blocks || [],
-      resource_links: this.transformResourceLinks(detail.resource_links || [])
+      resource_links: this.transformResourceLinks(detail.resource_links || []),
     };
 
     // Transform difficulty
@@ -104,18 +106,18 @@ class DataTransformer {
    */
   static transformDifficulty(difficulty) {
     const levelMap = {
-      'very_easy': 1,
-      'easy': 2,
-      'normal': 3,
-      'difficult': 4,
-      'challenging': 5
+      very_easy: 1,
+      easy: 2,
+      normal: 3,
+      difficult: 4,
+      challenging: 5,
     };
 
     return {
       level: levelMap[difficulty.level] || 3,
-      level_text: difficulty.level || 'normal',
-      reason: difficulty.reason_of_difficulty || '',
-      prerequisites: difficulty.prerequisites_needed || []
+      level_text: difficulty.level || "normal",
+      reason: difficulty.reason_of_difficulty || "",
+      prerequisites: difficulty.prerequisites_needed || [],
     };
   }
 
@@ -128,14 +130,14 @@ class DataTransformer {
     if (estTime.min_time) {
       transformed.min = {
         value: estTime.min_time.amount,
-        unit: estTime.min_time.unit
+        unit: estTime.min_time.unit,
       };
     }
 
     if (estTime.max_time) {
       transformed.max = {
         value: estTime.max_time.amount,
-        unit: estTime.max_time.unit
+        unit: estTime.max_time.unit,
       };
     }
 
@@ -154,12 +156,12 @@ class DataTransformer {
    * Transforms resource links from schema format to UI format
    */
   static transformResourceLinks(links) {
-    return links.map(link => ({
+    return links.map((link) => ({
       display_text: link.display_text,
       link: link.url, // Map 'url' to 'link' for backward compatibility
       url: link.url,
       type: link.type,
-      is_essential: link.is_essential
+      is_essential: link.is_essential,
     }));
   }
 
@@ -173,25 +175,25 @@ class DataTransformer {
 
     try {
       const transformed = {
-        title: uiData.title || 'Untitled Roadmap',
-        description: uiData.description || '',
+        title: uiData.title || "Untitled Roadmap",
+        description: uiData.description || "",
         tags: uiData.tags || [],
-        project_level: uiData.project_level || 'beginner',
+        project_level: uiData.project_level || "beginner",
         roadmap: {
-          phases: []
-        }
+          phases: [],
+        },
       };
 
       // Transform phases back to schema format
       if (uiData.roadmap && Array.isArray(uiData.roadmap)) {
-        transformed.roadmap.phases = uiData.roadmap.map(phase => 
+        transformed.roadmap.phases = uiData.roadmap.map((phase) =>
           this.transformPhaseToSchema(phase)
         );
       }
 
       return transformed;
     } catch (error) {
-      console.error('Error transforming data to schema format:', error);
+      console.error("Error transforming data to schema format:", error);
       return null;
     }
   }
@@ -208,9 +210,9 @@ class DataTransformer {
       phase_dependencies: phase.phase_dependencies || [],
       key_milestones: phase.key_milestones || [],
       succes_indicators: phase.success_indicators || [],
-      phase_tasks: (phase.phase_tasks || []).map(task => 
+      phase_tasks: (phase.phase_tasks || []).map((task) =>
         this.transformTaskToSchema(task)
-      )
+      ),
     };
   }
 
@@ -224,12 +226,14 @@ class DataTransformer {
       task_summary: task.task_summary,
       task_dependencies: task.task_dependencies || [],
       task_tags: task.task_tags || [],
-      task_priority: task.task_priority || 'mid'
+      task_priority: task.task_priority || "mid",
     };
 
     // Transform task detail back to schema format
     if (task.task_detail) {
-      transformed.task_detail = this.transformTaskDetailToSchema(task.task_detail);
+      transformed.task_detail = this.transformTaskDetailToSchema(
+        task.task_detail
+      );
     }
 
     return transformed;
@@ -240,19 +244,25 @@ class DataTransformer {
    */
   static transformTaskDetailToSchema(detail) {
     const transformed = {
-      explanation: detail.detail || '',
+      explanation: detail.detail || "",
       code_blocks: detail.code_blocks || [],
-      resource_links: this.transformResourceLinksToSchema(detail.resource_links || [])
+      resource_links: this.transformResourceLinksToSchema(
+        detail.resource_links || []
+      ),
     };
 
     // Transform difficulty back to schema format
     if (detail.difficulty) {
-      transformed.difficulty = this.transformDifficultyToSchema(detail.difficulty);
+      transformed.difficulty = this.transformDifficultyToSchema(
+        detail.difficulty
+      );
     }
 
     // Transform estimated time back to schema format
     if (detail.est_time) {
-      transformed.est_time = this.transformEstimatedTimeToSchema(detail.est_time);
+      transformed.est_time = this.transformEstimatedTimeToSchema(
+        detail.est_time
+      );
     }
 
     return transformed;
@@ -263,17 +273,17 @@ class DataTransformer {
    */
   static transformDifficultyToSchema(difficulty) {
     const levelMap = {
-      1: 'very_easy',
-      2: 'easy',
-      3: 'normal',
-      4: 'difficult',
-      5: 'challenging'
+      1: "very_easy",
+      2: "easy",
+      3: "normal",
+      4: "difficult",
+      5: "challenging",
     };
 
     return {
-      level: difficulty.level_text || levelMap[difficulty.level] || 'normal',
-      reason_of_difficulty: difficulty.reason || '',
-      prerequisites_needed: difficulty.prerequisites || []
+      level: difficulty.level_text || levelMap[difficulty.level] || "normal",
+      reason_of_difficulty: difficulty.reason || "",
+      prerequisites_needed: difficulty.prerequisites || [],
     };
   }
 
@@ -282,20 +292,20 @@ class DataTransformer {
    */
   static transformEstimatedTimeToSchema(estTime) {
     const transformed = {
-      factors_affecting_time: estTime.factors || []
+      factors_affecting_time: estTime.factors || [],
     };
 
     if (estTime.min || (estTime.value && estTime.unit)) {
       transformed.min_time = {
         amount: estTime.min?.value || estTime.value,
-        unit: estTime.min?.unit || estTime.unit
+        unit: estTime.min?.unit || estTime.unit,
       };
     }
 
     if (estTime.max) {
       transformed.max_time = {
         amount: estTime.max.value,
-        unit: estTime.max.unit
+        unit: estTime.max.unit,
       };
     }
 
@@ -306,11 +316,11 @@ class DataTransformer {
    * Transforms resource links from UI format back to schema format
    */
   static transformResourceLinksToSchema(links) {
-    return links.map(link => ({
+    return links.map((link) => ({
       display_text: link.display_text,
       url: link.url || link.link, // Handle both 'url' and 'link' properties
       type: link.type,
-      is_essential: link.is_essential
+      is_essential: link.is_essential,
     }));
   }
 
@@ -318,8 +328,8 @@ class DataTransformer {
    * Validates that data can be safely transformed
    */
   static canTransform(data) {
-    if (!data || typeof data !== 'object') return false;
-    
+    if (!data || typeof data !== "object") return false;
+
     // Check for basic required structure
     return data.title !== undefined || data.roadmap !== undefined;
   }
