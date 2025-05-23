@@ -21,21 +21,32 @@
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-in-out;
+  }
+
   /* Enhanced dependency navigation highlight effect */
   .dependency-highlight {
-    @apply ring-4 ring-blue-500 ring-opacity-90 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/50 dark:to-indigo-900/50;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
+      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1) !important;
+    background: linear-gradient(
+      to right,
+      rgb(239 246 255),
+      rgb(238 242 255)
+    ) !important;
     animation: dependency-highlight-pulse 2s ease-in-out !important;
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
-      inset 0 0 20px rgba(59, 130, 246, 0.1) !important;
     transform: scale(1.03) !important;
     z-index: 20 !important;
     position: relative !important;
     border: 3px solid transparent !important;
     background-clip: padding-box !important;
+  }
+
+  .dark .dependency-highlight {
     background: linear-gradient(
-      135deg,
-      rgba(59, 130, 246, 0.1),
-      rgba(99, 102, 241, 0.1)
+      to right,
+      rgba(30, 58, 138, 0.5),
+      rgba(49, 46, 129, 0.5)
     ) !important;
   }
 
@@ -80,10 +91,15 @@
 
   /* Enhanced task title highlighting during navigation */
   .dependency-highlight .task-title-highlight {
-    @apply text-blue-700 dark:text-blue-300 font-bold;
+    color: rgb(29 78 216);
+    font-weight: 700;
     animation: dependency-title-glow 1s ease-in-out infinite alternate;
     text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
     position: relative;
+  }
+
+  .dark .dependency-highlight .task-title-highlight {
+    color: rgb(147 197 253);
   }
 
   .dependency-highlight .task-title-highlight::before {
@@ -93,10 +109,15 @@
 
   /* Active title state for enhanced visibility */
   .dependency-title-active {
-    @apply text-blue-700 dark:text-blue-300 font-bold;
+    color: rgb(29 78 216);
+    font-weight: 700;
     animation: dependency-title-glow 1s ease-in-out infinite alternate;
     text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
     position: relative;
+  }
+
+  .dark .dependency-title-active {
+    color: rgb(147 197 253);
   }
 
   .dependency-title-active::before {
@@ -124,35 +145,41 @@
   }
 }
 
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes dependency-highlight-pulse {
   0% {
-    @apply ring-4 ring-blue-500 ring-opacity-90;
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
-      inset 0 0 20px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
+      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1);
     transform: scale(1.03);
   }
   25% {
-    @apply ring-6 ring-blue-400 ring-opacity-95;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
-      inset 0 0 25px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.95),
+      0 0 40px rgba(59, 130, 246, 0.8), inset 0 0 25px rgba(59, 130, 246, 0.15);
     transform: scale(1.035);
   }
   50% {
-    @apply ring-8 ring-blue-300 ring-opacity-100;
-    box-shadow: 0 0 50px rgba(59, 130, 246, 1),
+    box-shadow: 0 0 0 8px rgba(147, 197, 253, 1), 0 0 50px rgba(59, 130, 246, 1),
       inset 0 0 30px rgba(59, 130, 246, 0.2);
     transform: scale(1.04);
   }
   75% {
-    @apply ring-6 ring-blue-400 ring-opacity-95;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8),
-      inset 0 0 25px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.95),
+      0 0 40px rgba(59, 130, 246, 0.8), inset 0 0 25px rgba(59, 130, 246, 0.15);
     transform: scale(1.035);
   }
   100% {
-    @apply ring-4 ring-blue-500 ring-opacity-90;
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6),
-      inset 0 0 20px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
+      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1);
     transform: scale(1.03);
   }
 }
