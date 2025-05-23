@@ -1,0 +1,319 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "project_level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced",
+        "expert"
+      ]
+    },
+    "roadmap": {
+      "type": "object",
+      "properties": {
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase_id": {
+                "type": "string"
+              },
+              "phase_title": {
+                "type": "string"
+              },
+              "phase_dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "phase_summary": {
+                "type": "string"
+              },
+              "phase_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "key_milestones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "succes_indicators": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "phase_tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "task_title": {
+                      "type": "string"
+                    },
+                    "task_summary": {
+                      "type": "string"
+                    },
+                    "task_detail": {
+                      "type": "object",
+                      "properties": {
+                        "explanation": {
+                          "type": "string"
+                        },
+                        "difficulty": {
+                          "type": "object",
+                          "properties": {
+                            "level": {
+                              "type": "string",
+                              "enum": [
+                                "very_easy",
+                                "easy",
+                                "normal",
+                                "difficult",
+                                "challenging"
+                              ]
+                            },
+                            "reason_of_difficulty": {
+                              "type": "string"
+                            },
+                            "prerequisites_needed": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "level",
+                            "reason_of_difficulty",
+                            "prerequisites_needed"
+                          ]
+                        },
+                        "est_time": {
+                          "type": "object",
+                          "properties": {
+                            "min_time": {
+                              "type": "object",
+                              "properties": {
+                                "amount": {
+                                  "type": "number"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days",
+                                    "weeks"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "amount",
+                                "unit"
+                              ]
+                            },
+                            "max_time": {
+                              "type": "object",
+                              "properties": {
+                                "amount": {
+                                  "type": "number"
+                                },
+                                "unit": {
+                                  "type": "string",
+                                  "enum": [
+                                    "minutes",
+                                    "hours",
+                                    "days",
+                                    "weeks"
+                                  ]
+                                }
+                              }
+                            },
+                            "factors_affecting_time": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "min_time"
+                          ]
+                        },
+                        "code_blocks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              },
+                              "language": {
+                                "type": "string"
+                              },
+                              "explanation": {
+                                "type": "string"
+                              },
+                              "complexity": {
+                                "type": "string",
+                                "enum": [
+                                  "basic",
+                                  "intermediate",
+                                  "advanced"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "code",
+                              "language",
+                              "explanation",
+                              "complexity"
+                            ]
+                          }
+                        },
+                        "resource_links": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "display_text": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "document",
+                                  "tutorial",
+                                  "video",
+                                  "article",
+                                  "tool",
+                                  "reference",
+                                  "example",
+                                  "course"
+                                ]
+                              },
+                              "is_essential": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "display_text",
+                              "url",
+                              "type",
+                              "is_essential"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "explanation",
+                        "difficulty",
+                        "est_time",
+                        "resource_links"
+                      ]
+                    },
+                    "task_dependencies": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "phase_id": {
+                            "type": "string"
+                          },
+                          "task_id": {
+                            "type": "string"
+                          },
+                          "dependency_type": {
+                            "type": "string",
+                            "enum": [
+                              "required",
+                              "recommended",
+                              "optional"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "phase_id",
+                          "task_id",
+                          "dependency_type"
+                        ]
+                      }
+                    },
+                    "task_tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "task_priority": {
+                      "type": "string",
+                      "enum": [
+                        "low",
+                        "mid",
+                        "high",
+                        "critical"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "task_id",
+                    "task_title",
+                    "task_summary",
+                    "task_detail",
+                    "task_dependencies"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "phase_id",
+              "phase_title",
+              "phase_dependencies",
+              "phase_summary",
+              "phase_details",
+              "key_milestones",
+              "phase_tasks"
+            ]
+          }
+        }
+      },
+      "required": [
+        "phases"
+      ]
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "tags",
+    "project_level",
+    "roadmap"
+  ]
+}
