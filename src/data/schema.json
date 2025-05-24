@@ -151,7 +151,11 @@
                                     "weeks"
                                   ]
                                 }
-                              }
+                              },
+                              "required": [
+                                "amount",
+                                "unit"
+                              ]
                             },
                             "factors_affecting_time": {
                               "type": "array",
@@ -161,7 +165,9 @@
                             }
                           },
                           "required": [
-                            "min_time"
+                            "min_time",
+                            "max_time",
+                            "factors_affecting_time"
                           ]
                         },
                         "code_blocks": {
@@ -236,6 +242,7 @@
                         "explanation",
                         "difficulty",
                         "est_time",
+                        "code_blocks",
                         "resource_links"
                       ]
                     },
@@ -287,7 +294,9 @@
                     "task_title",
                     "task_summary",
                     "task_detail",
-                    "task_dependencies"
+                    "task_dependencies",
+                    "task_tags",
+                    "task_priority"
                   ]
                 }
               }
@@ -299,6 +308,7 @@
               "phase_summary",
               "phase_details",
               "key_milestones",
+              "succes_indicators",
               "phase_tasks"
             ]
           }
