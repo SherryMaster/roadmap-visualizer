@@ -1,0 +1,1116 @@
+{
+  "description": "A comprehensive Godot project architecture for developing a top-down tank combat game featuring a highly modular weapons and vehicle system, designed for scalability and maintainability, covering single-player and multiplayer considerations.",
+  "project_level": "advanced",
+  "roadmap": {
+    "phases": [
+      {
+        "key_milestones": [
+          "Base Tank scene and movement functional.",
+          "Base Weapon scene capable of firing a simple projectile.",
+          "Base Projectile scene with basic collision and impact.",
+          "Initial Resource structures for WeaponData and HullData defined."
+        ],
+        "phase_dependencies": [],
+        "phase_details": [
+          "This phase focuses on establishing the foundational building blocks for all game entities. The goal is to have minimal, working prototypes of a tank, a weapon, and a projectile to validate core concepts before building out complexity."
+        ],
+        "phase_id": "P1_CORE_PROTOTYPING",
+        "phase_summary": "Establish core entity structures (Tank, Weapon, Projectile) and basic interactions.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# Tank.gd (extends CharacterBody2D)\nfunc _physics_process(delta):\n    var direction = Input.get_vector(\"left\", \"right\", \"up\", \"down\")\n    velocity = direction * speed\n    move_and_slide()",
+                  "complexity": "basic",
+                  "explanation": "Basic top-down movement script for the tank.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "easy",
+                "prerequisites_needed": ["Basic Godot knowledge (scenes, nodes, GDScript)"],
+                "reason_of_difficulty": "Standard Godot movement implementation."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Familiarity with Godot's physics bodies and input system"],
+                "max_time": {
+                  "amount": 8,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 3,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Create a base scene for the tank (e.g., `Tank.tscn`) likely using CharacterBody2D. Implement basic movement logic (e.g., 4-directional or 8-directional) and rotation. Define placeholder graphics.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: CharacterBody2D",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_characterbody2d.html"
+                }
+              ]
+            },
+            "task_id": "T1.1_BASE_TANK",
+            "task_priority": "critical",
+            "task_summary": "Develop the base tank scene with movement.",
+            "task_tags": ["tank", "movement", "scene_setup"],
+            "task_title": "Base Tank Implementation"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# BaseWeapon.gd (extends Node2D)\nsignal fired\nexport var projectile_scene: PackedScene\nexport var fire_rate: float = 1.0\nvar can_fire = true\n\nfunc _process(delta):\n    if Input.is_action_pressed(\"fire\") and can_fire:\n        fire()\n\nfunc fire():\n    if not projectile_scene or not can_fire: return\n    var projectile_instance = projectile_scene.instantiate()\n    get_parent().add_child(projectile_instance) # Or get_tree().root.add_child for global projectiles\n    projectile_instance.global_position = global_position # Or a FiringPoint's global_position\n    projectile_instance.rotation = global_rotation\n    emit_signal(\"fired\")\n    can_fire = false\n    await get_tree().create_timer(fire_rate).timeout\n    can_fire = true",
+                  "complexity": "intermediate",
+                  "explanation": "Basic weapon script to instantiate and fire a projectile scene. Includes a simple fire rate mechanism.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Understanding scene instancing", "Timers", "Signals"],
+                "reason_of_difficulty": "Involves scene instancing and basic state management for fire rate."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of initial projectile scene"],
+                "max_time": {
+                  "amount": 10,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Create a `BaseWeapon.tscn` and `BaseWeapon.gd`. Implement logic to instantiate and launch a projectile. For now, this can be a simple scene with a sprite. Define a `fire()` method and a basic fire rate mechanism. Use a `Marker2D` as a FiringPoint child node.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Instancing Scenes",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/getting_started/step_by_step/instancing.html"
+                }
+              ]
+            },
+            "task_id": "T1.2_BASE_WEAPON",
+            "task_priority": "critical",
+            "task_summary": "Develop the base weapon scene with firing logic.",
+            "task_tags": ["weapon", "projectile", "instancing"],
+            "task_title": "Base Weapon Implementation"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# BaseProjectile.gd (extends Area2D)\nsignal impacted(body)\nexport var speed: float = 500.0\nexport var lifetime: float = 3.0\n\nfunc _ready():\n    set_process(true)\n    set_physics_process(true)\n    monitoring = true # For area_entered\n    var timer = Timer.new()\n    timer.wait_time = lifetime\n    timer.one_shot = true\n    timer.timeout.connect(queue_free)\n    add_child(timer)\n    timer.start()\n\nfunc _physics_process(delta):\n    global_position += transform.x * speed * delta\n\nfunc _on_area_entered(area): # or _on_body_entered for RigidBody2D/CharacterBody2D\n    emit_signal(\"impacted\", area)\n    queue_free() # Destroy on impact",
+                  "complexity": "basic",
+                  "explanation": "Basic projectile script controlling movement, lifetime, and collision detection (using Area2D).",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Area2D/RigidBody2D usage", "Collision detection", "Timers"],
+                "reason_of_difficulty": "Involves physics movement and collision handling."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Choice of collision body"],
+                "max_time": {
+                  "amount": 8,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 3,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Create a `BaseProjectile.tscn` (e.g., using Area2D or RigidBody2D) and `BaseProjectile.gd`. Implement straight-line movement, a lifetime timer, and basic collision detection that destroys the projectile on impact. Emit an `impacted` signal.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Area2D",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_area2d.html"
+                }
+              ]
+            },
+            "task_id": "T1.3_BASE_PROJECTILE",
+            "task_priority": "critical",
+            "task_summary": "Develop the base projectile scene with movement and impact.",
+            "task_tags": ["projectile", "collision", "lifetime"],
+            "task_title": "Base Projectile Implementation"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# WeaponData.gd\nclass_name WeaponData extends Resource\nexport var damage: float = 10.0\nexport var fire_rate: float = 0.5\nexport var projectile_scene: PackedScene\n\n# HullData.gd\nclass_name HullData extends Resource\nexport var max_health: float = 100.0\nexport var move_speed: float = 200.0",
+                  "complexity": "basic",
+                  "explanation": "Initial structures for custom Resource types to hold weapon and hull statistics.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "easy",
+                "prerequisites_needed": ["Understanding Godot Resources"],
+                "reason_of_difficulty": "Simple script definitions."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of initial properties to define"],
+                "max_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Define initial GDScript files for custom Resources (e.g., `WeaponData.gd`, `HullData.gd`). These will store configurable stats for weapons and tank hulls. Populate them with a few basic properties. Create sample `.tres` files.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Resources",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/getting_started/step_by_step/resources.html"
+                }
+              ]
+            },
+            "task_id": "T1.4_RESOURCE_STRUCTURES",
+            "task_priority": "high",
+            "task_summary": "Define initial WeaponData and HullData resource scripts.",
+            "task_tags": ["resource", "data_management", "configuration"],
+            "task_title": "Initial Data Resource Structures"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                 {
+                  "code": "# Tank.tscn structure:\n# Tank (CharacterBody2D)\n#  |- HullSprite (Sprite2D)\n#  |- CollisionShape2D\n#  |- MovementComponent (Node, script for T1.1)\n#  |- WeaponMountPoint (Node2D)\n#  |  |- BaseWeapon (Instance of T1.2 BaseWeapon.tscn)\n#  |  |  |- FiringPoint (Marker2D)",
+                  "complexity": "basic",
+                  "explanation": "Illustrates a basic scene tree for the tank, incorporating the weapon.",
+                  "language": "SceneTree"
+                }
+              ],
+              "difficulty": {
+                 "level": "easy",
+                 "prerequisites_needed": ["Godot editor basics"],
+                 "reason_of_difficulty": "Primarily editor work assembling pre-defined scenes."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Clarity of desired structure"],
+                "max_time": {
+                  "amount": 3,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Organize the scenes created (`Tank.tscn`, `BaseWeapon.tscn`, `BaseProjectile.tscn`) into a coherent hierarchy. The Tank should be able to hold and trigger the BaseWeapon. Projectiles should be instanced relative to a `FiringPoint` on the weapon. Use parameterized scenes for now; specific weapon/hull types will come later. Effects (muzzle flash, impact) can be placeholder simple scenes (e.g., a `Sprite2D` that quickly fades) instanced by weapon/projectile.",
+              "resource_links": [
+                 {
+                  "display_text": "Godot Docs: SceneTree",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/getting_started/step_by_step/scene_tree.html"
+                }
+              ]
+            },
+            "task_id": "T1.5_SCENE_ORGANIZATION_AND_COMPOSITION",
+            "task_priority": "high",
+            "task_summary": "Define and implement initial scene organization and composition.",
+            "task_tags": ["scene_organization", "composition", "prototyping"],
+            "task_title": "Initial Scene Organization"
+          }
+        ],
+        "phase_title": "Core Entity Definition & Prototyping",
+        "succes_indicators": [
+          "Player can control a tank that moves on screen.",
+          "Tank can fire a weapon, instantiating a projectile.",
+          "Projectile moves and disappears on impact or after a set time.",
+          "Basic stats for weapons/hulls can be modified via Resource files."
+        ]
+      },
+      {
+        "key_milestones": [
+          "WeaponData and HullData resources are comprehensive.",
+          "Multiple weapon types (melee, charged, burst) implemented.",
+          "Multiple projectile types (homing, nested) prototyped.",
+          "Tank hull system supports different stats and visual appearances.",
+          "Weapon mount points on tanks are functional."
+        ],
+        "phase_dependencies": ["P1_CORE_PROTOTYPING"],
+        "phase_details": [
+          "This phase expands on the prototypes by implementing the modular systems. This involves fleshing out the Resource-driven configuration, creating more specialized weapon and projectile behaviors, and establishing the tank chassis and weapon mounting system."
+        ],
+        "phase_id": "P2_MODULAR_SYSTEMS",
+        "phase_summary": "Implement modular weapon, projectile, and hull systems driven by Resource files.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P1_CORE_PROTOTYPING", "task_id": "T1.4_RESOURCE_STRUCTURES"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# WeaponData.gd (expanded)\nclass_name WeaponData extends Resource\n# ... (previous properties)\nexport_enum(\"SingleShot\", \"Charged\", \"Burst\") var fire_mode = \"SingleShot\"\nexport var charge_time_needed: float = 1.0 # For charged\nexport var burst_count: int = 3 # For burst\nexport var burst_delay: float = 0.1 # For burst\nexport var melee_hitbox_size: Vector2 # For melee\nexport var melee_hitbox_shape: Resource # CollisionShape2D for melee\nexport var muzzle_flash_scene: PackedScene\nexport var projectile_spawn_points: Array[Vector2] = [Vector2.ZERO] # Relative to weapon node\n\n# HullData.gd (expanded)\nclass_name HullData extends Resource\n# ... (previous properties)\nexport var armor_value: float = 10.0\nexport var hull_visual_scene: PackedScene\nexport var weapon_mounts: Array[MountPointData] # MountPointData is another Resource\n# MountPointData.gd\nclass_name MountPointData extends Resource\nexport var position_offset: Vector2\nexport_enum(\"Any\", \"Light\", \"Heavy\") var mount_type = \"Any\"\nexport var allowed_weapon_tags: Array[String]\nexport var default_rotation_limits: Vector2 # Min/Max angle in degrees",
+                  "complexity": "intermediate",
+                  "explanation": "Expanded resource definitions for weapons and hulls, including mount point data.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["P1_CORE_PROTOTYPING completed"],
+                "reason_of_difficulty": "Requires careful planning of all necessary configurable parameters."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of distinct stats and behaviors to support"],
+                "max_time": {
+                  "amount": 16,
+                  "unit": "hours"
+                },
+                "min_time": {
+                  "amount": 6,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Expand `WeaponData.gd` and `HullData.gd` to include all configurable parameters identified in the project description (e.g., firing behaviors, projectile properties, hull stats, mount points). Create a new `MountPointData.gd` resource. Create example `.tres` files for various weapon and hull types.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Exporting properties",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/getting_started/scripting/gdscript/gdscript_exports.html"
+                }
+              ]
+            },
+            "task_id": "T2.1_EXPAND_RESOURCES",
+            "task_priority": "critical",
+            "task_summary": "Flesh out WeaponData, HullData, and MountPointData resources.",
+            "task_tags": ["resource", "data_management", "configuration"],
+            "task_title": "Comprehensive Data Resource Definition"
+          },
+          {
+            "task_dependencies": [
+                {"dependency_type": "required", "phase_id": "P1_CORE_PROTOTYPING", "task_id": "T1.2_BASE_WEAPON"},
+                {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.1_EXPAND_RESOURCES"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# BaseWeapon.gd (modified for different fire modes)\nexport var weapon_data: WeaponData\n# ...\nfunc fire():\n    if not weapon_data or not weapon_data.projectile_scene: return\n    if not can_fire: return\n\n    match weapon_data.fire_mode:\n        \"SingleShot\": _fire_single_shot()\n        \"Charged\": _handle_charge_shot()\n        \"Burst\": _fire_burst()\n        # \"Melee\" would be handled differently, perhaps on a separate timer or input\n\n    emit_signal(\"fired\")\n    can_fire = false\n    # Cooldown logic might need adjustment based on fire mode\n    await get_tree().create_timer(weapon_data.fire_rate).timeout\n    can_fire = true\n\nfunc _fire_single_shot():\n    _spawn_projectiles(weapon_data.projectile_spawn_points)\n\nvar is_charging = false\nvar current_charge_time = 0.0\nfunc _handle_charge_shot(): # Called in _process or via input action state\n    if Input.is_action_just_pressed(\"fire\"):\n        is_charging = true\n        current_charge_time = 0.0\n    elif Input.is_action_pressed(\"fire\") and is_charging:\n        current_charge_time += get_process_delta_time()\n        # Update charge VFX\n    elif Input.is_action_just_released(\"fire\") and is_charging:\n        is_charging = false\n        if current_charge_time >= weapon_data.charge_time_needed:\n            _spawn_projectiles(weapon_data.projectile_spawn_points) # Potentially with modified damage/speed\n        current_charge_time = 0.0\n\nfunc _fire_burst():\n    for i in range(weapon_data.burst_count):\n        _spawn_projectiles(weapon_data.projectile_spawn_points)\n        if i < weapon_data.burst_count - 1:\n            await get_tree().create_timer(weapon_data.burst_delay).timeout\n\nfunc _spawn_projectiles(spawn_points_offsets: Array[Vector2]):\n    for offset in spawn_points_offsets:\n        var projectile_instance = weapon_data.projectile_scene.instantiate()\n        # Position projectile relative to weapon + offset\n        var spawn_pos_node = Marker2D.new() # Or use pre-defined Marker2Ds\n        spawn_pos_node.position = offset\n        add_child(spawn_pos_node) # Temporary for transform calculation\n        projectile_instance.global_position = spawn_pos_node.global_position\n        projectile_instance.global_rotation = global_rotation # Or specific firing point rotation\n        get_tree().root.add_child(projectile_instance) # Add to main scene tree\n        # projectile_instance.init(weapon_data) # Pass data if needed\n        remove_child(spawn_pos_node)\n        spawn_pos_node.queue_free()",
+                  "complexity": "advanced",
+                  "explanation": "Illustrates adapting BaseWeapon.gd to handle different fire modes (single, charged, burst) based on WeaponData. Melee would need separate logic, possibly using Area2D for hitbox detection.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "difficult",
+                "prerequisites_needed": ["Solid GDScript skills", "State management", "Timers"],
+                "reason_of_difficulty": "Requires implementing multiple distinct behaviors and managing their states cleanly within one system."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of fire modes", "Complexity of charge/burst logic"],
+                "max_time": {
+                  "amount": 3,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Enhance `BaseWeapon.gd` (or create derived scripts like `ChargedWeapon.gd`, `BurstWeapon.gd` if preferred) to support different firing behaviors (single shot, charged, burst, melee) based on properties in the `WeaponData` resource. Implement logic for multiple firing points. For melee, use an Area2D with a shape defined by `WeaponData` to detect hits.",
+              "resource_links": [
+                {
+                  "display_text": "GDScript Style Guide: Match statement",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html#match"
+                }
+              ]
+            },
+            "task_id": "T2.2_WEAPON_MECHANICS",
+            "task_priority": "critical",
+            "task_summary": "Implement varied weapon firing mechanics (single, charge, burst, melee).",
+            "task_tags": ["weapon", "game_mechanics", "scripting"],
+            "task_title": "Advanced Weapon Mechanics"
+          },
+          {
+            "task_dependencies": [
+                {"dependency_type": "required", "phase_id": "P1_CORE_PROTOTYPING", "task_id": "T1.3_BASE_PROJECTILE"},
+                {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.1_EXPAND_RESOURCES"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# HomingComponent.gd (Node attached to projectile)\nclass_name HomingComponent extends Node\nexport var target: Node2D\nexport var turn_rate: float = 2.0 # Radians per second\nvar projectile: Node2D # Set by parent projectile\n\nfunc _physics_process(delta):\n    if not is_instance_valid(target) or not is_instance_valid(projectile):\n        return\n    var direction_to_target = (target.global_position - projectile.global_position).normalized()\n    var current_direction = Vector2.RIGHT.rotated(projectile.global_rotation)\n    var new_direction = current_direction.slerp(direction_to_target, turn_rate * delta)\n    projectile.global_rotation = new_direction.angle()\n    # Projectile's main script still handles forward movement based on its new rotation.\n\n# BaseProjectile.gd (for nested projectiles)\nexport var sub_projectile_scene: PackedScene\nexport var spawn_sub_on_impact: bool = false\n\nfunc _on_impacted(body): # Or a timer timeout for cluster bombs\n    if spawn_sub_on_impact and sub_projectile_scene:\n        var sub_instance = sub_projectile_scene.instantiate()\n        get_tree().root.add_child(sub_instance)\n        sub_instance.global_position = global_position\n        # Potentially pass owner, target info, etc.\n    # queue_free() logic here",
+                  "complexity": "intermediate",
+                  "explanation": "Homing logic via a component and basic setup for nested projectiles.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "difficult",
+                "prerequisites_needed": ["Vector math", "Scene composition", "Component-based design understanding"],
+                "reason_of_difficulty": "Homing requires good vector math. Nested projectiles involve careful scene management."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Sophistication of homing AI", "Complexity of sub-projectile spawning logic"],
+                "max_time": {
+                  "amount": 2,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Develop different projectile types. Create a `HomingComponent.gd` that can be added to a projectile scene to make it seek targets. Implement logic for 'nested' projectiles that spawn sub-projectiles on launch or impact, configured via `ProjectileData` (a new resource if needed, or expand `WeaponData`'s projectile config). Ensure projectile properties (speed, lifetime, damage, collision layers) are configurable via resources.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Vector Math",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/math/vector_math.html"
+                }
+              ]
+            },
+            "task_id": "T2.3_PROJECTILE_TYPES",
+            "task_priority": "high",
+            "task_summary": "Implement homing missiles and nested projectiles.",
+            "task_tags": ["projectile", "homing", "nested_projectile", "component"],
+            "task_title": "Advanced Projectile Types"
+          },
+          {
+            "task_dependencies": [
+                {"dependency_type": "required", "phase_id": "P1_CORE_PROTOTYPING", "task_id": "T1.1_BASE_TANK"},
+                {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.1_EXPAND_RESOURCES"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# Tank.gd (modified)\nexport var hull_data: HullData\nvar current_health: float\n\n@onready var hull_visual_node = $HullVisual # Assuming a child node for visual representation\n@onready var weapon_mounts_parent = $WeaponMounts # Parent Node2D for mount points\n\nfunc _ready():\n    if hull_data:\n        current_health = hull_data.max_health\n        # Apply other stats like speed from hull_data\n        if hull_data.hull_visual_scene:\n            var visual_instance = hull_data.hull_visual_scene.instantiate()\n            hull_visual_node.add_child(visual_instance)\n        _setup_weapon_mounts()\n\nfunc _setup_weapon_mounts():\n    if not hull_data or not hull_data.weapon_mounts: return\n    for mount_data in hull_data.weapon_mounts:\n        var mount_node = Node2D.new() # Or a dedicated MountPoint.tscn scene\n        mount_node.name = \"Mount_\" + str(weapon_mounts_parent.get_child_count())\n        mount_node.position = mount_data.position_offset\n        # Store mount_data properties (type, limits) in the mount_node script or as metadata\n        weapon_mounts_parent.add_child(mount_node)\n        # Later, weapons will be equipped to these mount_nodes",
+                  "complexity": "intermediate",
+                  "explanation": "Tank script modified to use HullData for stats and visuals, and to dynamically create weapon mount points.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Scene instancing", "Resource usage"],
+                "reason_of_difficulty": "Managing dynamic scene composition based on resource data."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of visual variations", "Number of mount point properties"],
+                "max_time": {
+                  "amount": 2,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Refine the tank system. The `Tank.gd` script should load its properties (health, armor, speed, visual scene, weapon mount definitions) from a `HullData` resource. Implement dynamic creation of weapon mount points (`Node2D`s at specified offsets) based on `HullData`. Allow different visual appearances by instancing a hull-specific scene.",
+              "resource_links": []
+            },
+            "task_id": "T2.4_MODULAR_HULLS_MOUNTS",
+            "task_priority": "critical",
+            "task_summary": "Implement modular tank hulls and weapon mount points.",
+            "task_tags": ["tank", "hull", "weapon_mount", "modularity"],
+            "task_title": "Modular Hulls and Mounts"
+          },
+          {
+            "task_dependencies": [
+              {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.4_MODULAR_HULLS_MOUNTS"},
+              {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.2_WEAPON_MECHANICS"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# Tank.gd (weapon equipping logic - simplified)\nfunc equip_weapon(weapon_data: WeaponData, mount_index: int):\n    if mount_index >= weapon_mounts_parent.get_child_count(): return\n    var mount_node = weapon_mounts_parent.get_child(mount_index)\n    # Clear existing weapon if any\n    for child in mount_node.get_children(): child.queue_free()\n\n    # Check mount restrictions (e.g., mount_data.allowed_weapon_tags vs weapon_data.tags)\n    # For this example, assume BaseWeapon.tscn is used and configured by WeaponData\n    var weapon_instance = preload(\"res://BaseWeapon.tscn\").instantiate()\n    weapon_instance.weapon_data = weapon_data # Assign the resource\n    mount_node.add_child(weapon_instance)\n    # Potentially store equipped weapon reference",
+                  "complexity": "intermediate",
+                  "explanation": "Simplified logic for equipping a weapon (defined by WeaponData) to a specific mount point on the tank.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Understanding of previous systems"],
+                "reason_of_difficulty": "Integrating weapon instantiation with the mount point system."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of mount restrictions", "UI for weapon selection if any"],
+                "max_time": {
+                  "amount": 1,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Develop the system for attaching weapons (represented by `WeaponData` and their scenes) to the tank's weapon mount points. Ensure mount point restrictions (e.g., \"heavy mount only\") can be enforced.",
+              "resource_links": []
+            },
+            "task_id": "T2.5_WEAPON_EQUIPPING",
+            "task_priority": "high",
+            "task_summary": "Implement weapon equipping to tank mount points.",
+            "task_tags": ["weapon_mount", "equipping", "inventory_system_lite"],
+            "task_title": "Weapon Equipping System"
+          }
+        ],
+        "phase_title": "Modular System Implementation (Weapons & Hulls)",
+        "succes_indicators": [
+          "Different weapons can be created and configured purely through `WeaponData.tres` files.",
+          "Tanks can be configured with different stats, looks, and weapon mounts via `HullData.tres` files.",
+          "Charged shots, burst fire, and melee attacks are functional and distinct.",
+          "Homing projectiles can track targets; nested projectiles spawn sub-munitions.",
+          "Weapons can be attached to designated mount points on tanks."
+        ]
+      },
+      {
+        "key_milestones": [
+          "Player input system for movement, aiming, firing, and abilities is robust.",
+          "Basic enemy AI capable of pathfinding and attacking implemented.",
+          "Unified control interface allows both player and AI to control tanks.",
+          "AI-controlled turrets (non-player aiming) are functional."
+        ],
+        "phase_dependencies": ["P2_MODULAR_SYSTEMS"],
+        "phase_details": [
+          "This phase focuses on bringing the tanks to life with player controls and artificial intelligence. A key goal is to create a unified interface so that both player input and AI logic can drive tank actions without code duplication in the tank's core systems."
+        ],
+        "phase_id": "P3_AI_CONTROL",
+        "phase_summary": "Develop player control systems and basic AI for enemy tanks.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.4_MODULAR_HULLS_MOUNTS"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# PlayerController.gd (Node, potentially child of Tank or a global manager)\nvar controlled_tank: Tank # Assign this reference\n\nfunc _process(delta):\n    if not is_instance_valid(controlled_tank): return\n\n    # Movement input (already in Tank.gd, but could be centralized here)\n    var move_input = Input.get_vector(\"left\", \"right\", \"up\", \"down\")\n    controlled_tank.set_movement_input(move_input)\n\n    # Aiming input\n    var aim_direction = controlled_tank.get_global_mouse_position() - controlled_tank.global_position\n    controlled_tank.set_aim_direction(aim_direction.normalized()) # For player-controlled mounts\n\n    # Firing input\n    if Input.is_action_pressed(\"fire_primary\"):\n        controlled_tank.fire_weapon_slot(0) # Assuming slot 0 is primary\n    if Input.is_action_just_pressed(\"activate_ability\"):\n        controlled_tank.activate_ability()\n\n# Tank.gd would have methods like:\n# func set_movement_input(input_vector: Vector2): ...\n# func set_aim_direction(direction: Vector2): ... (updates aimable weapon mounts)\n# func fire_weapon_slot(slot_index: int): ...\n# func activate_ability(): ...",
+                  "complexity": "intermediate",
+                  "explanation": "Player controller script handling input and calling methods on the controlled tank. Tank script exposes control methods.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Godot InputEvent system", "Clear separation of concerns"],
+                "reason_of_difficulty": "Designing a clean interface between input handling and tank actions."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of control scheme", "Number of actions to map"],
+                "max_time": {
+                  "amount": 2,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Implement a robust player input handling system. This could be a dedicated `PlayerController.gd` script that reads inputs and calls methods on the player's `Tank` instance (e.g., `tank.move(direction)`, `tank.aim_at(target_pos)`, `tank.fire_weapon(mount_index)`, `tank.activate_ability()`). This decouples input logic from tank logic.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: InputEvent",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_inputevent.html"
+                },
+                {
+                  "display_text": "Godot Docs: InputMap",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/inputs/inputevent.html"
+                }
+              ]
+            },
+            "task_id": "T3.1_PLAYER_INPUT",
+            "task_priority": "critical",
+            "task_summary": "Implement player input for tank controls.",
+            "task_tags": ["input", "player_control", "gameplay"],
+            "task_title": "Player Input System"
+          },
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P3_AI_CONTROL", "task_id": "T3.1_PLAYER_INPUT"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# AIController.gd (Node, attached to an AI Tank)\nvar controlled_tank: Tank\nvar current_target: Node2D\n# Pathfinding agent (e.g., NavigationAgent2D)\n@onready var nav_agent = $NavigationAgent2D \n\nfunc _ready():\n    controlled_tank = get_parent() # Assuming AIController is child of Tank\n    # Set target for nav_agent (e.g., player tank)\n    # nav_agent.target_position = current_target.global_position\n\nfunc _physics_process(delta):\n    if not is_instance_valid(controlled_tank) or not is_instance_valid(current_target):\n        # Find new target or idle\n        return\n\n    # Pathfinding and Movement\n    # nav_agent.target_position = current_target.global_position\n    # var next_path_pos = nav_agent.get_next_path_position()\n    # var move_input = (next_path_pos - controlled_tank.global_position).normalized()\n    # controlled_tank.set_movement_input(move_input)\n\n    # Aiming\n    var aim_direction = (current_target.global_position - controlled_tank.global_position).normalized()\n    controlled_tank.set_aim_direction(aim_direction)\n\n    # Firing Logic (e.g., if target in range and line of sight)\n    if _can_fire_at_target():\n        controlled_tank.fire_weapon_slot(0)\n\nfunc _can_fire_at_target() -> bool:\n    # Implement line of sight, range checks, etc.\n    return true",
+                  "complexity": "advanced",
+                  "explanation": "Basic AI controller script using the same tank interface as the player. Includes placeholder for pathfinding.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "difficult",
+                "prerequisites_needed": ["Pathfinding (NavigationServer)", "Basic AI concepts (state machines, behavior trees)"],
+                "reason_of_difficulty": "AI logic can be complex. Pathfinding setup requires understanding NavigationServer2D/3D."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Sophistication of AI behavior", "Complexity of pathfinding requirements"],
+                "max_time": {
+                  "amount": 5,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 2,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Develop basic enemy AI. This includes pathfinding (e.g., using `NavigationAgent2D`), target selection, and basic combat behavior (moving towards/away from player, firing). The AI controller script should use the same tank control interface defined in T3.1 (`tank.move()`, `tank.fire_weapon()`, etc.). Implement different aggression levels if desired.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Navigation",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/navigation/index.html"
+                },
+                {
+                  "display_text": "KidCanCode: Godot AI Series (General AI Concepts)",
+                  "is_essential": false,
+                  "type": "tutorial",
+                  "url": "https://kidscancode.org/godot_recipes/ai/"
+                }
+              ]
+            },
+            "task_id": "T3.2_ENEMY_AI",
+            "task_priority": "critical",
+            "task_summary": "Implement basic enemy AI with pathfinding and combat.",
+            "task_tags": ["ai", "enemy_behavior", "pathfinding"],
+            "task_title": "Enemy AI Implementation"
+          },
+          {
+            "task_dependencies": [
+                {"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.4_MODULAR_HULLS_MOUNTS"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# WeaponMount.gd (Script on the mount point Node2D)\nexport var is_ai_controlled: bool = false\nexport var ai_target_tag: String = \"Player\" # Tag to auto-target\nvar weapon_node: Node2D # Reference to the equipped weapon\n\nfunc _process(delta):\n    if is_ai_controlled and is_instance_valid(weapon_node):\n        var target = _find_closest_target_with_tag(ai_target_tag)\n        if is_instance_valid(target):\n            var direction_to_target = (target.global_position - global_position).normalized()\n            # Aim the mount (or tell weapon to aim if it has its own rotation logic)\n            global_rotation = direction_to_target.angle()\n            # Potentially tell weapon to fire if conditions met (e.g., target in range, LoS)\n            # weapon_node.try_fire() # Weapon would need a try_fire method that respects its own cooldown\n\nfunc _find_closest_target_with_tag(tag: String) -> Node2D:\n    # Logic to find the closest node in a group or with a certain property\n    var targets = get_tree().get_nodes_in_group(tag)\n    var closest_target: Node2D = null\n    var min_dist_sq = INF\n    for t in targets:\n        if t is Node2D:\n            var dist_sq = global_position.distance_squared_to(t.global_position)\n            if dist_sq < min_dist_sq:\n                min_dist_sq = dist_sq\n                closest_target = t\n    return closest_target",
+                  "complexity": "intermediate",
+                  "explanation": "Script for a weapon mount that can be AI-controlled (auto-turret). It finds and aims at targets independently.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Target acquisition logic", "Group usage in Godot"],
+                "reason_of_difficulty": "Implementing reliable target finding and aiming logic for autonomous turrets."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of target filtering and prioritization"],
+                "max_time": {
+                  "amount": 1,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Implement AI control for specific weapon mounts (auto-turrets). These mounts should be able to aim and fire independently of the main tank controller. The `WeaponMountData` resource might need a flag for `is_auto_turret` and target acquisition parameters.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Groups",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/getting_started/step_by_step/groups.html"
+                }
+              ]
+            },
+            "task_id": "T3.3_AI_TURRETS",
+            "task_priority": "mid",
+            "task_summary": "Implement AI-controlled auto-turrets.",
+            "task_tags": ["ai", "turret", "weapon_mount"],
+            "task_title": "AI-Controlled Turrets"
+          }
+        ],
+        "phase_title": "AI and Control Systems",
+        "succes_indicators": [
+          "Player can fully control their tank: move, aim all controllable weapons, fire, and use abilities.",
+          "Enemy tanks navigate the game world and engage the player or other targets.",
+          "The same tank control methods are used by both player input and AI logic.",
+          "Auto-turrets on tanks can independently acquire and fire at targets."
+        ]
+      },
+      {
+        "key_milestones": [
+          "Special hull abilities (e.g., speed boost, self-repair) are implemented.",
+          "Visual effects (muzzle flash, explosions, trails) are polished and integrated.",
+          "Audio effects for weapons, impacts, and abilities are in place.",
+          "An effects management system (e.g., pooling) is considered or implemented."
+        ],
+        "phase_dependencies": ["P2_MODULAR_SYSTEMS"],
+        "phase_details": [
+          "This phase adds layers of polish and more complex gameplay mechanics, such as hull-specific special abilities and rich visual/audio feedback. Efficient management of effects becomes important here."
+        ],
+        "phase_id": "P4_ADVANCED_FX_ABILITIES",
+        "phase_summary": "Implement special hull abilities and enhance visual/audio effects.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.4_MODULAR_HULLS_MOUNTS"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# BaseAbility.gd (Resource or Node script)\nclass_name BaseAbility extends Resource # Or Node if it needs _process\nexport var cooldown: float = 10.0\nvar is_on_cooldown: bool = false\nvar host_tank: Tank # Set when ability is equipped/initialized\n\nfunc activate():\n    if is_on_cooldown or not is_instance_valid(host_tank): return false\n    print(\"Ability activated!\")\n    _perform_ability_action()\n    is_on_cooldown = true\n    # Use a Timer node within the Tank or AbilityComponent to handle cooldown\n    # host_tank.start_ability_cooldown_timer(self, cooldown)\n    return true\n\nfunc _perform_ability_action():\n    # Specific ability logic here. Overridden by derived abilities.\n    pass\n\n# SpeedBoostAbility.gd (extends BaseAbility)\nclass_name SpeedBoostAbility extends BaseAbility\nexport var speed_multiplier: float = 1.5\nexport var duration: float = 3.0\n\nfunc _perform_ability_action():\n    var original_speed = host_tank.hull_data.move_speed # Assuming base speed is stored\n    host_tank.current_move_speed = original_speed * speed_multiplier\n    # Start a timer to revert speed\n    var timer = host_tank.get_tree().create_timer(duration)\n    timer.timeout.connect(func(): host_tank.current_move_speed = original_speed)\n\n# Tank.gd would have:\n# var ability_component: AbilityComponent # A child node to manage abilities\n# func activate_ability(): ability_component.try_activate_main_ability()",
+                  "complexity": "intermediate",
+                  "explanation": "System for abilities defined as Resources or component scripts. Tank has an AbilityComponent to manage and trigger them.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Resource system", "Timers", "Potentially state machines for complex abilities"],
+                "reason_of_difficulty": "Designing a flexible ability system that can be easily extended."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number and complexity of abilities"],
+                "max_time": {
+                  "amount": 3,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Implement special abilities for tank hulls (e.g., speed boost, self-repair, temporary shield, hull-integrated weapon). These can be defined as separate `AbilityData` resources or component scenes/scripts, associated with `HullData`. The `Tank` script will need a way to trigger these abilities, manage cooldowns, and apply their effects.",
+              "resource_links": []
+            },
+            "task_id": "T4.1_HULL_ABILITIES",
+            "task_priority": "high",
+            "task_summary": "Implement special hull abilities.",
+            "task_tags": ["abilities", "game_mechanics", "tank"],
+            "task_title": "Hull Special Abilities"
+          },
+          {
+            "task_dependencies": [
+                {"dependency_type": "recommended", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.2_WEAPON_MECHANICS"},
+                {"dependency_type": "recommended", "phase_id": "P2_MODULAR_SYSTEMS", "task_id": "T2.3_PROJECTILE_TYPES"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# MuzzleFlash.tscn (AnimatedSprite2D + optional Light2D, AudioStreamPlayer2D)\n# Explosion.tscn (AnimatedSprite2D, CPUParticles2D, AudioStreamPlayer2D)\n\n# Weapon.gd - spawning muzzle flash\n# export var muzzle_flash_scene: PackedScene\n# func _fire_single_shot():\n#     # ... spawn projectile ...\n#     if muzzle_flash_scene:\n#         var flash = muzzle_flash_scene.instantiate()\n#         # Add to a specific FiringPoint or weapon's visual node\n#         $FiringPoint.add_child(flash) # Flash scene should probably queue_free itself after animation\n\n# Projectile.gd - spawning impact effect\n# export var impact_effect_scene: PackedScene\n# func _on_impacted(body):\n#     if impact_effect_scene:\n#         var impact_fx = impact_effect_scene.instantiate()\n#         get_tree().root.add_child(impact_fx) # Add to world space\n#         impact_fx.global_position = global_position\n    # queue_free()",
+                  "complexity": "intermediate",
+                  "explanation": "Effects are separate scenes instanced by weapons/projectiles. Effect scenes manage their own lifecycle.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["AnimationPlayer/AnimatedSprite2D", "Particles", "AudioStreamPlayer"],
+                "reason_of_difficulty": "Artistic aspect and ensuring effects are properly timed and positioned."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Quality and complexity of effects", "Number of effects needed"],
+                "max_time": {
+                  "amount": 4,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 1,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Create and integrate visual effects (muzzle flash, smoke trails, projectile impacts, explosions, ability VFX). These should be separate, reusable scenes (e.g., `MuzzleFlash.tscn`, `Explosion.tscn`) instanced by weapons, projectiles, or abilities. Effects scenes should generally handle their own lifecycle (e.g., `queue_free()` after animation/particles finish). Implement pre-fire (charging) and post-fire (shell ejections) effects as needed.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: 2D Particles",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/2d/2d_particle_systems.html"
+                },
+                {
+                  "display_text": "Godot Docs: AnimationPlayer",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_animationplayer.html"
+                }
+              ]
+            },
+            "task_id": "T4.2_VISUAL_EFFECTS",
+            "task_priority": "high",
+            "task_summary": "Implement and integrate visual effects.",
+            "task_tags": ["vfx", "particles", "animation", "polish"],
+            "task_title": "Visual Effects Integration"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# EffectsPoolManager.gd (Autoload Singleton)\nvar effect_pools: Dictionary = {}\n\nfunc request_effect(effect_scene_path: String) -> Node:\n    if not effect_pools.has(effect_scene_path):\n        effect_pools[effect_scene_path] = []\n\n    var pool = effect_pools[effect_scene_path]\n    for effect_instance in pool:\n        if not is_instance_valid(effect_instance.get_parent()): # Check if not in tree\n            # Reset effect state if necessary (e.g., particle emission, animation frame)\n            return effect_instance\n\n    var new_effect = load(effect_scene_path).instantiate()\n    pool.append(new_effect)\n    return new_effect\n\nfunc return_effect(effect_instance: Node):\n    if is_instance_valid(effect_instance.get_parent()):\n        effect_instance.get_parent().remove_child(effect_instance)\n    # Effect might need a reset method to be called here for particles/animations",
+                  "complexity": "intermediate",
+                  "explanation": "A simple object pooling system for effects to reduce instancing overhead.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Understanding of object pooling benefits and implementation details"],
+                "reason_of_difficulty": "Managing the lifecycle and state reset of pooled objects can be tricky."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of different effects to pool", "Complexity of effect state reset"],
+                "max_time": {
+                  "amount": 1,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 3,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Consider or implement an object pooling system for frequently spawned effects (and projectiles, see T7.1). This can significantly improve performance by reusing instances instead of creating/destroying them repeatedly. An autoload singleton `EffectsPoolManager.gd` could manage pools of different effect scenes.",
+              "resource_links": [
+                {
+                  "display_text": "GDQuest: Godot Object Pooling",
+                  "is_essential": false,
+                  "type": "tutorial",
+                  "url": "https://www.gdquest.com/tutorial/godot/design-patterns/object-pool/"
+                }
+              ]
+            },
+            "task_id": "T4.3_EFFECTS_POOLING",
+            "task_priority": "mid",
+            "task_summary": "Implement an object pooling system for effects.",
+            "task_tags": ["performance", "object_pooling", "vfx"],
+            "task_title": "Effects Pooling Manager"
+          }
+        ],
+        "phase_title": "Advanced Features, Effects & Abilities",
+        "succes_indicators": [
+          "Tanks can use a variety of special abilities with clear visual/audio feedback and cooldowns.",
+          "Weapon firing, projectile impacts, and explosions are accompanied by satisfying and well-timed visual and audio effects.",
+          "If implemented, an effects pooling system measurably improves performance during intense action."
+        ]
+      },
+      {
+        "key_milestones": [
+          "Core gameplay actions (movement, firing, abilities) are synchronized over network.",
+          "Server authority for game state is established.",
+          "Client-side prediction for player actions is implemented for responsiveness.",
+          "Basic multiplayer session management (join/host) is functional."
+        ],
+        "phase_dependencies": ["P3_AI_CONTROL", "P4_ADVANCED_FX_ABILITIES"],
+        "phase_details": [
+          "This phase introduces multiplayer capabilities. It requires careful design of network communication, state synchronization, and handling of authority to ensure a fair and responsive experience for all players."
+        ],
+        "phase_id": "P5_MULTIPLAYER",
+        "phase_summary": "Integrate multiplayer functionality, including synchronization and authority.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# Tank.gd (RPC examples)\n@rpc(\"call_remote\", \"reliable\") # Player input to server\nfunc request_fire_weapon(mount_index: int, aim_vector: Vector2):\n    if not is_multiplayer_authority(): return # Only server processes this directly\n    # Server validates request, then fires weapon and tells clients\n    _execute_fire_weapon(mount_index, aim_vector)\n    rpc(\"client_weapon_fired_effect\", mount_index, aim_vector) # Tell clients to show effects\n\n@rpc(\"call_local\", \"reliable\") # Server tells clients to show effects\nfunc client_weapon_fired_effect(mount_index: int, aim_vector: Vector2):\n    # Client plays muzzle flash, sound, etc.\n    # Projectile itself might be spawned by another RPC or state sync\n    pass\n\n# In _ready() or when player takes control:\n# if multiplayer.is_server() or get_multiplayer_authority() == multiplayer.get_unique_id():\n#    set_multiplayer_authority(multiplayer.get_unique_id())",
+                  "complexity": "advanced",
+                  "explanation": "Example RPCs for firing a weapon. Player sends request to server, server validates and executes, then informs clients of effects.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "challenging",
+                "prerequisites_needed": ["Understanding of Godot's high-level networking (RPCs, MultiplayerSpawner, MultiplayerSynchronizer)"],
+                "reason_of_difficulty": "Network programming is inherently complex, dealing with latency, packet loss, and synchronization issues."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Depth of synchronization needed", "Number of networked actions"],
+                "max_time": {
+                  "amount": 10,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 4,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Design and implement network synchronization for core actions: player movement, weapon aiming and firing, projectile spawning, and ability activation. Use Godot's RPC system. Server should be authoritative. For instance, player input triggers an RPC to the server; server validates and performs the action, then RPCs relevant outcomes (like projectile creation or effect triggers) to all clients.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: High-level Multiplayer",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/networking/high_level_multiplayer.html"
+                },
+                {
+                  "display_text": "Godot Docs: RPC",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/networking/rpc.html"
+                }
+              ]
+            },
+            "task_id": "T5.1_ACTION_SYNC_RPCS",
+            "task_priority": "critical",
+            "task_summary": "Synchronize core gameplay actions using RPCs.",
+            "task_tags": ["multiplayer", "networking", "rpc", "synchronization"],
+            "task_title": "Core Action Synchronization"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# Projectile.gd\n# On server, after spawning:\n# projectile_spawner.spawn(custom_spawn_function_for_projectile) # MultiplayerSpawner handles replication\n# Or, if manually syncing:\n# rpc(\"client_spawn_projectile\", global_position, direction, projectile_data_id, owner_id)\n\n# MultiplayerSynchronizer node on Tank for position, rotation, health\n# Configure properties to sync in the Inspector.",
+                  "complexity": "advanced",
+                  "explanation": "Use MultiplayerSpawner for projectiles or custom RPCs. MultiplayerSynchronizer for tank state.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "challenging",
+                "prerequisites_needed": ["Understanding server authority vs. client prediction"],
+                "reason_of_difficulty": "Balancing authority with responsiveness. Projectile hit detection requires careful server validation."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of projectile behavior", "Desired level of prediction"],
+                "max_time": {
+                  "amount": 7,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 3,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Implement state replication with server authority. Tank positions, health, and other critical states should be managed by the server and replicated to clients (e.g., using `MultiplayerSynchronizer`). Projectiles are spawned authoritatively by the server; clients might simulate them predictively after receiving spawn information. Projectile impacts must be validated by the server to prevent cheating.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: MultiplayerSpawner",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_multiplayerspawner.html"
+                },
+                {
+                  "display_text": "Godot Docs: MultiplayerSynchronizer",
+                  "is_essential": true,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_multiplayersynchronizer.html"
+                }
+              ]
+            },
+            "task_id": "T5.2_STATE_REPLICATION",
+            "task_priority": "critical",
+            "task_summary": "Implement server-authoritative state replication.",
+            "task_tags": ["multiplayer", "networking", "state_sync", "authority"],
+            "task_title": "State Replication and Authority"
+          },
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P5_MULTIPLAYER", "task_id": "T5.1_ACTION_SYNC_RPCS"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# PlayerController.gd (Client-side prediction for movement)\nfunc _physics_process(delta):\n    if controlled_tank.get_multiplayer_authority() == multiplayer.get_unique_id(): # If I am authority (e.g. local player)\n        var input = Input.get_vector(\"left\", \"right\", \"up\", \"down\")\n        # Apply input locally immediately\n        controlled_tank.apply_local_movement(input, delta) \n        # Send input to server via RPC for authoritative state update\n        controlled_tank.rpc_id(1, \"server_receive_player_input\", input)\n    # Non-authoritative clients will receive position updates via MultiplayerSynchronizer",
+                  "complexity": "advanced",
+                  "explanation": "Client applies input locally for immediate feedback, then sends to server. Server's state will eventually correct client if needed.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "difficult",
+                "prerequisites_needed": ["Understanding of reconciliation and smoothing techniques"],
+                "reason_of_difficulty": "Implementing robust client-side prediction with server reconciliation can be complex."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Precision required", "Handling of edge cases like packet loss"],
+                "max_time": {
+                  "amount": 5,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 2,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Implement client-side prediction for player-controlled tank movement and potentially instant-feedback weapon firing effects. This makes the game feel responsive despite network latency. The server's authoritative state will eventually correct any discrepancies (reconciliation).",
+              "resource_links": [
+                {
+                  "display_text": "Gaffer on Games: Client-Side Prediction",
+                  "is_essential": false,
+                  "type": "article",
+                  "url": "https://gafferongames.com/post/client-side_prediction_and_server_reconciliation/"
+                }
+              ]
+            },
+            "task_id": "T5.3_CLIENT_PREDICTION",
+            "task_priority": "high",
+            "task_summary": "Implement client-side prediction and server reconciliation.",
+            "task_tags": ["multiplayer", "networking", "client_prediction", "latency_compensation"],
+            "task_title": "Client-Side Prediction"
+          }
+        ],
+        "phase_title": "Multiplayer Integration",
+        "succes_indicators": [
+          "Multiple players can join a game session and see each other's tanks move and act in a synchronized manner.",
+          "The server correctly arbitrates game events like weapon hits and ability effects.",
+          "Client-side prediction makes player actions feel responsive even with moderate latency.",
+          "Game remains stable and fair under typical multiplayer conditions."
+        ]
+      },
+      {
+        "key_milestones": [
+          "Object pooling for projectiles and effects is robust and improves performance.",
+          "Collision detection is optimized for high projectile counts.",
+          "Input conflict resolution strategies are in place.",
+          "The game handles edge cases and high-load scenarios gracefully."
+        ],
+        "phase_dependencies": ["P4_ADVANCED_FX_ABILITIES", "P5_MULTIPLAYER"],
+        "phase_details": [
+          "This final phase focuses on performance optimization, stability, and handling edge cases. With potentially many projectiles and effects on screen, especially in multiplayer, efficient design is crucial."
+        ],
+        "phase_id": "P6_OPTIMIZATION_POLISH",
+        "phase_summary": "Optimize performance, address edge cases, and polish gameplay.",
+        "phase_tasks": [
+          {
+            "task_dependencies": [
+                {"dependency_type": "recommended", "phase_id": "P4_ADVANCED_FX_ABILITIES", "task_id": "T4.3_EFFECTS_POOLING"}
+            ],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# ProjectilePoolManager.gd (Autoload Singleton - similar to EffectsPoolManager)\n# ... (logic for requesting and returning projectile instances)\n\n# BaseProjectile.gd (modified for pooling)\n# func _ready():\n#     # Don't use Timer for lifetime if pooled; manage externally or reset timer\n# func reset_for_pooling(new_pos, new_dir, new_stats_resource):\n#     global_position = new_pos\n#     # set direction/rotation\n#     # apply stats from new_stats_resource\n#     # restart lifetime timer/mechanism\n#     # re-enable collision, visibility etc.\n\n# Using MultiMeshInstance2D for very simple bullets (if no individual logic needed):\n# var multimesh: MultiMesh\n# func _process(delta):\n#   for i in range(multimesh.instance_count):\n#     var transform = multimesh.get_instance_transform_2d(i)\n#     transform = transform.translated(Vector2.RIGHT * speed * delta)\n#     multimesh.set_instance_transform_2d(i, transform)\n#     # Collision detection for MultiMesh is manual, e.g. raycasts or iterating points",
+                  "complexity": "advanced",
+                  "explanation": "Object pooling for projectiles. For very numerous simple projectiles, MultiMeshInstance2D can be an option, but collision is manual.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "difficult",
+                "prerequisites_needed": ["Understanding performance bottlenecks", "Object pooling patterns"],
+                "reason_of_difficulty": "Efficiently managing many objects, especially with collisions, is challenging. MultiMeshInstance requires custom collision logic."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of projectiles", "Complexity of projectile logic"],
+                "max_time": {
+                  "amount": 5,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 2,
+                  "unit": "days"
+                }
+              },
+              "explanation": "Optimize for scenarios with a high number of simultaneous projectiles. Implement robust object pooling for projectile scenes. For extremely numerous, simple projectiles (e.g., gatling gun bullets with no complex individual logic), consider using `MultiMeshInstance2D` and managing their physics/collisions manually or via simplified checks to reduce node overhead. Optimize collision layers/masks.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: MultiMeshInstance2D",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/classes/class_multimeshinstance2d.html"
+                }
+              ]
+            },
+            "task_id": "T6.1_HIGH_PROJECTILE_COUNT",
+            "task_priority": "high",
+            "task_summary": "Optimize for high projectile count using pooling and other techniques.",
+            "task_tags": ["performance", "object_pooling", "projectiles", "optimization"],
+            "task_title": "High Projectile Count Optimization"
+          },
+          {
+            "task_dependencies": [],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# No specific code block, this is a design principle.\n# Avoid deeply nested scenes if parts are frequently re-instanced.\n# Favor flatter hierarchies where possible for dynamic elements.\n# Use placeholders for complex visuals that are not always needed, loading them on demand.",
+                  "complexity": "intermediate",
+                  "explanation": "Design considerations for scene structure to mitigate instancing overhead.",
+                  "language": "Conceptual"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["Profiling tools", "Understanding of Godot's scene instancing costs"],
+                "reason_of_difficulty": "Balancing modularity with performance impacts of deep nesting."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Complexity of existing scenes", "Frequency of instancing"],
+                "max_time": {
+                  "amount": 2,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Analyze and mitigate performance impacts from frequent instancing of complex or deeply nested scenes. Use object pooling (T4.3, T6.1) extensively. If certain parts of a complex scene are static or rarely change, consider if they can be part of a base scene rather than re-instanced every time. Profile scene loading and instancing times.",
+              "resource_links": [
+                {
+                  "display_text": "Godot Docs: Performance",
+                  "is_essential": false,
+                  "type": "document",
+                  "url": "https://docs.godotengine.org/en/stable/tutorials/performance/index.html"
+                }
+              ]
+            },
+            "task_id": "T6.2_SCENE_INSTANCING_OVERHEAD",
+            "task_priority": "mid",
+            "task_summary": "Mitigate scene instancing overhead.",
+            "task_tags": ["performance", "scene_management", "optimization"],
+            "task_title": "Scene Instancing Overhead Mitigation"
+          },
+          {
+            "task_dependencies": [{"dependency_type": "required", "phase_id": "P3_AI_CONTROL", "task_id": "T3.1_PLAYER_INPUT"}],
+            "task_detail": {
+              "code_blocks": [
+                {
+                  "code": "# PlayerController.gd or Tank.gd\n# var action_queue = [] # For queuing actions\n# var current_action_priority = 0\n# func try_perform_action(action_name, priority):\n#    if is_performing_blocking_action and priority < current_action_priority:\n#        # Queue action or ignore\n#        return false\n#    # Perform action\n#    # Set current_action_priority, use timers for action duration\n#    return true\n#\n# Using Godot's InputMap priorities or action strength could also help.",
+                  "complexity": "intermediate",
+                  "explanation": "Conceptual approach for input conflict: action priorities, queues, or state-based disallowing of actions.",
+                  "language": "GDScript"
+                }
+              ],
+              "difficulty": {
+                "level": "normal",
+                "prerequisites_needed": ["State machines", "Input handling logic"],
+                "reason_of_difficulty": "Designing intuitive and fair conflict resolution rules."
+              },
+              "est_time": {
+                "factors_affecting_time": ["Number of conflicting actions", "Desired complexity of resolution"],
+                "max_time": {
+                  "amount": 1,
+                  "unit": "days"
+                },
+                "min_time": {
+                  "amount": 3,
+                  "unit": "hours"
+                }
+              },
+              "explanation": "Develop strategies for resolving input conflicts if multiple actions (e.g., firing different weapons simultaneously, activating an ability while firing) are bound to similar inputs or conditions. This might involve an action priority system, input queuing, or state-based logic within the tank/player controller (e.g., a `is_busy` flag preventing other actions).",
+              "resource_links": []
+            },
+            "task_id": "T6.3_INPUT_CONFLICTS",
+            "task_priority": "mid",
+            "task_summary": "Resolve input conflicts for simultaneous actions.",
+            "task_tags": ["input", "gameplay_design", "state_management"],
+            "task_title": "Input Conflict Resolution"
+          }
+        ],
+        "phase_title": "Optimization, Polish & Edge Cases",
+        "succes_indicators": [
+          "The game maintains good performance even with many projectiles and effects active, especially in multiplayer.",
+          "Scene instancing is efficient, and object pooling is effectively used where needed.",
+          "Input conflicts are handled gracefully, preventing player frustration or exploits.",
+          "The game is generally stable and handles various gameplay scenarios without major issues."
+        ]
+      }
+    ]
+  },
+  "tags": ["Godot Engine", "Game Architecture", "Top-Down", "Tank Combat", "Modular Design", "Weapon System", "Projectile System", "AI", "Multiplayer", "Game Development", "Resource Management", "Scene Organization"],
+  "title": "Godot Project Architecture: Modular Top-Down Tank Combat Game"
+}

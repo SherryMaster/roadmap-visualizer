@@ -89,74 +89,26 @@ const TaskDependencies = ({
         }
 
         if (targetElement) {
-          // Apply enhanced highlight effect with immediate visual feedback
+          // Apply subtle highlight effect to the task card
           targetElement.classList.add("dependency-highlight");
 
-          // Fallback: Apply inline styles for immediate visual feedback
-          const originalStyles = {
-            transform: targetElement.style.transform,
-            boxShadow: targetElement.style.boxShadow,
-            background: targetElement.style.background,
-            border: targetElement.style.border,
-            zIndex: targetElement.style.zIndex,
-            position: targetElement.style.position,
-          };
-
-          // Apply fallback styles for guaranteed visibility
-          targetElement.style.transform = "scale(1.03)";
-          targetElement.style.boxShadow =
-            "0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1)";
-          targetElement.style.background =
-            "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))";
-          targetElement.style.border = "3px solid rgba(59, 130, 246, 0.5)";
-          targetElement.style.zIndex = "20";
-          targetElement.style.position = "relative";
-          targetElement.style.borderRadius = "8px";
-
-          // Find and enhance the task title
+          // Find and enhance the task title with professional highlighting
           const taskTitle = targetElement.querySelector(
             ".task-title-highlight"
           );
-          let titleElement = taskTitle;
 
           if (taskTitle) {
-            taskTitle.classList.add("dependency-title-active");
+            // Apply professional title highlighting
+            taskTitle.classList.add("task-title-highlighted");
+            taskTitle.classList.add("task-title-navigation-indicator");
           } else {
             // Try alternative selectors
             const titleAlternative = targetElement.querySelector("h3");
             if (titleAlternative) {
-              titleAlternative.classList.add(
-                "task-title-highlight",
-                "dependency-title-active"
-              );
-              titleElement = titleAlternative;
+              titleAlternative.classList.add("task-title-highlighted");
+              titleAlternative.classList.add("task-title-navigation-indicator");
             }
           }
-
-          // Apply inline styles to title for immediate visual feedback
-          if (titleElement) {
-            const originalTitleStyles = {
-              color: titleElement.style.color,
-              fontWeight: titleElement.style.fontWeight,
-              textShadow: titleElement.style.textShadow,
-            };
-
-            titleElement.style.color = "#1d4ed8"; // Blue-700
-            titleElement.style.fontWeight = "bold";
-            titleElement.style.textShadow = "0 0 8px rgba(59, 130, 246, 0.6)";
-
-            // Add location pin icon
-            if (!titleElement.textContent.startsWith("📍")) {
-              titleElement.textContent = "📍 " + titleElement.textContent;
-            }
-
-            // Store original styles for cleanup
-            titleElement._originalTitleStyles = originalTitleStyles;
-          }
-
-          // Add a subtle shake effect to draw attention
-          targetElement.style.animation =
-            "dependency-attention-shake 0.5s ease-in-out";
 
           // Smooth scroll to target with a slight delay for better UX
           setTimeout(() => {
@@ -167,50 +119,23 @@ const TaskDependencies = ({
             });
           }, 100);
 
-          // Remove shake animation after it completes
-          setTimeout(() => {
-            targetElement.style.animation = "";
-          }, 500);
-
-          // Remove highlight after 3 seconds
+          // Remove highlight after 4 seconds for better visibility
           setTimeout(() => {
             targetElement.classList.remove("dependency-highlight");
 
-            // Restore original styles
-            targetElement.style.transform = originalStyles.transform || "";
-            targetElement.style.boxShadow = originalStyles.boxShadow || "";
-            targetElement.style.background = originalStyles.background || "";
-            targetElement.style.border = originalStyles.border || "";
-            targetElement.style.zIndex = originalStyles.zIndex || "";
-            targetElement.style.position = originalStyles.position || "";
-            targetElement.style.borderRadius = "";
-
-            // Restore title styles
-            if (titleElement && titleElement._originalTitleStyles) {
-              titleElement.style.color =
-                titleElement._originalTitleStyles.color || "";
-              titleElement.style.fontWeight =
-                titleElement._originalTitleStyles.fontWeight || "";
-              titleElement.style.textShadow =
-                titleElement._originalTitleStyles.textShadow || "";
-
-              // Remove location pin icon
-              if (titleElement.textContent.startsWith("📍 ")) {
-                titleElement.textContent =
-                  titleElement.textContent.substring(2);
-              }
-
-              delete titleElement._originalTitleStyles;
-            }
-
+            // Remove professional title highlighting
             if (taskTitle) {
-              taskTitle.classList.remove("dependency-title-active");
+              taskTitle.classList.remove("task-title-highlighted");
+              taskTitle.classList.remove("task-title-navigation-indicator");
             }
             const titleAlternative = targetElement.querySelector("h3");
             if (titleAlternative) {
-              titleAlternative.classList.remove("dependency-title-active");
+              titleAlternative.classList.remove("task-title-highlighted");
+              titleAlternative.classList.remove(
+                "task-title-navigation-indicator"
+              );
             }
-          }, 3000);
+          }, 4000);
         } else {
           console.warn("Could not navigate to target task:", {
             phaseId,

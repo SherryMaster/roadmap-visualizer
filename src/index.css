@@ -25,104 +25,52 @@
     animation: fade-in 0.3s ease-in-out;
   }
 
-  /* Enhanced dependency navigation highlight effect */
+  /* Subtle task card highlight for dependency navigation */
   .dependency-highlight {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
-      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1) !important;
-    background: linear-gradient(
-      to right,
-      rgb(239 246 255),
-      rgb(238 242 255)
-    ) !important;
-    animation: dependency-highlight-pulse 2s ease-in-out !important;
-    transform: scale(1.03) !important;
-    z-index: 20 !important;
-    position: relative !important;
-    border: 3px solid transparent !important;
-    background-clip: padding-box !important;
+    border-left: 4px solid rgb(59 130 246) !important;
+    background: rgba(59, 130, 246, 0.02) !important;
+    transition: all 0.3s ease-in-out !important;
   }
 
   .dark .dependency-highlight {
+    background: rgba(59, 130, 246, 0.05) !important;
+  }
+
+  /* Professional task title highlighting */
+  .task-title-highlighted {
     background: linear-gradient(
-      to right,
-      rgba(30, 58, 138, 0.5),
-      rgba(49, 46, 129, 0.5)
+      135deg,
+      rgba(59, 130, 246, 0.1),
+      rgba(99, 102, 241, 0.08)
     ) !important;
+    color: rgb(29 78 216) !important;
+    font-weight: 600 !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    border-left: 3px solid rgb(59 130 246) !important;
+    transition: all 0.3s ease-in-out !important;
+    position: relative !important;
   }
 
-  /* Animated border effect for dependency highlighting */
-  .dependency-highlight::before {
-    content: "" !important;
-    position: absolute !important;
-    top: -3px !important;
-    left: -3px !important;
-    right: -3px !important;
-    bottom: -3px !important;
+  .dark .task-title-highlighted {
     background: linear-gradient(
-      45deg,
-      #3b82f6,
-      #8b5cf6,
-      #06b6d4,
-      #3b82f6
+      135deg,
+      rgba(59, 130, 246, 0.15),
+      rgba(99, 102, 241, 0.12)
     ) !important;
-    background-size: 300% 300% !important;
-    border-radius: inherit !important;
-    z-index: -1 !important;
-    animation: dependency-border-flow 1.5s ease-in-out infinite !important;
+    color: rgb(147 197 253) !important;
   }
 
-  /* Pulsing glow effect */
-  .dependency-highlight::after {
-    content: "" !important;
-    position: absolute !important;
-    top: -8px !important;
-    left: -8px !important;
-    right: -8px !important;
-    bottom: -8px !important;
-    background: radial-gradient(
-      circle,
-      rgba(59, 130, 246, 0.3) 0%,
-      transparent 70%
-    ) !important;
-    border-radius: inherit !important;
-    z-index: -2 !important;
-    animation: dependency-glow-pulse 1s ease-in-out infinite alternate !important;
+  /* Subtle navigation indicator for task titles */
+  .task-title-navigation-indicator::before {
+    content: "→ ";
+    color: rgb(59 130 246);
+    font-weight: bold;
+    margin-right: 4px;
   }
 
-  /* Enhanced task title highlighting during navigation */
-  .dependency-highlight .task-title-highlight {
-    color: rgb(29 78 216);
-    font-weight: 700;
-    animation: dependency-title-glow 1s ease-in-out infinite alternate;
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-    position: relative;
-  }
-
-  .dark .dependency-highlight .task-title-highlight {
+  .dark .task-title-navigation-indicator::before {
     color: rgb(147 197 253);
-  }
-
-  .dependency-highlight .task-title-highlight::before {
-    content: "📍 ";
-    animation: dependency-icon-bounce 0.6s ease-in-out infinite;
-  }
-
-  /* Active title state for enhanced visibility */
-  .dependency-title-active {
-    color: rgb(29 78 216);
-    font-weight: 700;
-    animation: dependency-title-glow 1s ease-in-out infinite alternate;
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-    position: relative;
-  }
-
-  .dark .dependency-title-active {
-    color: rgb(147 197 253);
-  }
-
-  .dependency-title-active::before {
-    content: "📍 ";
-    animation: dependency-icon-bounce 0.6s ease-in-out infinite;
   }
 }
 
@@ -153,96 +101,5 @@
   100% {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes dependency-highlight-pulse {
-  0% {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
-      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1);
-    transform: scale(1.03);
-  }
-  25% {
-    box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.95),
-      0 0 40px rgba(59, 130, 246, 0.8), inset 0 0 25px rgba(59, 130, 246, 0.15);
-    transform: scale(1.035);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(147, 197, 253, 1), 0 0 50px rgba(59, 130, 246, 1),
-      inset 0 0 30px rgba(59, 130, 246, 0.2);
-    transform: scale(1.04);
-  }
-  75% {
-    box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.95),
-      0 0 40px rgba(59, 130, 246, 0.8), inset 0 0 25px rgba(59, 130, 246, 0.15);
-    transform: scale(1.035);
-  }
-  100% {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.9),
-      0 0 30px rgba(59, 130, 246, 0.6), inset 0 0 20px rgba(59, 130, 246, 0.1);
-    transform: scale(1.03);
-  }
-}
-
-@keyframes dependency-border-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes dependency-glow-pulse {
-  0% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0.6;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes dependency-title-glow {
-  0% {
-    text-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-  }
-  100% {
-    text-shadow: 0 0 16px rgba(59, 130, 246, 0.9),
-      0 0 24px rgba(59, 130, 246, 0.5);
-  }
-}
-
-@keyframes dependency-icon-bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes dependency-attention-shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
-    transform: translateX(-2px);
-  }
-  20%,
-  40%,
-  60%,
-  80% {
-    transform: translateX(2px);
   }
 }
