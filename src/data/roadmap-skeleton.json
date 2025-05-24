@@ -1,0 +1,202 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_metadata": {
+      "type": "object",
+      "properties": {
+        "schema_type": {
+          "type": "string",
+          "enum": ["roadmap_skeleton"],
+          "description": "Identifies this as a roadmap skeleton schema for high-level structure generation"
+        },
+        "schema_version": {
+          "type": "string",
+          "default": "1.0.0"
+        },
+        "roadmap_id": {
+          "type": "string",
+          "description": "Unique identifier for this roadmap, used for linking with phase and task schemas"
+        },
+        "generation_target": {
+          "type": "string",
+          "enum": ["skeleton_only"],
+          "description": "Indicates this schema generates only the roadmap structure without detailed tasks"
+        }
+      },
+      "required": ["schema_type", "roadmap_id", "generation_target"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Main title of the roadmap"
+    },
+    "description": {
+      "type": "string",
+      "description": "Comprehensive description of the roadmap's purpose and scope"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "High-level tags categorizing the roadmap"
+    },
+    "project_level": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced", "expert"],
+      "description": "Overall difficulty level of the roadmap"
+    },
+    "estimated_total_duration": {
+      "type": "object",
+      "properties": {
+        "min_duration": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["weeks", "months", "years"]
+            }
+          },
+          "required": ["amount", "unit"]
+        },
+        "max_duration": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["weeks", "months", "years"]
+            }
+          },
+          "required": ["amount", "unit"]
+        }
+      },
+      "required": ["min_duration", "max_duration"]
+    },
+    "roadmap": {
+      "type": "object",
+      "properties": {
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase_id": {
+                "type": "string",
+                "description": "Unique identifier for this phase, used for linking with phase-tasks schema"
+              },
+              "phase_title": {
+                "type": "string",
+                "description": "Title of the phase"
+              },
+              "phase_order": {
+                "type": "integer",
+                "description": "Sequential order of this phase in the roadmap"
+              },
+              "phase_dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of phase_ids that must be completed before this phase"
+              },
+              "phase_summary": {
+                "type": "string",
+                "description": "Brief summary of what this phase accomplishes"
+              },
+              "phase_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Detailed explanation of the phase's purpose and approach"
+              },
+              "key_milestones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Major achievements expected upon phase completion"
+              },
+              "success_indicators": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Measurable indicators of successful phase completion"
+              },
+              "estimated_phase_duration": {
+                "type": "object",
+                "properties": {
+                  "min_duration": {
+                    "type": "object",
+                    "properties": {
+                      "amount": {
+                        "type": "number"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "enum": ["days", "weeks", "months"]
+                      }
+                    },
+                    "required": ["amount", "unit"]
+                  },
+                  "max_duration": {
+                    "type": "object",
+                    "properties": {
+                      "amount": {
+                        "type": "number"
+                      },
+                      "unit": {
+                        "type": "string",
+                        "enum": ["days", "weeks", "months"]
+                      }
+                    },
+                    "required": ["amount", "unit"]
+                  }
+                },
+                "required": ["min_duration", "max_duration"]
+              },
+              "estimated_task_count": {
+                "type": "integer",
+                "description": "Estimated number of tasks this phase will contain"
+              },
+              "phase_complexity": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "very_high"],
+                "description": "Overall complexity level of this phase"
+              }
+            },
+            "required": [
+              "phase_id",
+              "phase_title", 
+              "phase_order",
+              "phase_dependencies",
+              "phase_summary",
+              "phase_details",
+              "key_milestones",
+              "success_indicators",
+              "estimated_phase_duration",
+              "estimated_task_count",
+              "phase_complexity"
+            ]
+          }
+        }
+      },
+      "required": ["phases"]
+    }
+  },
+  "required": [
+    "schema_metadata",
+    "title",
+    "description", 
+    "tags",
+    "project_level",
+    "estimated_total_duration",
+    "roadmap"
+  ]
+}

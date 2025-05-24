@@ -1,0 +1,197 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_metadata": {
+      "type": "object",
+      "properties": {
+        "schema_type": {
+          "type": "string",
+          "enum": ["task_details"],
+          "description": "Identifies this as a task details schema for generating comprehensive task content"
+        },
+        "schema_version": {
+          "type": "string",
+          "default": "1.0.0"
+        },
+        "roadmap_id": {
+          "type": "string",
+          "description": "Reference to the parent roadmap"
+        },
+        "target_phase_id": {
+          "type": "string",
+          "description": "Reference to the parent phase"
+        },
+        "target_task_id": {
+          "type": "string",
+          "description": "Specific task_id from phase-tasks schema that this detailed content belongs to"
+        },
+        "generation_target": {
+          "type": "string",
+          "enum": ["task_details_only"],
+          "description": "Indicates this schema generates detailed task content only"
+        }
+      },
+      "required": ["schema_type", "roadmap_id", "target_phase_id", "target_task_id", "generation_target"]
+    },
+    "task_context": {
+      "type": "object",
+      "properties": {
+        "task_title": {
+          "type": "string",
+          "description": "Title of the task for context (should match phase-tasks schema)"
+        },
+        "task_summary": {
+          "type": "string",
+          "description": "Summary of the task for context (should match phase-tasks schema)"
+        },
+        "difficulty_level": {
+          "type": "string",
+          "enum": ["very_easy", "easy", "normal", "difficult", "challenging"],
+          "description": "Difficulty level for context (should match phase-tasks schema)"
+        }
+      },
+      "required": ["task_title", "task_summary", "difficulty_level"]
+    },
+    "task_detail": {
+      "type": "object",
+      "properties": {
+        "detailed_explanation": {
+          "type": "string",
+          "description": "Comprehensive explanation of the task, including step-by-step guidance"
+        },
+        "learning_objectives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Specific learning objectives this task addresses"
+        },
+        "difficulty_analysis": {
+          "type": "object",
+          "properties": {
+            "reason_of_difficulty": {
+              "type": "string",
+              "description": "Explanation of why this task has its assigned difficulty level"
+            },
+            "common_challenges": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Common challenges learners face with this task"
+            },
+            "success_strategies": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Strategies to overcome challenges and succeed"
+            }
+          },
+          "required": ["reason_of_difficulty", "common_challenges", "success_strategies"]
+        },
+        "time_factors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Factors that may affect the time needed to complete this task"
+        },
+        "subtasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subtask_title": {
+                "type": "string"
+              },
+              "subtask_description": {
+                "type": "string"
+              },
+              "estimated_duration": {
+                "type": "string",
+                "description": "Human-readable duration estimate (e.g., '30 minutes', '2 hours')"
+              }
+            },
+            "required": ["subtask_title", "subtask_description", "estimated_duration"]
+          }
+        },
+        "code_examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "The actual code example"
+              },
+              "language": {
+                "type": "string",
+                "description": "Programming language of the code"
+              },
+              "explanation": {
+                "type": "string",
+                "description": "Detailed explanation of what the code does"
+              },
+              "complexity": {
+                "type": "string",
+                "enum": ["basic", "intermediate", "advanced"],
+                "description": "Complexity level of this code example"
+              },
+              "purpose": {
+                "type": "string",
+                "enum": ["demonstration", "template", "exercise", "reference"],
+                "description": "Purpose of this code example"
+              }
+            },
+            "required": ["code", "language", "explanation", "complexity", "purpose"]
+          }
+        },
+        "resource_links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "display_text": {
+                "type": "string",
+                "description": "Human-readable text for the link"
+              },
+              "url": {
+                "type": "string",
+                "description": "URL of the resource"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["document", "tutorial", "video", "article", "tool", "reference", "example", "course"],
+                "description": "Type of resource"
+              },
+              "is_essential": {
+                "type": "boolean",
+                "description": "Whether this resource is essential for completing the task"
+              },
+              "description": {
+                "type": "string",
+                "description": "Brief description of what this resource provides"
+              }
+            },
+            "required": ["display_text", "url", "type", "is_essential", "description"]
+          }
+        }
+      },
+      "required": [
+        "detailed_explanation",
+        "learning_objectives", 
+        "difficulty_analysis",
+        "time_factors",
+        "subtasks",
+        "code_examples",
+        "resource_links"
+      ]
+    }
+  },
+  "required": [
+    "schema_metadata",
+    "task_context", 
+    "task_detail"
+  ]
+}
