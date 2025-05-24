@@ -1,75 +1,52 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import RoadmapHeader from "./RoadmapHeader";
 import PhaseList from "./PhaseList";
-import RoadmapUploader from "./RoadmapUploader";
 import SearchBar from "./SearchBar";
 import ThemeSelector from "./ThemeSelector";
+import Breadcrumb from "./Breadcrumb";
+import ShareButton from "./ShareButton";
 
 import { TaskCompletionProvider } from "../context/TaskCompletionContext";
-import sampleRoadmap from "../data/sampleRoadmap.json";
-import schema from "../data/schema.json";
-import SchemaValidator from "../utils/SchemaValidator";
-import DataTransformer from "../utils/DataTransformer";
+import usePageTitle from "../hooks/usePageTitle";
 import configManager from "../utils/ConfigManager";
 
-const RoadmapVisualizer = () => {
-  const [roadmapData, setRoadmapData] = useState(null);
-  const [filteredRoadmapData, setFilteredRoadmapData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showUploader, setShowUploader] = useState(false);
+const RoadmapVisualizer = ({
+  roadmapData: initialRoadmapData,
+  roadmapId,
+  onReturnHome,
+}) => {
+  const params = useParams();
+  const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
+  const [filteredRoadmapData, setFilteredRoadmapData] =
+    useState(initialRoadmapData);
+  const [loading] = useState(false);
+  const [error] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [validationErrors, setValidationErrors] = useState([]);
+  const [currentPhase, setCurrentPhase] = useState(null);
+
+  // Set dynamic page title
+  const pageTitle = currentPhase
+    ? `${currentPhase.phase_title} - ${initialRoadmapData?.title}`
+    : initialRoadmapData?.title;
+  usePageTitle(pageTitle);
 
   useEffect(() => {
-    loadAndProcessRoadmap(sampleRoadmap);
-  }, []);
-
-  const loadAndProcessRoadmap = async (rawData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      setValidationErrors([]);
-
-      // Validate the data against schema
-      const validator = new SchemaValidator(schema);
-      const validation = validator.validate(rawData);
-
-      if (!validation.isValid) {
-        setValidationErrors(validation.errors);
-        console.warn("Schema validation issues:", validation.errors);
-      }
-
-      // Transform data to UI-friendly format
-      const transformedData = DataTransformer.transformToUI(rawData);
-
-      if (!transformedData) {
-        throw new Error("Failed to transform roadmap data");
-      }
-
-      setRoadmapData(transformedData);
-      setFilteredRoadmapData(transformedData);
-
+    if (initialRoadmapData) {
+      setRoadmapData(initialRoadmapData);
+      setFilteredRoadmapData(initialRoadmapData);
       // Store roadmap data globally for dependency references
-      window.roadmapData = transformedData;
+      window.roadmapData = initialRoadmapData;
 
-      setLoading(false);
-    } catch (err) {
-      console.error("Error loading roadmap:", err);
-      setError(`Failed to load roadmap data: ${err.message}`);
-      setLoading(false);
+      // Find current phase if phaseId is in URL
+      if (params.phaseId && initialRoadmapData.roadmap) {
+        const phase = initialRoadmapData.roadmap.find(
+          (p) => p.phase_id === params.phaseId
+        );
+        setCurrentPhase(phase);
+      }
     }
-  };
-
-  const handleRoadmapLoad = (newRoadmapData) => {
-    loadAndProcessRoadmap(newRoadmapData);
-    setShowUploader(false);
-    setSearchTerm("");
-  };
-
-  const toggleUploader = () => {
-    setShowUploader(!showUploader);
-  };
+  }, [initialRoadmapData, params.phaseId]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -167,53 +144,101 @@ const RoadmapVisualizer = () => {
     );
   }
 
-  return (
-    <TaskCompletionProvider roadmapData={roadmapData}>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="flex justify-between items-center mb-4">
-          <ThemeSelector />
-          <div className="flex space-x-2">
-            <button
-              onClick={toggleUploader}
-              className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-            >
-              {showUploader ? "Cancel Upload" : "Upload Roadmap"}
-            </button>
-          </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading roadmap...</p>
         </div>
+      </div>
+    );
+  }
 
-        {showUploader && <RoadmapUploader onRoadmapLoad={handleRoadmapLoad} />}
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <svg
+            className="w-16 h-16 text-red-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Error Loading Roadmap
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={onReturnHome}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-        {validationErrors.length > 0 && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
-            <h4 className="font-semibold mb-2">Schema Validation Warnings:</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              {validationErrors.slice(0, 5).map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-              {validationErrors.length > 5 && (
-                <li>... and {validationErrors.length - 5} more issues</li>
-              )}
-            </ul>
+  if (!roadmapData || !filteredRoadmapData) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            No roadmap data available
+          </p>
+          <button
+            onClick={onReturnHome}
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Return to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex-1">
+              <Breadcrumb
+                roadmapTitle={filteredRoadmapData?.title}
+                currentPhase={currentPhase}
+              />
+            </div>
+            <div className="flex items-center space-x-3">
+              <ShareButton roadmapTitle={filteredRoadmapData?.title} />
+              <ThemeSelector />
+            </div>
           </div>
-        )}
 
-        <RoadmapHeader title={filteredRoadmapData.title} />
+          <RoadmapHeader title={filteredRoadmapData.title} />
 
-        <SearchBar onSearch={handleSearch} />
+          <SearchBar onSearch={handleSearch} />
 
-        {searchTerm && filteredRoadmapData.roadmap.length === 0 ? (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
-            No results found for "{searchTerm}". Try a different search term.
-          </div>
-        ) : searchTerm ? (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-md mb-6">
-            Showing results for "{searchTerm}".{" "}
-            {filteredRoadmapData.roadmap.length} phases match your search.
-          </div>
-        ) : null}
+          {searchTerm && filteredRoadmapData.roadmap.length === 0 ? (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
+              No results found for "{searchTerm}". Try a different search term.
+            </div>
+          ) : searchTerm ? (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-md mb-6">
+              Showing results for "{searchTerm}".{" "}
+              {filteredRoadmapData.roadmap.length} phases match your search.
+            </div>
+          ) : null}
 
-        <PhaseList phases={filteredRoadmapData.roadmap} />
+          <PhaseList phases={filteredRoadmapData.roadmap} />
+        </div>
       </div>
     </TaskCompletionProvider>
   );

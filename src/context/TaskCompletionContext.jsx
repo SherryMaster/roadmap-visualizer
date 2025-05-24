@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext } from "react";
+import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Create context
 const TaskCompletionContext = createContext();
@@ -9,12 +10,17 @@ export const useTaskCompletion = () => {
 };
 
 // Provider component
-export const TaskCompletionProvider = ({ children, roadmapData }) => {
+export const TaskCompletionProvider = ({
+  children,
+  roadmapData,
+  roadmapId,
+}) => {
   const [completedTasks, setCompletedTasks] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Generate a unique ID for the roadmap to use in localStorage
   const getRoadmapId = () => {
+    if (roadmapId) return roadmapId;
     if (!roadmapData || !roadmapData.title) return "default-roadmap";
     return `roadmap-${roadmapData.title.replace(/\s+/g, "-").toLowerCase()}`;
   };
@@ -44,10 +50,17 @@ export const TaskCompletionProvider = ({ children, roadmapData }) => {
   useEffect(() => {
     if (!isInitialized || !roadmapData) return;
 
-    const roadmapId = getRoadmapId();
+    const currentRoadmapId = getRoadmapId();
     localStorage.setItem(
-      `completed-tasks-${roadmapId}`,
+      `completed-tasks-${currentRoadmapId}`,
       JSON.stringify(completedTasks)
+    );
+
+    // Update progress in roadmap metadata
+    const progressPercentage = calculateOverallProgress();
+    RoadmapPersistence.updateRoadmapProgress(
+      currentRoadmapId,
+      progressPercentage
     );
   }, [completedTasks, isInitialized, roadmapData]);
 

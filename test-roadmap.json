@@ -1,0 +1,184 @@
+{
+  "title": "Test Learning Roadmap",
+  "description": "A simple test roadmap to verify the upload functionality",
+  "tags": ["test", "learning", "demo"],
+  "project_level": "beginner",
+  "roadmap": {
+    "phases": [
+      {
+        "phase_id": "phase-1",
+        "phase_title": "Getting Started",
+        "phase_dependencies": [],
+        "phase_summary": "Introduction to the basics",
+        "phase_details": [
+          "Learn the fundamentals",
+          "Set up your environment"
+        ],
+        "key_milestones": [
+          "Complete setup",
+          "Understand basic concepts"
+        ],
+        "succes_indicators": [
+          "Environment is configured",
+          "Can explain basic concepts"
+        ],
+        "phase_tasks": [
+          {
+            "task_id": "task-1-1",
+            "task_title": "Setup Development Environment",
+            "task_summary": "Install and configure necessary tools",
+            "task_detail": {
+              "explanation": "Set up your development environment with all necessary tools and dependencies.",
+              "difficulty": {
+                "level": "easy",
+                "reason_of_difficulty": "Straightforward installation process",
+                "prerequisites_needed": ["Basic computer skills"]
+              },
+              "est_time": {
+                "min_time": {
+                  "amount": 30,
+                  "unit": "minutes"
+                },
+                "max_time": {
+                  "amount": 1,
+                  "unit": "hours"
+                },
+                "factors_affecting_time": ["Internet speed", "Computer performance"]
+              },
+              "code_blocks": [
+                {
+                  "code": "npm install -g create-react-app",
+                  "language": "bash",
+                  "explanation": "Install Create React App globally",
+                  "complexity": "basic"
+                }
+              ],
+              "resource_links": [
+                {
+                  "display_text": "Node.js Official Website",
+                  "url": "https://nodejs.org/",
+                  "type": "document",
+                  "is_essential": true
+                }
+              ]
+            },
+            "task_dependencies": [],
+            "task_tags": ["setup", "environment"],
+            "task_priority": "high"
+          },
+          {
+            "task_id": "task-1-2",
+            "task_title": "Learn Basic Concepts",
+            "task_summary": "Understand fundamental programming concepts",
+            "task_detail": {
+              "explanation": "Learn the basic concepts that will be used throughout the project.",
+              "difficulty": {
+                "level": "normal",
+                "reason_of_difficulty": "Requires understanding of abstract concepts",
+                "prerequisites_needed": ["Basic programming knowledge"]
+              },
+              "est_time": {
+                "min_time": {
+                  "amount": 2,
+                  "unit": "hours"
+                },
+                "max_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                },
+                "factors_affecting_time": ["Prior experience", "Learning pace"]
+              },
+              "code_blocks": [],
+              "resource_links": [
+                {
+                  "display_text": "MDN Web Docs",
+                  "url": "https://developer.mozilla.org/",
+                  "type": "reference",
+                  "is_essential": true
+                }
+              ]
+            },
+            "task_dependencies": [
+              {
+                "phase_id": "phase-1",
+                "task_id": "task-1-1",
+                "dependency_type": "required"
+              }
+            ],
+            "task_tags": ["learning", "concepts"],
+            "task_priority": "mid"
+          }
+        ]
+      },
+      {
+        "phase_id": "phase-2",
+        "phase_title": "Building Skills",
+        "phase_dependencies": ["phase-1"],
+        "phase_summary": "Develop practical skills",
+        "phase_details": [
+          "Apply learned concepts",
+          "Build small projects"
+        ],
+        "key_milestones": [
+          "Complete first project",
+          "Demonstrate understanding"
+        ],
+        "succes_indicators": [
+          "Project works correctly",
+          "Code follows best practices"
+        ],
+        "phase_tasks": [
+          {
+            "task_id": "task-2-1",
+            "task_title": "Build First Project",
+            "task_summary": "Create a simple application using learned concepts",
+            "task_detail": {
+              "explanation": "Build your first project to apply the concepts you've learned.",
+              "difficulty": {
+                "level": "normal",
+                "reason_of_difficulty": "Combines multiple concepts",
+                "prerequisites_needed": ["Completed Phase 1"]
+              },
+              "est_time": {
+                "min_time": {
+                  "amount": 4,
+                  "unit": "hours"
+                },
+                "max_time": {
+                  "amount": 8,
+                  "unit": "hours"
+                },
+                "factors_affecting_time": ["Project complexity", "Debugging time"]
+              },
+              "code_blocks": [
+                {
+                  "code": "function hello() {\n  console.log('Hello, World!');\n}",
+                  "language": "javascript",
+                  "explanation": "A simple function example",
+                  "complexity": "basic"
+                }
+              ],
+              "resource_links": [
+                {
+                  "display_text": "Project Tutorial",
+                  "url": "https://example.com/tutorial",
+                  "type": "tutorial",
+                  "is_essential": true
+                }
+              ]
+            },
+            "task_dependencies": [
+              {
+                "phase_id": "phase-1",
+                "task_id": "task-1-2",
+                "dependency_type": "required"
+              }
+            ],
+            "task_tags": ["project", "practice"],
+            "task_priority": "high"
+          }
+        ]
+      }
+    ]
+  }
+}
