@@ -9,7 +9,6 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
     toggleTaskCompletionWithValidation,
     isTaskCompleted,
     getDependencyStatus,
-    areRequiredDependenciesCompleted,
   } = useTaskCompletion();
   const [completed, setCompleted] = useState(false);
   const [animateCompletion, setAnimateCompletion] = useState(false);
@@ -179,12 +178,6 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                   <span>
                     ⚠️ Dependencies: {dependencyStatus.requiredCompleted}/
                     {dependencyStatus.requiredTotal} required
-                    {dependencyStatus.recommendedTotal > 0 && (
-                      <span className="ml-2">
-                        • {dependencyStatus.recommendedCompleted}/
-                        {dependencyStatus.recommendedTotal} recommended
-                      </span>
-                    )}
                   </span>
                 )}
               </div>

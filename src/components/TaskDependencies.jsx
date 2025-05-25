@@ -4,7 +4,6 @@ import { useTaskCompletion } from "../context/TaskCompletionContext";
 const TaskDependencies = ({
   dependencies,
   allPhases,
-  showType = true,
   allowNavigation = true,
   showQuickActions = true,
   showProgressBar = true,
@@ -32,29 +31,54 @@ const TaskDependencies = ({
 
   // Function to find task title by phase_id and task_id
   const getTaskInfo = (phaseId, taskId) => {
-    if (!allPhases) return { title: taskId, phase: phaseId, found: false };
+    if (!allPhases) {
+      console.warn("No phases data available");
+      return { title: taskId, phase: phaseId, found: false };
+    }
 
-    for (const phase of allPhases) {
+    // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+    const phases = allPhases.phases || allPhases;
+
+    if (!Array.isArray(phases)) {
+      console.warn("Invalid phases structure:", allPhases);
+      return { title: taskId, phase: phaseId, found: false };
+    }
+
+    for (const phase of phases) {
       if (phase.phase_id === phaseId) {
-        for (const task of phase.phase_tasks) {
-          if (task.task_id === taskId) {
-            return {
-              title: task.task_title,
-              phase: phase.phase_title,
-              found: true,
-            };
+        if (phase.phase_tasks && Array.isArray(phase.phase_tasks)) {
+          for (const task of phase.phase_tasks) {
+            if (task.task_id === taskId) {
+              return {
+                title: task.task_title || taskId, // Fallback to taskId if no title
+                phase: phase.phase_title || phaseId, // Fallback to phaseId if no title
+                phaseNumber: phase.phase_number,
+                found: true,
+              };
+            }
           }
         }
       }
     }
-    return { title: taskId, phase: phaseId, found: false };
+
+    // If not found, return a more user-friendly error
+    console.warn(`Task not found: ${taskId} in phase ${phaseId}`);
+    return {
+      title: `Task ${taskId}`,
+      phase: `Phase ${phaseId}`,
+      found: false,
+    };
   };
 
   // Enhanced navigation with auto-expansion and improved visual feedback
   const handleDependencyClick = useCallback(
     async (phaseId, taskId) => {
-      if (!allowNavigation) return;
+      if (!allowNavigation) {
+        console.log("Navigation disabled");
+        return;
+      }
 
+      console.log("Starting navigation to:", { phaseId, taskId });
       setNavigatingTo(`${phaseId}-${taskId}`);
 
       try {
@@ -64,50 +88,73 @@ const TaskDependencies = ({
           bubbles: true,
         });
         document.dispatchEvent(navigationEvent);
+        console.log("Navigation event dispatched");
 
         // Wait for expansions to complete with multiple checks
         let targetElement = null;
         let attempts = 0;
-        const maxAttempts = 12; // Increased for better reliability
-        const checkInterval = 200;
+        const maxAttempts = 15; // Increased for better reliability
+        const checkInterval = 250; // Slightly longer interval
 
         while (!targetElement && attempts < maxAttempts) {
           await new Promise((resolve) => setTimeout(resolve, checkInterval));
 
-          const selector = `[data-task-id="${taskId}"][data-phase-id="${phaseId}"]`;
-          targetElement = document.querySelector(selector);
+          // Try multiple selector strategies
+          const selectors = [
+            `[data-task-id="${taskId}"][data-phase-id="${phaseId}"]`,
+            `[data-task-id="${taskId}"]`,
+            `[data-phase-id="${phaseId}"] [data-task-id="${taskId}"]`,
+          ];
+
+          for (const selector of selectors) {
+            targetElement = document.querySelector(selector);
+            if (targetElement) {
+              console.log(`Found target element with selector: ${selector}`);
+              break;
+            }
+          }
+
           attempts++;
+          console.log(`Navigation attempt ${attempts}/${maxAttempts}`);
 
           if (targetElement) {
             // Check if element is actually visible (not in collapsed state)
-            const isVisible = targetElement.offsetParent !== null;
+            const rect = targetElement.getBoundingClientRect();
+            const isVisible =
+              rect.width > 0 &&
+              rect.height > 0 &&
+              targetElement.offsetParent !== null;
 
             if (!isVisible) {
+              console.log(
+                "Target element found but not visible, continuing..."
+              );
               targetElement = null; // Reset to continue waiting
+            } else {
+              console.log("Target element found and visible");
             }
           }
         }
 
         if (targetElement) {
+          console.log("Successfully found target element, applying highlights");
+
           // Apply subtle highlight effect to the task card
           targetElement.classList.add("dependency-highlight");
 
           // Find and enhance the task title with professional highlighting
-          const taskTitle = targetElement.querySelector(
-            ".task-title-highlight"
-          );
+          const taskTitle =
+            targetElement.querySelector(".task-title-highlight") ||
+            targetElement.querySelector("h3") ||
+            targetElement.querySelector("[class*='task-title']");
 
           if (taskTitle) {
+            console.log("Found task title element, applying highlighting");
             // Apply professional title highlighting
             taskTitle.classList.add("task-title-highlighted");
             taskTitle.classList.add("task-title-navigation-indicator");
           } else {
-            // Try alternative selectors
-            const titleAlternative = targetElement.querySelector("h3");
-            if (titleAlternative) {
-              titleAlternative.classList.add("task-title-highlighted");
-              titleAlternative.classList.add("task-title-navigation-indicator");
-            }
+            console.log("Could not find task title element");
           }
 
           // Smooth scroll to target with a slight delay for better UX
@@ -117,9 +164,10 @@ const TaskDependencies = ({
               block: "center",
               inline: "nearest",
             });
-          }, 100);
+            console.log("Scrolled to target element");
+          }, 150);
 
-          // Remove highlight after 4 seconds for better visibility
+          // Remove highlight after 3 seconds for better visibility
           setTimeout(() => {
             targetElement.classList.remove("dependency-highlight");
 
@@ -128,29 +176,39 @@ const TaskDependencies = ({
               taskTitle.classList.remove("task-title-highlighted");
               taskTitle.classList.remove("task-title-navigation-indicator");
             }
-            const titleAlternative = targetElement.querySelector("h3");
-            if (titleAlternative) {
-              titleAlternative.classList.remove("task-title-highlighted");
-              titleAlternative.classList.remove(
-                "task-title-navigation-indicator"
-              );
-            }
-          }, 4000);
+            console.log("Removed highlighting");
+          }, 3000);
         } else {
-          console.warn("Could not navigate to target task:", {
-            phaseId,
-            taskId,
-          });
+          console.warn(
+            "Could not navigate to target task after all attempts:",
+            {
+              phaseId,
+              taskId,
+              attempts,
+              maxAttempts,
+            }
+          );
+
+          // Show user feedback for failed navigation
+          const taskInfo = getTaskInfo(phaseId, taskId);
+          if (taskInfo.found) {
+            alert(
+              `Could not navigate to "${taskInfo.title}". The task may be in a collapsed section. Please try expanding the relevant phase manually.`
+            );
+          } else {
+            alert(`Task not found: ${taskId} in phase ${phaseId}`);
+          }
         }
       } catch (error) {
-        console.warn("Navigation failed:", error);
+        console.error("Navigation failed with error:", error);
+        alert("Navigation failed. Please try again.");
       } finally {
         setTimeout(() => {
           setNavigatingTo(null);
         }, 1000);
       }
     },
-    [allowNavigation]
+    [allowNavigation, getTaskInfo]
   );
 
   // Group dependencies by type
@@ -309,7 +367,7 @@ const TaskDependencies = ({
 
   const groups = groupedDependencies();
 
-  // Render individual dependency card
+  // Render individual dependency item (compact single-line)
   const renderDependencyCard = (dependency, index) => {
     const taskInfo = getTaskInfo(dependency.phase_id, dependency.task_id);
     const isCompleted = isTaskCompletedById(
@@ -328,143 +386,155 @@ const TaskDependencies = ({
     return (
       <div
         key={`${dependency.phase_id}-${dependency.task_id}-${index}`}
-        className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 ${
-          isNavigating
-            ? "bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-400 ring-opacity-50"
-            : ""
-        } ${allowNavigation && taskInfo.found ? "cursor-pointer" : ""}`}
+        className={`
+          flex items-center justify-between py-2 px-3 rounded-md transition-all duration-200
+          ${
+            isNavigating
+              ? "bg-blue-100 dark:bg-blue-900/30 ring-1 ring-blue-400"
+              : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+          }
+          ${allowNavigation && taskInfo.found ? "cursor-pointer" : ""}
+          ${!taskInfo.found ? "opacity-75" : ""}
+        `}
         onClick={handleClick}
       >
-        <div className="flex items-start space-x-3">
+        {/* Left side: Status icon and task info */}
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
           {/* Status icon */}
-          <div className="flex-shrink-0 mt-0.5">
-            {getStatusIcon(dependency)}
-          </div>
+          <div className="flex-shrink-0">{getStatusIcon(dependency)}</div>
 
-          {/* Content */}
+          {/* Task title and phase */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4
-                  className={`text-sm font-medium ${
-                    taskInfo.found
-                      ? isCompleted
-                        ? "text-green-700 dark:text-green-400 line-through"
-                        : "text-gray-900 dark:text-white"
-                      : "text-red-600 dark:text-red-400"
-                  }`}
+            <div className="flex items-center space-x-2">
+              <span
+                className={`text-sm font-medium truncate ${
+                  taskInfo.found
+                    ? isCompleted
+                      ? "text-green-700 dark:text-green-400 line-through"
+                      : "text-gray-900 dark:text-white"
+                    : "text-red-600 dark:text-red-400"
+                }`}
+                title={taskInfo.title}
+              >
+                {taskInfo.title}
+              </span>
+
+              {/* Navigation indicator */}
+              {allowNavigation && taskInfo.found && (
+                <svg
+                  className="w-3 h-3 text-blue-500 dark:text-blue-400 opacity-60 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  {taskInfo.title}
-                  {allowNavigation && taskInfo.found && (
-                    <svg
-                      className="inline w-3 h-3 ml-1 text-blue-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  )}
-                </h4>
-
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {taskInfo.phase}
-                </p>
-
-                {/* Dependency type badge - only show if not in grouped mode */}
-                {showType && !enableGrouping && (
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${
-                      dependency.dependency_type === "required"
-                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                        : dependency.dependency_type === "recommended"
-                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    }`}
-                  >
-                    {dependency.dependency_type}
-                  </span>
-                )}
-
-                {/* Error state */}
-                {!taskInfo.found && (
-                  <div className="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
-                    Missing: {dependency.phase_id} → {dependency.task_id}
-                  </div>
-                )}
-              </div>
-
-              {/* Quick actions */}
-              {showQuickActions && taskInfo.found && !isCompleted && (
-                <button
-                  onClick={(e) =>
-                    handleQuickComplete(
-                      dependency.phase_id,
-                      dependency.task_id,
-                      e
-                    )
-                  }
-                  className="ml-3 px-2 py-1 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 rounded transition-colors"
-                  title="Mark as complete"
-                >
-                  Complete
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
               )}
             </div>
+
+            {/* Phase name - smaller text */}
+            <span
+              className="text-xs text-gray-500 dark:text-gray-400 truncate block"
+              title={taskInfo.phase}
+            >
+              {taskInfo.phase}
+            </span>
           </div>
+        </div>
+
+        {/* Right side: Actions and loading */}
+        <div className="flex items-center space-x-2 flex-shrink-0">
+          {/* Loading indicator */}
+          {isNavigating && (
+            <div className="w-4 h-4 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          )}
+
+          {/* Quick complete button */}
+          {showQuickActions &&
+            taskInfo.found &&
+            !isCompleted &&
+            !isNavigating && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleQuickComplete(
+                    dependency.phase_id,
+                    dependency.task_id,
+                    e
+                  );
+                }}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-200 dark:hover:bg-green-900/50 rounded transition-colors"
+                title="Mark as complete"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            )}
+
+          {/* Error indicator for missing tasks */}
+          {!taskInfo.found && (
+            <div className="flex items-center space-x-1 text-xs text-red-600 dark:text-red-400">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Missing</span>
+            </div>
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-      {/* Header with progress */}
-      <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
+    <div className="mt-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+      {/* Compact header */}
+      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <svg
-              className="w-4 h-4 text-blue-600 dark:text-blue-400"
-              fill="currentColor"
-              viewBox="0 0 20 20"
+              className="w-4 h-4 text-gray-600 dark:text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
               <path
-                fillRule="evenodd"
-                d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
-                clipRule="evenodd"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.102m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
               />
             </svg>
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Dependencies
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              Dependencies ({dependencies.length})
             </h3>
-            <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-              {dependencies.length}
-            </span>
           </div>
 
-          {/* Progress indicator */}
+          {/* Compact progress indicator */}
           {showProgressBar && dependencyStatus.requiredTotal > 0 && (
             <div className="flex items-center space-x-2">
-              <div className="text-xs text-gray-600 dark:text-gray-300">
-                <span
-                  className={
-                    dependencyStatus.canComplete
-                      ? "text-green-600 font-medium"
-                      : "text-red-600 font-medium"
-                  }
-                >
-                  {dependencyStatus.requiredCompleted}/
-                  {dependencyStatus.requiredTotal} required
-                </span>
-              </div>
-
-              {/* Compact progress bar */}
-              <div className="w-16 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+              <span className="text-xs text-gray-600 dark:text-gray-300">
+                {dependencyStatus.requiredCompleted}/
+                {dependencyStatus.requiredTotal} required
+              </span>
+              <div className="w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
                 <div
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     dependencyStatus.canComplete ? "bg-green-500" : "bg-red-500"
@@ -481,114 +551,124 @@ const TaskDependencies = ({
             </div>
           )}
         </div>
-
-        {/* Status message - only show if blocked */}
-        {dependencyStatus.requiredTotal > 0 &&
-          !dependencyStatus.canComplete && (
-            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs text-red-800 dark:text-red-200">
-              <span className="font-medium">
-                Complete required dependencies to mark this task as complete.
-              </span>
-            </div>
-          )}
       </div>
 
-      {/* Dependency groups */}
-      <div className="p-4 space-y-3">
+      {/* Compact dependency list */}
+      <div className="max-h-80 overflow-y-auto">
         {enableGrouping ? (
-          Object.entries(groups).map(([groupType, groupDependencies]) => {
-            if (groupDependencies.length === 0) return null;
+          <div>
+            {Object.entries(groups).map(([groupType, groupDependencies]) => {
+              if (groupDependencies.length === 0) return null;
 
-            const groupConfig = {
-              required: {
-                title: "Required",
-                bgClass:
-                  "bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30",
-                textClass: "text-red-600 dark:text-red-400",
-                badgeClass:
-                  "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-              },
-              recommended: {
-                title: "Recommended",
-                bgClass:
-                  "bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30",
-                textClass: "text-yellow-600 dark:text-yellow-400",
-                badgeClass:
-                  "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-              },
-              optional: {
-                title: "Optional",
-                bgClass:
-                  "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30",
-                textClass: "text-blue-600 dark:text-blue-400",
-                badgeClass:
-                  "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-              },
-            };
+              const groupConfig = {
+                required: {
+                  title: "Required",
+                  textClass: "text-red-600 dark:text-red-400",
+                  badgeClass:
+                    "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200",
+                },
+                recommended: {
+                  title: "Recommended",
+                  textClass: "text-yellow-600 dark:text-yellow-400",
+                  badgeClass:
+                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200",
+                },
+                optional: {
+                  title: "Optional",
+                  textClass: "text-blue-600 dark:text-blue-400",
+                  badgeClass:
+                    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200",
+                },
+              };
 
-            const config = groupConfig[groupType];
-            const isExpanded = expandedGroups[groupType];
-            const completedCount = groupDependencies.filter((dep) =>
-              isTaskCompletedById(dep.phase_id, dep.task_id)
-            ).length;
+              const config = groupConfig[groupType];
+              const isExpanded = expandedGroups[groupType];
+              const completedCount = groupDependencies.filter((dep) =>
+                isTaskCompletedById(dep.phase_id, dep.task_id)
+              ).length;
 
-            return (
-              <div
-                key={groupType}
-                className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden"
-              >
-                {/* Group header */}
-                <button
-                  onClick={() => toggleGroup(groupType)}
-                  className={`w-full px-3 py-2 flex items-center justify-between ${config.bgClass} transition-colors`}
+              return (
+                <div
+                  key={groupType}
+                  className="border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-sm font-medium ${config.textClass}`}>
-                      {config.title}
-                    </span>
-                    <span
-                      className={`px-1.5 py-0.5 text-xs font-medium ${config.badgeClass} rounded-full`}
-                    >
-                      {completedCount}/{groupDependencies.length}
-                    </span>
-                  </div>
-
-                  <svg
-                    className={`w-4 h-4 ${
-                      config.textClass
-                    } transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  {/* Compact group header */}
+                  <button
+                    onClick={() => toggleGroup(groupType)}
+                    className="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-sm font-medium ${config.textClass}`}
+                      >
+                        {config.title}
+                      </span>
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium ${config.badgeClass} rounded`}
+                      >
+                        {completedCount}/{groupDependencies.length}
+                      </span>
+                    </div>
 
-                {/* Group content */}
-                {isExpanded && (
-                  <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
-                    {groupDependencies.map((dependency, index) =>
-                      renderDependencyCard(dependency, index)
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })
+                    <svg
+                      className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Group content */}
+                  {isExpanded && (
+                    <div className="px-4 pb-2 space-y-1">
+                      {groupDependencies.map((dependency, index) =>
+                        renderDependencyCard(
+                          dependency,
+                          `${groupType}-${index}`
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="p-4 space-y-1">
             {dependencies.map((dependency, index) =>
               renderDependencyCard(dependency, index)
             )}
           </div>
         )}
       </div>
+
+      {/* Compact footer hint */}
+      {allowNavigation &&
+        dependencies.some(
+          (dep) => getTaskInfo(dep.phase_id, dep.task_id).found
+        ) && (
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            <div className="flex items-center space-x-1 text-xs text-gray-600 dark:text-gray-400">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-3a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zM9 9a1 1 0 112 0 1 1 0 01-2 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Click to navigate to task</span>
+            </div>
+          </div>
+        )}
     </div>
   );
 };
