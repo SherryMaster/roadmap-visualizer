@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "properties": {
+    "roadmap_title": {
+      "type": "string"
+    },
+    "roadmap_subtitle": {
+      "type": "string"
+    },
+    "num_of_phases": {
+      "type": "integer"
+    },
+    "project_level": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced", "expert"]
+    },
+    "project_title": {
+      "type": "string"
+    },
+    "project_description": {
+      "type": "string"
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "phase_title": {
+            "type": "string"
+          },
+          "phase_summary": {
+            "type": "string"
+          },
+          "phase_id": {
+            "type": "string"
+          },
+          "order_id": {
+            "type": "integer"
+          },
+          "num_of_tasks": {
+            "type": "integer"
+          },
+          "phase_detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "phase_title",
+          "phase_summary",
+          "phase_id",
+          "order_id",
+          "num_of_tasks",
+          "phase_detail"
+        ]
+      }
+    }
+  },
+  "required": ["roadmap_title", "roadmap_subtitle", "num_of_phases", "phases"]
+}
