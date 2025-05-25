@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import FileUploadZone from "./FileUploadZone";
 import AssemblerProgress from "./AssemblerProgress";
@@ -65,7 +65,7 @@ const RoadmapAssembler = () => {
     setCompletedSteps(new Set());
   };
 
-  const handleSkeletonUpload = (data, file, errorMessage) => {
+  const handleSkeletonUpload = (data, _file, errorMessage) => {
     if (errorMessage) {
       setError(
         `Skeleton file error: ${errorMessage}. Please check that your file is valid JSON and follows the roadmap_skeleton_schema.json format.`
@@ -97,7 +97,7 @@ const RoadmapAssembler = () => {
     }
   };
 
-  const handleTaskFilesUpload = (dataArray, files, errorMessage) => {
+  const handleTaskFilesUpload = (dataArray, _files, errorMessage) => {
     if (errorMessage) {
       setError(
         `Task files error: ${errorMessage}. Please check that all files are valid JSON and follow the skeleton_tasks_schema.json format.`
@@ -220,8 +220,8 @@ const RoadmapAssembler = () => {
     setError(null);
     setIsProcessing(false);
 
-    // Find the last successfully completed step
-    const lastCompletedStep = Math.max(-1, ...Array.from(completedSteps));
+    // Find the last successfully completed step (for potential future use)
+    // const lastCompletedStep = Math.max(-1, ...Array.from(completedSteps));
 
     // Determine where to restart based on the error and completed steps
     let restartStep;
@@ -385,14 +385,14 @@ const RoadmapAssembler = () => {
                       structure.
                     </p>
                     <p className="text-sm">
-                      Need help? Download the{" "}
+                      Need help creating your skeleton file? Download the{" "}
                       <SchemaDownloader
                         variant="inline"
                         showTitle={false}
                         className="inline"
                         filter="skeleton"
                       />{" "}
-                      for reference.
+                      to see the required format and structure.
                     </p>
                   </div>
 
@@ -445,22 +445,12 @@ const RoadmapAssembler = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <FileUploadZone
-                        onFilesSelected={handleSkeletonUpload}
-                        title="Drop skeleton file here"
-                        description="Must conform to roadmap_skeleton_schema.json"
-                        disabled={false} // Always allow re-upload
-                      />
-                      <div className="text-center">
-                        <SchemaDownloader
-                          variant="compact"
-                          showTitle={false}
-                          className="inline-block"
-                          filter="skeleton"
-                        />
-                      </div>
-                    </div>
+                    <FileUploadZone
+                      onFilesSelected={handleSkeletonUpload}
+                      title="Drop skeleton file here"
+                      description="Must conform to roadmap_skeleton_schema.json"
+                      disabled={false} // Always allow re-upload
+                    />
                   )}
                 </div>
               )}
@@ -476,14 +466,14 @@ const RoadmapAssembler = () => {
                       Upload one or more JSON files containing task definitions.
                     </p>
                     <p className="text-sm">
-                      Need help? Download the{" "}
+                      Need help creating your task files? Download the{" "}
                       <SchemaDownloader
                         variant="inline"
                         showTitle={false}
                         className="inline"
                         filter="tasks"
                       />{" "}
-                      for reference.
+                      to see the required format and structure.
                     </p>
                   </div>
 
@@ -539,23 +529,13 @@ const RoadmapAssembler = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      <FileUploadZone
-                        onFilesSelected={handleTaskFilesUpload}
-                        multiple={true}
-                        title="Drop task files here"
-                        description="Each must conform to skeleton_tasks_schema.json"
-                        disabled={false} // Always allow re-upload
-                      />
-                      <div className="text-center">
-                        <SchemaDownloader
-                          variant="compact"
-                          showTitle={false}
-                          className="inline-block"
-                          filter="tasks"
-                        />
-                      </div>
-                    </div>
+                    <FileUploadZone
+                      onFilesSelected={handleTaskFilesUpload}
+                      multiple={true}
+                      title="Drop task files here"
+                      description="Each must conform to skeleton_tasks_schema.json"
+                      disabled={false} // Always allow re-upload
+                    />
                   )}
                 </div>
               )}
