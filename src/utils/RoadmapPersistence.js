@@ -50,7 +50,10 @@ class RoadmapPersistence {
         tags: roadmapData.tags || [],
         uploadDate: timestamp,
         lastAccessed: timestamp,
-        totalPhases: roadmapData.roadmap ? roadmapData.roadmap.length : 0,
+        totalPhases:
+          roadmapData.roadmap && roadmapData.roadmap.phases
+            ? roadmapData.roadmap.phases.length
+            : 0,
         totalTasks: this.calculateTotalTasks(roadmapData),
         progressPercentage: 0,
       };
@@ -275,15 +278,18 @@ class RoadmapPersistence {
    * Calculate total tasks in a roadmap
    */
   static calculateTotalTasks(roadmapData) {
-    if (
-      !roadmapData ||
-      !roadmapData.roadmap ||
-      !Array.isArray(roadmapData.roadmap)
-    ) {
+    if (!roadmapData || !roadmapData.roadmap) {
       return 0;
     }
 
-    return roadmapData.roadmap.reduce((total, phase) => {
+    // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+    const phases = roadmapData.roadmap.phases || roadmapData.roadmap;
+
+    if (!Array.isArray(phases)) {
+      return 0;
+    }
+
+    return phases.reduce((total, phase) => {
       return total + (phase.phase_tasks ? phase.phase_tasks.length : 0);
     }, 0);
   }

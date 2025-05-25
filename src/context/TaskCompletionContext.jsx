@@ -124,10 +124,15 @@ export const TaskCompletionProvider = ({
   const calculateOverallProgress = () => {
     if (!roadmapData || !roadmapData.roadmap) return 0;
 
+    // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+    const phases = roadmapData.roadmap.phases || roadmapData.roadmap;
+
+    if (!Array.isArray(phases)) return 0;
+
     let totalTasks = 0;
     let completedCount = 0;
 
-    roadmapData.roadmap.forEach((phase) => {
+    phases.forEach((phase) => {
       const phaseTasks = phase.phase_tasks.length;
       totalTasks += phaseTasks;
       completedCount += getCompletedTasksInPhase(

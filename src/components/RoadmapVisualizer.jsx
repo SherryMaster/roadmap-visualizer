@@ -59,8 +59,11 @@ const RoadmapVisualizer = ({
     const searchLower = term.toLowerCase();
     const searchConfig = configManager.getSearchConfig();
 
+    // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+    const phases = roadmapData.roadmap.phases || roadmapData.roadmap;
+
     // Filter phases and tasks based on search term
-    const filteredPhases = roadmapData.roadmap
+    const filteredPhases = phases
       .map((phase) => {
         // Check if phase title matches
         const phaseMatches = phase.phase_title
@@ -120,10 +123,15 @@ const RoadmapVisualizer = ({
       })
       .filter(Boolean);
 
-    setFilteredRoadmapData({
+    // Preserve the original roadmap structure
+    const updatedRoadmapData = {
       ...roadmapData,
-      roadmap: filteredPhases,
-    });
+      roadmap: roadmapData.roadmap.phases
+        ? { ...roadmapData.roadmap, phases: filteredPhases }
+        : filteredPhases,
+    };
+
+    setFilteredRoadmapData(updatedRoadmapData);
   };
 
   if (loading) {
@@ -226,18 +234,30 @@ const RoadmapVisualizer = ({
 
           <SearchBar onSearch={handleSearch} />
 
-          {searchTerm && filteredRoadmapData.roadmap.length === 0 ? (
+          {searchTerm &&
+          (filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap)
+            .length === 0 ? (
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
               No results found for "{searchTerm}". Try a different search term.
             </div>
           ) : searchTerm ? (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-md mb-6">
               Showing results for "{searchTerm}".{" "}
-              {filteredRoadmapData.roadmap.length} phases match your search.
+              {
+                (
+                  filteredRoadmapData.roadmap.phases ||
+                  filteredRoadmapData.roadmap
+                ).length
+              }{" "}
+              phases match your search.
             </div>
           ) : null}
 
-          <PhaseList phases={filteredRoadmapData.roadmap} />
+          <PhaseList
+            phases={
+              filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap
+            }
+          />
         </div>
       </div>
     </TaskCompletionProvider>
