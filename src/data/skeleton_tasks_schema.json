@@ -52,7 +52,7 @@
                   "type": "string",
                   "enum": [
                     "basic",
-                    "intermidiate",
+                    "intermediate",
                     "advanced"
                   ]
                 }
@@ -95,7 +95,9 @@
                 }
               },
               "required": [
-                "dependency_type"
+                "dependency_type",
+                "task_id",
+                "phase_id"
               ]
             }
           },
@@ -113,10 +115,15 @@
                     "enum": [
                       "minutes",
                       "hours",
-                      "days"
+                      "days",
+                      "weeks"
                     ]
                   }
-                }
+                },
+                "required": [
+                  "amount",
+                  "unit"
+                ]
               },
               "max_time": {
                 "type": "object",
@@ -129,10 +136,15 @@
                     "enum": [
                       "minutes",
                       "hours",
-                      "days"
+                      "days",
+                      "weeks"
                     ]
                   }
-                }
+                },
+                "required": [
+                  "amount",
+                  "unit"
+                ]
               },
               "factors_affecting_time": {
                 "type": "array",
@@ -142,6 +154,8 @@
               }
             },
             "required": [
+              "min_time",
+              "max_time",
               "factors_affecting_time"
             ]
           },
@@ -176,11 +190,12 @@
               "required": [
                 "display_text",
                 "url",
-                "is_essential"
+                "is_essential",
+                "type"
               ]
             }
           },
-          "task_priotity": {
+          "task_priority": {
             "type": "string",
             "enum": [
               "low",
@@ -207,8 +222,9 @@
           "difficulty_reason",
           "prerequisites_needed",
           "task_dependencies",
+          "est_time",
           "resource_links",
-          "task_priotity",
+          "task_priority",
           "task_tags"
         ]
       }

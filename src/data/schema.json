@@ -57,7 +57,7 @@
                   "type": "string"
                 }
               },
-              "succes_indicators": {
+              "success_indicators": {
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -308,7 +308,7 @@
               "phase_summary",
               "phase_details",
               "key_milestones",
-              "succes_indicators",
+              "success_indicators",
               "phase_tasks"
             ]
           }

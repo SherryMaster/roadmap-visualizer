@@ -4,7 +4,7 @@
     "roadmap_title": {
       "type": "string"
     },
-    "roadmap_subtitle": {
+    "roadmap_description": {
       "type": "string"
     },
     "num_of_phases": {
@@ -12,13 +12,12 @@
     },
     "project_level": {
       "type": "string",
-      "enum": ["beginner", "intermediate", "advanced", "expert"]
-    },
-    "project_title": {
-      "type": "string"
-    },
-    "project_description": {
-      "type": "string"
+      "enum": [
+        "beginner",
+        "intermediate",
+        "advanced",
+        "expert"
+      ]
     },
     "phases": {
       "type": "array",
@@ -34,26 +33,56 @@
           "phase_id": {
             "type": "string"
           },
-          "order_id": {
-            "type": "integer"
-          },
           "num_of_tasks": {
             "type": "integer"
           },
-          "phase_detail": {
-            "type": "string"
+          "phase_details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "phase_number": {
+            "type": "integer"
+          },
+          "phase_dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "key_milestones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "success_indicators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "phase_title",
           "phase_summary",
           "phase_id",
-          "order_id",
           "num_of_tasks",
-          "phase_detail"
+          "phase_details",
+          "phase_number",
+          "phase_dependencies",
+          "key_milestones",
+          "success_indicators"
         ]
       }
     }
   },
-  "required": ["roadmap_title", "roadmap_subtitle", "num_of_phases", "phases"]
+  "required": [
+    "roadmap_title",
+    "roadmap_description",
+    "num_of_phases",
+    "project_level",
+    "phases"
+  ]
 }
