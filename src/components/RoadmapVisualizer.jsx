@@ -230,7 +230,12 @@ const RoadmapVisualizer = ({
             </div>
           </div>
 
-          <RoadmapHeader title={filteredRoadmapData.title} />
+          <RoadmapHeader
+            title={filteredRoadmapData.title}
+            description={filteredRoadmapData.description}
+            projectLevel={filteredRoadmapData.project_level}
+            tags={filteredRoadmapData.tags}
+          />
 
           <SearchBar onSearch={handleSearch} />
 

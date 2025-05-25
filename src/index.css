@@ -33,6 +33,29 @@
     animation: scale-in 0.2s ease-out;
   }
 
+  /* Smooth text expansion animation */
+  .description-expand {
+    transition: all 0.3s ease-in-out;
+  }
+
+  .description-expand.expanded {
+    animation: text-expand 0.3s ease-out;
+  }
+
+  /* Smooth tags expansion animation */
+  .tags-container {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .tag-item {
+    transition: all 0.2s ease-in-out;
+    animation: tag-fade-in 0.2s ease-out;
+  }
+
+  .tag-item:hover {
+    transform: translateY(-1px);
+  }
+
   /* Subtle task card highlight for dependency navigation */
   .dependency-highlight {
     border-left: 4px solid rgb(59 130 246) !important;
@@ -131,5 +154,27 @@
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes text-expand {
+  0% {
+    opacity: 0.7;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tag-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
