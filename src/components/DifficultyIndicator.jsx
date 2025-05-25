@@ -49,6 +49,23 @@ const DifficultyIndicator = ({
     }
   };
 
+  const getTextColorClass = () => {
+    switch (difficultyLevel) {
+      case 1:
+        return "text-green-600 dark:text-green-400";
+      case 2:
+        return "text-green-500 dark:text-green-400";
+      case 3:
+        return "text-yellow-600 dark:text-yellow-400";
+      case 4:
+        return "text-orange-600 dark:text-orange-400";
+      case 5:
+        return "text-red-600 dark:text-red-400";
+      default:
+        return "text-gray-600 dark:text-gray-400";
+    }
+  };
+
   const getLabel = () => {
     // Use original text if available, otherwise map number to text
     if (difficultyData.level_text) {
@@ -77,13 +94,35 @@ const DifficultyIndicator = ({
   const dots = Array.from({ length: 5 }, (_, index) => index + 1);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <svg
+            className="w-5 h-5 text-gray-500 dark:text-gray-400"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fillRule="evenodd"
+              d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Difficulty
+          </span>
+        </div>
+        <span className={`text-sm font-bold ${getTextColorClass()}`}>
+          {getLabel()}
+        </span>
+      </div>
+
       <div className="flex items-center space-x-2">
-        <div className="flex space-x-1">
+        <div className="flex space-x-1.5">
           {dots.map((dot) => (
             <div
               key={dot}
-              className={`w-3 h-3 rounded-full ${
+              className={`w-3 h-3 rounded-full transition-colors duration-200 ${
                 dot <= difficultyLevel
                   ? getColorClass()
                   : "bg-gray-200 dark:bg-gray-700"
@@ -92,14 +131,18 @@ const DifficultyIndicator = ({
             />
           ))}
         </div>
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {getLabel()}
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+          {difficultyLevel}/5
         </span>
       </div>
 
       {showReason && difficultyData.reason && (
-        <div className="text-xs text-gray-600 dark:text-gray-400 ml-6">
-          <strong>Why:</strong> {difficultyData.reason}
+        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-md p-2 border-l-2 border-gray-300 dark:border-gray-600">
+          <strong className="text-gray-700 dark:text-gray-300">
+            Why this difficulty:
+          </strong>
+          <br />
+          {difficultyData.reason}
         </div>
       )}
 

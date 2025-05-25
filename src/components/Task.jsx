@@ -73,86 +73,147 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
 
   return (
     <div
-      className={`bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 ${
-        completed ? "border-l-4 border-green-500" : ""
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 ${
+        completed
+          ? "border-l-4 border-green-500 bg-green-50/30 dark:bg-green-900/10"
+          : ""
       } ${animateCompletion ? "animate-pulse" : ""}`}
       data-task-id={task.task_id}
       data-phase-id={task.phase_id || `P${phaseNumber}`}
     >
       <div
-        className={`px-4 py-3 cursor-pointer ${
+        className={`px-6 py-4 cursor-pointer transition-colors duration-200 ${
           isExpanded
-            ? "bg-blue-100 dark:bg-gray-800"
+            ? "bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800"
             : completed
-            ? "bg-green-50 dark:bg-green-900/20"
-            : ""
+            ? "bg-green-50/50 dark:bg-green-900/10"
+            : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
         }`}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center flex-1" onClick={onClick}>
-            <h3
-              className={`text-md font-medium ml-2 task-title-highlight ${
-                completed
-                  ? "text-green-700 dark:text-green-400 line-through"
-                  : "text-gray-800 dark:text-white"
-              }`}
-            >
-              {task_title}
-            </h3>
+            <div className="flex items-center space-x-3">
+              {/* Task status icon */}
+              <div
+                className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                  completed
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-600 border-2 border-gray-300 dark:border-gray-500"
+                }`}
+              >
+                {completed && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </div>
+
+              <h3
+                className={`text-lg font-semibold task-title-highlight transition-colors duration-200 ${
+                  completed
+                    ? "text-green-700 dark:text-green-400 line-through"
+                    : "text-gray-900 dark:text-white"
+                }`}
+              >
+                {task_title}
+              </h3>
+            </div>
           </div>
 
-          <div className="flex items-center">
-            <div
-              className="relative flex items-center justify-center mr-3"
+          <div className="flex items-center space-x-3">
+            {/* Completion toggle button */}
+            <button
               onClick={handleCheckboxClick}
+              disabled={!completed && !canComplete}
+              className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
+                !completed && !canComplete
+                  ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
+                  : completed
+                  ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400"
+                  : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+              }`}
+              title={
+                !completed && !canComplete
+                  ? `Complete required dependencies first (${
+                      dependencyStatus?.requiredCompleted || 0
+                    }/${dependencyStatus?.requiredTotal || 0})`
+                  : completed
+                  ? "Mark task as incomplete"
+                  : "Mark task as complete"
+              }
             >
-              <input
-                type="checkbox"
-                checked={completed}
-                disabled={!completed && !canComplete}
-                onChange={() => {}} // Handled by onClick to prevent event bubbling issues
-                className={`h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500 transition-colors ${
-                  !completed && !canComplete
-                    ? "cursor-not-allowed opacity-50 bg-gray-100"
-                    : "cursor-pointer"
-                }`}
-                title={
-                  !completed && !canComplete
-                    ? `Complete required dependencies first (${
-                        dependencyStatus?.requiredCompleted || 0
-                      }/${dependencyStatus?.requiredTotal || 0})`
-                    : ""
-                }
-              />
+              {completed ? (
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+
               {animateCompletion && (
-                <span className="absolute flex h-10 w-10 -top-2.5 -left-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="absolute flex h-10 w-10 -top-1 -left-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-lg bg-green-400 opacity-75"></span>
                 </span>
               )}
-            </div>
+            </button>
 
-            <svg
-              className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
-                isExpanded ? "transform rotate-180" : ""
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+            {/* Expand/collapse button */}
+            <button
               onClick={onClick}
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+              title={
+                isExpanded ? "Collapse task details" : "Expand task details"
+              }
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 9l-7 7-7-7"
-              ></path>
-            </svg>
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  isExpanded ? "transform rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-        <div onClick={onClick}>
+        <div onClick={onClick} className="mt-3">
           <p
-            className={`text-sm mt-1 ${
+            className={`text-sm leading-relaxed ${
               completed
                 ? "text-green-600 dark:text-green-400 line-through"
                 : "text-gray-600 dark:text-gray-300"
@@ -166,19 +227,43 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             dependencyStatus &&
             dependencyStatus.requiredTotal > 0 && (
               <div
-                className={`text-xs mt-2 px-2 py-1 rounded ${
+                className={`inline-flex items-center text-xs mt-3 px-3 py-2 rounded-lg font-medium ${
                   canComplete
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200"
-                    : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200 border border-green-200 dark:border-green-800"
+                    : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
                 }`}
               >
                 {canComplete ? (
-                  <span>✅ All required dependencies completed</span>
+                  <>
+                    <svg
+                      className="w-3 h-3 mr-2 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    All required dependencies completed
+                  </>
                 ) : (
-                  <span>
-                    ⚠️ Dependencies: {dependencyStatus.requiredCompleted}/
+                  <>
+                    <svg
+                      className="w-3 h-3 mr-2 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Dependencies: {dependencyStatus.requiredCompleted}/
                     {dependencyStatus.requiredTotal} required
-                  </span>
+                  </>
                 )}
               </div>
             )}
@@ -186,7 +271,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
       </div>
 
       {isExpanded && (
-        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-5 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
           <TaskDetail
             detail={task.task_detail}
             task={task}

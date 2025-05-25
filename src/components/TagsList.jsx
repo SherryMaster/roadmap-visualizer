@@ -16,7 +16,7 @@ const TagsList = ({ tags }) => {
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
+    <div className="flex flex-wrap gap-2">
       {tags.map((tag, index) => {
         // Create unique key for tag
         const uniqueKey = `tag-${index}-${tag}`;
@@ -24,10 +24,21 @@ const TagsList = ({ tags }) => {
         return (
           <span
             key={uniqueKey}
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 hover:opacity-80 ${
               tagColors[index % tagColors.length]
-            }`}
+            } border border-opacity-20`}
           >
+            <svg
+              className="w-3 h-3 mr-1.5"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
             {tag}
           </span>
         );

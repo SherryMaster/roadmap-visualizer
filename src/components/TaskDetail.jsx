@@ -50,40 +50,62 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
     : [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Primary indicators */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {difficulty && (
-          <DifficultyIndicator
-            difficulty={difficulty}
-            showReason={difficultyConfig.showReason}
-            showPrerequisites={difficultyConfig.showPrerequisites}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <DifficultyIndicator
+              difficulty={difficulty}
+              showReason={difficultyConfig.showReason}
+              showPrerequisites={difficultyConfig.showPrerequisites}
+            />
+          </div>
         )}
         {estTime && (
-          <EstimatedTime
-            est_time={estTime}
-            showRange={timeConfig.showRange}
-            showFactors={timeConfig.showFactors}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <EstimatedTime
+              est_time={estTime}
+              showRange={timeConfig.showRange}
+              showFactors={timeConfig.showFactors}
+            />
+          </div>
         )}
         {priority && (
-          <PriorityBadge
-            priority={priority}
-            showIcon={priorityConfig.showIcon}
-            style={priorityConfig.style}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <PriorityBadge
+              priority={priority}
+              showIcon={priorityConfig.showIcon}
+              style={priorityConfig.style}
+            />
+          </div>
         )}
       </div>
 
       {/* Tags */}
       {tags && tags.length > 0 && (
-        <TagsList
-          tags={tags}
-          clickable={tagConfig.clickable}
-          colorCoded={tagConfig.colorCoded}
-          maxDisplay={tagConfig.maxDisplay}
-        />
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Tags
+          </h4>
+          <TagsList
+            tags={tags}
+            clickable={tagConfig.clickable}
+            colorCoded={tagConfig.colorCoded}
+            maxDisplay={tagConfig.maxDisplay}
+          />
+        </div>
       )}
 
       {/* Main content */}
