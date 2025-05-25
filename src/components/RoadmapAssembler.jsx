@@ -4,6 +4,7 @@ import FileUploadZone from "./FileUploadZone";
 import AssemblerProgress from "./AssemblerProgress";
 import AssemblerResults from "./AssemblerResults";
 import ThemeSelector from "./ThemeSelector";
+import SchemaDownloader from "./SchemaDownloader";
 import MultiSchemaValidator from "../utils/MultiSchemaValidator";
 import RoadmapMerger from "../utils/RoadmapMerger";
 import usePageTitle from "../hooks/usePageTitle";
@@ -30,6 +31,9 @@ const RoadmapAssembler = () => {
 
   // Track successful completion of each step
   const [completedSteps, setCompletedSteps] = useState(new Set());
+
+  // Schema reference section visibility
+  const [showSchemaReference, setShowSchemaReference] = useState(false);
 
   // Initialize validator
   const [validator] = useState(
@@ -316,6 +320,25 @@ const RoadmapAssembler = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowSchemaReference(!showSchemaReference)}
+              className="inline-flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+            >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              Schema Reference
+            </button>
             <Link
               to="/"
               className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
@@ -325,6 +348,13 @@ const RoadmapAssembler = () => {
             <ThemeSelector />
           </div>
         </div>
+
+        {/* Schema Reference Section */}
+        {showSchemaReference && (
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <SchemaDownloader variant="full" />
+          </div>
+        )}
 
         {/* Progress Indicator */}
         <div className="mb-8">
@@ -349,10 +379,22 @@ const RoadmapAssembler = () => {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                     Step 1: Upload Roadmap Skeleton
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Upload a single JSON file containing the roadmap skeleton
-                    structure.
-                  </p>
+                  <div className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="mb-2">
+                      Upload a single JSON file containing the roadmap skeleton
+                      structure.
+                    </p>
+                    <p className="text-sm">
+                      Need help? Download the{" "}
+                      <SchemaDownloader
+                        variant="inline"
+                        showTitle={false}
+                        className="inline"
+                        filter="skeleton"
+                      />{" "}
+                      for reference.
+                    </p>
+                  </div>
 
                   {skeletonFile ? (
                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
@@ -403,12 +445,22 @@ const RoadmapAssembler = () => {
                       </div>
                     </div>
                   ) : (
-                    <FileUploadZone
-                      onFilesSelected={handleSkeletonUpload}
-                      title="Drop skeleton file here"
-                      description="Must conform to roadmap_skeleton_schema.json"
-                      disabled={false} // Always allow re-upload
-                    />
+                    <div className="space-y-4">
+                      <FileUploadZone
+                        onFilesSelected={handleSkeletonUpload}
+                        title="Drop skeleton file here"
+                        description="Must conform to roadmap_skeleton_schema.json"
+                        disabled={false} // Always allow re-upload
+                      />
+                      <div className="text-center">
+                        <SchemaDownloader
+                          variant="compact"
+                          showTitle={false}
+                          className="inline-block"
+                          filter="skeleton"
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -419,9 +471,21 @@ const RoadmapAssembler = () => {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
                     Step 2: Upload Task Files
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    Upload one or more JSON files containing task definitions.
-                  </p>
+                  <div className="text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="mb-2">
+                      Upload one or more JSON files containing task definitions.
+                    </p>
+                    <p className="text-sm">
+                      Need help? Download the{" "}
+                      <SchemaDownloader
+                        variant="inline"
+                        showTitle={false}
+                        className="inline"
+                        filter="tasks"
+                      />{" "}
+                      for reference.
+                    </p>
+                  </div>
 
                   {taskFiles.length > 0 ? (
                     <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
@@ -475,13 +539,23 @@ const RoadmapAssembler = () => {
                       </div>
                     </div>
                   ) : (
-                    <FileUploadZone
-                      onFilesSelected={handleTaskFilesUpload}
-                      multiple={true}
-                      title="Drop task files here"
-                      description="Each must conform to skeleton_tasks_schema.json"
-                      disabled={false} // Always allow re-upload
-                    />
+                    <div className="space-y-4">
+                      <FileUploadZone
+                        onFilesSelected={handleTaskFilesUpload}
+                        multiple={true}
+                        title="Drop task files here"
+                        description="Each must conform to skeleton_tasks_schema.json"
+                        disabled={false} // Always allow re-upload
+                      />
+                      <div className="text-center">
+                        <SchemaDownloader
+                          variant="compact"
+                          showTitle={false}
+                          className="inline-block"
+                          filter="tasks"
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
