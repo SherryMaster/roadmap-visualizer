@@ -190,24 +190,22 @@ class RoadmapMerger {
   }
 
   /**
-   * Extracts tags from skeleton and tasks
+   * Extracts tags exclusively from skeleton file
+   * Task-level tags (task.task_tags) are preserved separately for individual tasks
    */
   static extractTags(skeleton, allTasks) {
-    const tags = new Set();
+    const tags = [];
 
-    // Add tags from tasks
-    allTasks.forEach((task) => {
-      if (task.task_tags && Array.isArray(task.task_tags)) {
-        task.task_tags.forEach((tag) => tags.add(tag));
-      }
-    });
-
-    // Add project level as a tag
-    if (skeleton.project_level) {
-      tags.add(skeleton.project_level);
+    // Extract tags ONLY from skeleton file
+    if (skeleton.tags && Array.isArray(skeleton.tags)) {
+      skeleton.tags.forEach((tag) => {
+        if (tag && typeof tag === "string" && tag.trim()) {
+          tags.push(tag.trim());
+        }
+      });
     }
 
-    return Array.from(tags);
+    return tags.sort(); // Sort for consistent ordering
   }
 
   /**

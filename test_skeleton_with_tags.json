@@ -1,0 +1,31 @@
+{
+  "roadmap_title": "Test Roadmap with Tags",
+  "roadmap_description": "A test roadmap to verify that the tags property is properly handled in the Roadmap Assembler.",
+  "num_of_phases": 2,
+  "project_level": "beginner",
+  "phases": [
+    {
+      "phase_title": "Phase 1: Setup",
+      "phase_summary": "Initial setup and configuration",
+      "phase_id": "P1_SETUP",
+      "num_of_tasks": 2,
+      "phase_details": ["Set up the development environment", "Configure basic project structure"],
+      "phase_number": 1,
+      "phase_dependencies": [],
+      "key_milestones": ["Environment ready", "Project initialized"],
+      "success_indicators": ["Development tools installed", "Project structure created"]
+    },
+    {
+      "phase_title": "Phase 2: Implementation",
+      "phase_summary": "Core implementation phase",
+      "phase_id": "P2_IMPL",
+      "num_of_tasks": 3,
+      "phase_details": ["Implement core features", "Add basic functionality"],
+      "phase_number": 2,
+      "phase_dependencies": ["P1_SETUP"],
+      "key_milestones": ["Core features complete", "Basic functionality working"],
+      "success_indicators": ["Features implemented", "Tests passing"]
+    }
+  ],
+  "tags": ["test", "validation", "assembler", "tags-feature", "development"]
+}

@@ -1,0 +1,20 @@
+{
+  "roadmap_title": "Test Roadmap with Invalid Tags",
+  "roadmap_description": "A test roadmap to verify that invalid tags are properly caught by validation.",
+  "num_of_phases": 1,
+  "project_level": "beginner",
+  "phases": [
+    {
+      "phase_title": "Phase 1: Test",
+      "phase_summary": "Test phase",
+      "phase_id": "P1_TEST",
+      "num_of_tasks": 1,
+      "phase_details": ["Test phase details"],
+      "phase_number": 1,
+      "phase_dependencies": [],
+      "key_milestones": ["Test milestone"],
+      "success_indicators": ["Test indicator"]
+    }
+  ],
+  "tags": ["valid-tag", "", 123, null, "another-valid-tag"]
+}

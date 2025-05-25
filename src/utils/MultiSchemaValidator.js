@@ -76,6 +76,23 @@ class MultiSchemaValidator {
           `num_of_phases (${data.num_of_phases}) does not match actual phases count (${data.phases.length})`
         );
       }
+
+      // Validate tags property
+      if (data.tags !== undefined) {
+        if (!Array.isArray(data.tags)) {
+          errors.push("tags must be an array");
+        } else {
+          data.tags.forEach((tag, index) => {
+            if (typeof tag !== "string") {
+              errors.push(`Tag at index ${index} must be a string`);
+            } else if (!tag.trim()) {
+              errors.push(
+                `Tag at index ${index} cannot be empty or whitespace only`
+              );
+            }
+          });
+        }
+      }
     } catch (error) {
       errors.push(`Skeleton validation error: ${error.message}`);
     }

@@ -76,6 +76,12 @@
           "success_indicators"
         ]
       }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [
@@ -83,6 +89,7 @@
     "roadmap_description",
     "num_of_phases",
     "project_level",
-    "phases"
+    "phases",
+    "tags"
   ]
 }

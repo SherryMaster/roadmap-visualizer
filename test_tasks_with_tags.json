@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "phase_id": "P1_SETUP",
+      "task_id": "T1_INSTALL",
+      "task_difficulty": "easy",
+      "task_title": "Install Development Tools",
+      "task_summary": "Install and configure necessary development tools",
+      "task_detail": ["Download and install IDE", "Configure development environment"],
+      "code_blocks": [],
+      "difficulty_reason": "Standard installation process",
+      "prerequisites_needed": ["Computer with internet access"],
+      "task_dependencies": [],
+      "est_time": {
+        "min_time": { "amount": 30, "unit": "minutes" },
+        "max_time": { "amount": 60, "unit": "minutes" },
+        "factors_affecting_time": ["Internet speed", "Experience level"]
+      },
+      "resource_links": [],
+      "task_priority": "high",
+      "task_tags": ["setup", "installation", "tools"]
+    },
+    {
+      "phase_id": "P1_SETUP",
+      "task_id": "T2_PROJECT",
+      "task_difficulty": "easy",
+      "task_title": "Create Project Structure",
+      "task_summary": "Set up the basic project directory structure",
+      "task_detail": ["Create main project folder", "Set up subdirectories"],
+      "code_blocks": [],
+      "difficulty_reason": "Simple file organization",
+      "prerequisites_needed": ["Development tools installed"],
+      "task_dependencies": [
+        {
+          "phase_id": "P1_SETUP",
+          "task_id": "T1_INSTALL",
+          "dependency_type": "required"
+        }
+      ],
+      "est_time": {
+        "min_time": { "amount": 15, "unit": "minutes" },
+        "max_time": { "amount": 30, "unit": "minutes" },
+        "factors_affecting_time": ["Project complexity"]
+      },
+      "resource_links": [],
+      "task_priority": "mid",
+      "task_tags": ["project-structure", "organization"]
+    },
+    {
+      "phase_id": "P2_IMPL",
+      "task_id": "T3_CORE",
+      "task_difficulty": "normal",
+      "task_title": "Implement Core Features",
+      "task_summary": "Develop the main functionality of the application",
+      "task_detail": ["Design core architecture", "Implement main features"],
+      "code_blocks": [],
+      "difficulty_reason": "Requires understanding of application logic",
+      "prerequisites_needed": ["Project structure ready"],
+      "task_dependencies": [
+        {
+          "phase_id": "P1_SETUP",
+          "task_id": "T2_PROJECT",
+          "dependency_type": "required"
+        }
+      ],
+      "est_time": {
+        "min_time": { "amount": 2, "unit": "hours" },
+        "max_time": { "amount": 4, "unit": "hours" },
+        "factors_affecting_time": ["Feature complexity", "Experience level"]
+      },
+      "resource_links": [],
+      "task_priority": "high",
+      "task_tags": ["implementation", "core-features", "development"]
+    }
+  ]
+}
