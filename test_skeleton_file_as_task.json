@@ -1,0 +1,18 @@
+{
+  "roadmap_title": "Test Skeleton as Task",
+  "roadmap_subtitle": "This skeleton file should fail when uploaded as task",
+  "num_of_phases": 1,
+  "project_level": "beginner",
+  "project_title": "Test Project",
+  "project_description": "This should fail validation when uploaded as task file",
+  "phases": [
+    {
+      "phase_title": "Phase 1: Setup",
+      "phase_summary": "Initial setup and configuration",
+      "phase_id": "P1_Setup",
+      "order_id": 1,
+      "num_of_tasks": 1,
+      "phase_detail": "This is a skeleton file being uploaded as task"
+    }
+  ]
+}

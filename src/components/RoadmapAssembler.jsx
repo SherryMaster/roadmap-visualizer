@@ -67,10 +67,25 @@ const RoadmapAssembler = () => {
         `Skeleton file error: ${errorMessage}. Please check that your file is valid JSON and follows the roadmap_skeleton_schema.json format.`
       );
       setCurrentStep(0); // Ensure we're on the skeleton upload step
+      setSkeletonFile(null); // Clear any previous skeleton file
       return;
     }
 
     if (data) {
+      // IMMEDIATE STRICT VALIDATION
+      const validationResult = validator.validateSkeleton(data);
+      if (!validationResult.isValid) {
+        setError(
+          `Skeleton validation failed: ${validationResult.errors.join(
+            ", "
+          )}. Please upload a valid skeleton file.`
+        );
+        setCurrentStep(0);
+        setSkeletonFile(null);
+        return;
+      }
+
+      // Only set file if validation passes
       setSkeletonFile(data);
       setError(null);
       setCurrentStep(1);
@@ -84,10 +99,34 @@ const RoadmapAssembler = () => {
         `Task files error: ${errorMessage}. Please check that all files are valid JSON and follow the skeleton_tasks_schema.json format.`
       );
       setCurrentStep(1); // Ensure we're on the task files upload step
+      setTaskFiles([]); // Clear any previous task files
       return;
     }
 
     if (dataArray && Array.isArray(dataArray)) {
+      // IMMEDIATE STRICT VALIDATION for each task file
+      const validationErrors = [];
+      dataArray.forEach((taskFile, index) => {
+        const validationResult = validator.validateTasks(taskFile);
+        if (!validationResult.isValid) {
+          validationErrors.push(
+            `Task file ${index + 1}: ${validationResult.errors.join(", ")}`
+          );
+        }
+      });
+
+      if (validationErrors.length > 0) {
+        setError(
+          `Task file validation failed: ${validationErrors.join(
+            " | "
+          )}. Please upload valid task files.`
+        );
+        setCurrentStep(1);
+        setTaskFiles([]);
+        return;
+      }
+
+      // Only set files if all validations pass
       setTaskFiles(dataArray);
       setError(null);
       setCurrentStep(2);
@@ -296,6 +335,7 @@ const RoadmapAssembler = () => {
             isProcessing={isProcessing}
             error={error}
             onRetry={retryCurrentStep}
+            onStartOver={resetAssembler}
           />
         </div>
 

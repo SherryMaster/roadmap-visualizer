@@ -1,0 +1,23 @@
+{
+  "tasks": [
+    {
+      "phase_id": "P1_Setup",
+      "task_id": "P1T1",
+      "task_difficulty": "easy",
+      "task_title": "Test Task",
+      "task_summary": "This is a task file being uploaded as skeleton",
+      "task_detail": ["This should fail validation when uploaded as skeleton"],
+      "code_blocks": [],
+      "difficulty_reason": "Test",
+      "prerequisites_needed": [],
+      "task_dependencies": [],
+      "est_time": {
+        "min_time": {"amount": 1, "unit": "hours"},
+        "max_time": {"amount": 2, "unit": "hours"}
+      },
+      "resource_links": [],
+      "task_priotity": "mid",
+      "task_tags": ["test"]
+    }
+  ]
+}
