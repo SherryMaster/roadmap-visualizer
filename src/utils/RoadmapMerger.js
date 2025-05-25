@@ -13,12 +13,12 @@ class RoadmapMerger {
   static merge(skeleton, taskFiles) {
     try {
       if (!skeleton || !taskFiles || !Array.isArray(taskFiles)) {
-        throw new Error('Invalid input: skeleton and taskFiles array required');
+        throw new Error("Invalid input: skeleton and taskFiles array required");
       }
 
       // Combine all tasks from all task files
       const allTasks = [];
-      taskFiles.forEach(taskFile => {
+      taskFiles.forEach((taskFile) => {
         if (taskFile.tasks && Array.isArray(taskFile.tasks)) {
           allTasks.push(...taskFile.tasks);
         }
@@ -26,32 +26,49 @@ class RoadmapMerger {
 
       // Create the base roadmap structure
       const mergedRoadmap = {
-        title: skeleton.roadmap_title || skeleton.project_title || 'Untitled Roadmap',
-        description: skeleton.project_description || '',
+        title:
+          skeleton.roadmap_title ||
+          skeleton.project_title ||
+          "Untitled Roadmap",
+        description:
+          skeleton.roadmap_description || skeleton.project_description || "",
         tags: this.extractTags(skeleton, allTasks),
-        project_level: skeleton.project_level || 'beginner',
+        project_level: skeleton.project_level || "beginner",
         roadmap: {
-          phases: []
-        }
+          phases: [],
+        },
       };
 
-      // Process each phase from skeleton
+      // Process each phase from skeleton in correct order
       if (skeleton.phases && Array.isArray(skeleton.phases)) {
-        skeleton.phases.forEach(skeletonPhase => {
+        // Sort phases by phase_number to ensure correct ordering
+        const sortedPhases = [...skeleton.phases].sort((a, b) => {
+          const aNum = a.phase_number || 0;
+          const bNum = b.phase_number || 0;
+          return aNum - bNum;
+        });
+
+        sortedPhases.forEach((skeletonPhase) => {
           const mergedPhase = this.mergePhase(skeletonPhase, allTasks);
           mergedRoadmap.roadmap.phases.push(mergedPhase);
         });
       }
 
       // Validate the merge was successful
-      const mergeValidation = this.validateMerge(mergedRoadmap, skeleton, allTasks);
+      const mergeValidation = this.validateMerge(
+        mergedRoadmap,
+        skeleton,
+        allTasks
+      );
       if (!mergeValidation.isValid) {
-        throw new Error(`Merge validation failed: ${mergeValidation.errors.join(', ')}`);
+        throw new Error(
+          `Merge validation failed: ${mergeValidation.errors.join(", ")}`
+        );
       }
 
       return mergedRoadmap;
     } catch (error) {
-      console.error('Error merging roadmap:', error);
+      console.error("Error merging roadmap:", error);
       return null;
     }
   }
@@ -61,7 +78,9 @@ class RoadmapMerger {
    */
   static mergePhase(skeletonPhase, allTasks) {
     // Find tasks that belong to this phase
-    const phaseTasks = allTasks.filter(task => task.phase_id === skeletonPhase.phase_id);
+    const phaseTasks = allTasks.filter(
+      (task) => task.phase_id === skeletonPhase.phase_id
+    );
 
     // Sort tasks by task_id for consistent ordering
     phaseTasks.sort((a, b) => a.task_id.localeCompare(b.task_id));
@@ -69,16 +88,21 @@ class RoadmapMerger {
     const mergedPhase = {
       phase_id: skeletonPhase.phase_id,
       phase_title: skeletonPhase.phase_title,
-      phase_dependencies: [], // Could be enhanced to extract from skeleton
+      phase_dependencies: skeletonPhase.phase_dependencies || [],
       phase_summary: skeletonPhase.phase_summary,
-      phase_details: skeletonPhase.phase_detail ? [skeletonPhase.phase_detail] : [],
-      key_milestones: this.extractMilestones(phaseTasks),
-      succes_indicators: this.extractSuccessIndicators(phaseTasks), // Note: keeping typo from schema
-      phase_tasks: []
+      phase_details:
+        skeletonPhase.phase_details ||
+        (skeletonPhase.phase_detail ? [skeletonPhase.phase_detail] : []),
+      key_milestones:
+        skeletonPhase.key_milestones || this.extractMilestones(phaseTasks),
+      success_indicators:
+        skeletonPhase.success_indicators ||
+        this.extractSuccessIndicators(phaseTasks),
+      phase_tasks: [],
     };
 
     // Transform each task to the final schema format
-    phaseTasks.forEach(task => {
+    phaseTasks.forEach((task) => {
       const transformedTask = this.transformTask(task);
       mergedPhase.phase_tasks.push(transformedTask);
     });
@@ -95,19 +119,21 @@ class RoadmapMerger {
       task_title: task.task_title,
       task_summary: task.task_summary,
       task_detail: {
-        explanation: task.task_detail ? task.task_detail.join(' ') : '',
+        explanation: task.task_detail ? task.task_detail.join(" ") : "",
         difficulty: {
-          level: task.task_difficulty || 'normal',
-          reason_of_difficulty: task.difficulty_reason || '',
-          prerequisites_needed: task.prerequisites_needed || []
+          level: task.task_difficulty || "normal",
+          reason_of_difficulty: task.difficulty_reason || "",
+          prerequisites_needed: task.prerequisites_needed || [],
         },
         est_time: this.transformEstTime(task.est_time),
         code_blocks: task.code_blocks || [],
-        resource_links: this.transformResourceLinks(task.resource_links || [])
+        resource_links: this.transformResourceLinks(task.resource_links || []),
       },
-      task_dependencies: this.transformTaskDependencies(task.task_dependencies || []),
+      task_dependencies: this.transformTaskDependencies(
+        task.task_dependencies || []
+      ),
       task_tags: task.task_tags || [],
-      task_priority: task.task_priotity || 'mid' // Note: keeping typo from schema
+      task_priority: task.task_priority || task.task_priotity || "mid", // Handle both correct and typo versions
     };
   }
 
@@ -117,16 +143,26 @@ class RoadmapMerger {
   static transformEstTime(estTime) {
     if (!estTime) {
       return {
-        min_time: { amount: 1, unit: 'hours' },
-        max_time: { amount: 2, unit: 'hours' },
-        factors_affecting_time: []
+        min_time: { amount: 1, unit: "hours" },
+        max_time: { amount: 2, unit: "hours" },
+        factors_affecting_time: [],
+      };
+    }
+
+    // Handle cases where max_time might be missing
+    let maxTime = estTime.max_time;
+    if (!maxTime && estTime.min_time) {
+      // If max_time is missing, estimate it as 1.5x min_time
+      maxTime = {
+        amount: Math.ceil(estTime.min_time.amount * 1.5),
+        unit: estTime.min_time.unit,
       };
     }
 
     return {
-      min_time: estTime.min_time || { amount: 1, unit: 'hours' },
-      max_time: estTime.max_time || { amount: 2, unit: 'hours' },
-      factors_affecting_time: estTime.factors_affecting_time || []
+      min_time: estTime.min_time || { amount: 1, unit: "hours" },
+      max_time: maxTime || { amount: 2, unit: "hours" },
+      factors_affecting_time: estTime.factors_affecting_time || [],
     };
   }
 
@@ -134,11 +170,11 @@ class RoadmapMerger {
    * Transforms resource links to final format
    */
   static transformResourceLinks(resourceLinks) {
-    return resourceLinks.map(link => ({
+    return resourceLinks.map((link) => ({
       display_text: link.display_text,
       url: link.url,
-      type: link.type || 'reference',
-      is_essential: link.is_essential || false
+      type: link.type || "reference",
+      is_essential: link.is_essential || false,
     }));
   }
 
@@ -146,10 +182,10 @@ class RoadmapMerger {
    * Transforms task dependencies to final format
    */
   static transformTaskDependencies(dependencies) {
-    return dependencies.map(dep => ({
-      phase_id: dep.phase_id || '',
-      task_id: dep.task_id || '',
-      dependency_type: dep.dependency_type || 'recommended'
+    return dependencies.map((dep) => ({
+      phase_id: dep.phase_id || "",
+      task_id: dep.task_id || "",
+      dependency_type: dep.dependency_type || "recommended",
     }));
   }
 
@@ -158,11 +194,11 @@ class RoadmapMerger {
    */
   static extractTags(skeleton, allTasks) {
     const tags = new Set();
-    
+
     // Add tags from tasks
-    allTasks.forEach(task => {
+    allTasks.forEach((task) => {
       if (task.task_tags && Array.isArray(task.task_tags)) {
-        task.task_tags.forEach(tag => tags.add(tag));
+        task.task_tags.forEach((tag) => tags.add(tag));
       }
     });
 
@@ -179,10 +215,11 @@ class RoadmapMerger {
    */
   static extractMilestones(tasks) {
     const milestones = [];
-    
+
     // Use high priority tasks as milestones
-    tasks.forEach(task => {
-      if (task.task_priotity === 'critical' || task.task_priotity === 'high') {
+    tasks.forEach((task) => {
+      const priority = task.task_priority || task.task_priotity; // Handle both correct and typo versions
+      if (priority === "critical" || priority === "high") {
         milestones.push(`Complete ${task.task_title}`);
       }
     });
@@ -203,8 +240,8 @@ class RoadmapMerger {
    */
   static extractSuccessIndicators(tasks) {
     const indicators = [];
-    
-    tasks.forEach(task => {
+
+    tasks.forEach((task) => {
       if (task.task_detail && Array.isArray(task.task_detail)) {
         // Use the first detail as a success indicator
         if (task.task_detail.length > 0) {
@@ -215,8 +252,8 @@ class RoadmapMerger {
 
     // Default indicators if none found
     if (indicators.length === 0) {
-      indicators.push('All tasks completed successfully');
-      indicators.push('Phase objectives met');
+      indicators.push("All tasks completed successfully");
+      indicators.push("Phase objectives met");
     }
 
     return indicators.slice(0, 3); // Limit to 3 indicators
@@ -230,23 +267,27 @@ class RoadmapMerger {
 
     // Check that all skeleton phases are present
     if (skeleton.phases) {
-      skeleton.phases.forEach(skeletonPhase => {
-        const foundPhase = mergedRoadmap.roadmap.phases.find(p => p.phase_id === skeletonPhase.phase_id);
+      skeleton.phases.forEach((skeletonPhase) => {
+        const foundPhase = mergedRoadmap.roadmap.phases.find(
+          (p) => p.phase_id === skeletonPhase.phase_id
+        );
         if (!foundPhase) {
-          errors.push(`Phase ${skeletonPhase.phase_id} not found in merged roadmap`);
+          errors.push(
+            `Phase ${skeletonPhase.phase_id} not found in merged roadmap`
+          );
         }
       });
     }
 
     // Check that all tasks are assigned to phases
     const assignedTaskIds = new Set();
-    mergedRoadmap.roadmap.phases.forEach(phase => {
-      phase.phase_tasks.forEach(task => {
+    mergedRoadmap.roadmap.phases.forEach((phase) => {
+      phase.phase_tasks.forEach((task) => {
         assignedTaskIds.add(task.task_id);
       });
     });
 
-    allTasks.forEach(task => {
+    allTasks.forEach((task) => {
       if (!assignedTaskIds.has(task.task_id)) {
         errors.push(`Task ${task.task_id} not assigned to any phase`);
       }
@@ -254,7 +295,7 @@ class RoadmapMerger {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -263,7 +304,7 @@ class RoadmapMerger {
    */
   static getMergeStats(skeleton, taskFiles, mergedRoadmap) {
     const allTasks = [];
-    taskFiles.forEach(taskFile => {
+    taskFiles.forEach((taskFile) => {
       if (taskFile.tasks) {
         allTasks.push(...taskFile.tasks);
       }
@@ -274,8 +315,12 @@ class RoadmapMerger {
       totalTasks: allTasks.length,
       taskFiles: taskFiles.length,
       mergedPhases: mergedRoadmap ? mergedRoadmap.roadmap.phases.length : 0,
-      mergedTasks: mergedRoadmap ? 
-        mergedRoadmap.roadmap.phases.reduce((sum, phase) => sum + phase.phase_tasks.length, 0) : 0
+      mergedTasks: mergedRoadmap
+        ? mergedRoadmap.roadmap.phases.reduce(
+            (sum, phase) => sum + phase.phase_tasks.length,
+            0
+          )
+        : 0,
     };
   }
 }

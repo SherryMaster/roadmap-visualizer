@@ -221,8 +221,8 @@ class MultiSchemaValidator {
     }
 
     if (context === "skeleton") {
-      if (typeof phase.order_id !== "number") {
-        errors.push(`Phase ${index + 1} missing or invalid order_id`);
+      if (typeof phase.phase_number !== "number") {
+        errors.push(`Phase ${index + 1} missing or invalid phase_number`);
       }
       if (typeof phase.num_of_tasks !== "number") {
         errors.push(`Phase ${index + 1} missing or invalid num_of_tasks`);
@@ -274,14 +274,12 @@ class MultiSchemaValidator {
       }
     }
 
-    // Validate task priority
-    if (task.task_priotity) {
-      // Note: keeping the typo from schema
+    // Validate task priority (handle both correct and typo versions)
+    const priority = task.task_priority || task.task_priotity;
+    if (priority) {
       const validPriorities = ["low", "mid", "high", "critical"];
-      if (!validPriorities.includes(task.task_priotity)) {
-        errors.push(
-          `Task ${index + 1} has invalid priority: ${task.task_priotity}`
-        );
+      if (!validPriorities.includes(priority)) {
+        errors.push(`Task ${index + 1} has invalid priority: ${priority}`);
       }
     }
   }

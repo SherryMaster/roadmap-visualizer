@@ -349,15 +349,15 @@ roadmap-visualizer/
 // Example skeleton file structure
 {
   "roadmap_title": "My Learning Path",
-  "project_title": "Project Name",
+  "roadmap_description": "Project Description",
   "num_of_phases": 3,
   "phases": [
     {
       "phase_title": "Phase 1: Foundation",
       "phase_id": "P1_Foundation",
-      "order_id": 1,
+      "phase_number": 1,
       "num_of_tasks": 5,
-      "phase_detail": "Learn the basics..."
+      "phase_details": ["Learn the basics..."]
     }
   ]
 }
