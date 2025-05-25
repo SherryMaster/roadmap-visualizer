@@ -157,7 +157,7 @@ const SchemaDownloader = ({
     const showTasks = filter === "all" || filter === "tasks";
 
     return (
-      <div className={`inline-flex items-center space-x-4 ${className}`}>
+      <span className={`inline-flex items-center space-x-4 ${className}`}>
         {showSkeleton &&
           getDownloadButton(
             "skeleton",
@@ -173,7 +173,7 @@ const SchemaDownloader = ({
             "Task Files Schema",
             downloadIcon
           )}
-      </div>
+      </span>
     );
   }
 
