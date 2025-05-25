@@ -5,7 +5,7 @@ import ProgressIndicator from "./ProgressIndicator";
 const PhaseList = ({ phases }) => {
   const [expandedPhases, setExpandedPhases] = useState(new Set());
 
-  // Sort phases by phase_number
+  // Sort phases by phase_number and ensure unique keys
   const sortedPhases = [...phases].sort(
     (a, b) => a.phase_number - b.phase_number
   );
@@ -77,15 +77,23 @@ const PhaseList = ({ phases }) => {
       <ProgressIndicator phases={phases} />
 
       <div className="space-y-6">
-        {sortedPhases.map((phase) => (
-          <Phase
-            key={phase.phase_number}
-            phase={phase}
-            isExpanded={expandedPhases.has(phase.phase_number)}
-            isActive={expandedPhases.has(phase.phase_number)}
-            onClick={() => handlePhaseClick(phase.phase_number)}
-          />
-        ))}
+        {sortedPhases.map((phase, index) => {
+          // Create a robust unique key using multiple identifiers
+          const uniqueKey =
+            phase.phase_id ||
+            `phase-${phase.phase_number}` ||
+            `phase-index-${index}`;
+
+          return (
+            <Phase
+              key={uniqueKey}
+              phase={phase}
+              isExpanded={expandedPhases.has(phase.phase_number)}
+              isActive={expandedPhases.has(phase.phase_number)}
+              onClick={() => handlePhaseClick(phase.phase_number)}
+            />
+          );
+        })}
       </div>
     </div>
   );

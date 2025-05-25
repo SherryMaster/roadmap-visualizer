@@ -59,16 +59,24 @@ const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
 
   return (
     <div ref={ref} className="space-y-4">
-      {tasks.map((task, index) => (
-        <Task
-          key={index}
-          task={task}
-          isExpanded={expandedTasks.has(index)}
-          onClick={() => handleTaskClick(index)}
-          phaseNumber={phaseNumber}
-          taskIndex={index}
-        />
-      ))}
+      {tasks.map((task, index) => {
+        // Create a robust unique key using multiple identifiers
+        const uniqueKey =
+          task.task_id ||
+          `task-${phaseNumber}-${index}` ||
+          `task-index-${index}`;
+
+        return (
+          <Task
+            key={uniqueKey}
+            task={task}
+            isExpanded={expandedTasks.has(index)}
+            onClick={() => handleTaskClick(index)}
+            phaseNumber={phaseNumber}
+            taskIndex={index}
+          />
+        );
+      })}
     </div>
   );
 });

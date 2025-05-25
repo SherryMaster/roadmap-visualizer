@@ -9,11 +9,16 @@ const OutcomesList = ({ outcomes }) => {
         Learning Outcomes
       </h4>
       <ul className="list-disc pl-5 space-y-1">
-        {outcomes.map((outcome, index) => (
-          <li key={index} className="text-gray-700 dark:text-gray-300">
-            {outcome}
-          </li>
-        ))}
+        {outcomes.map((outcome, index) => {
+          // Create unique key for outcome
+          const uniqueKey = `outcome-${index}-${outcome.slice(0, 20)}`;
+
+          return (
+            <li key={uniqueKey} className="text-gray-700 dark:text-gray-300">
+              {outcome}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

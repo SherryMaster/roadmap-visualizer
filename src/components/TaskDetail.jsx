@@ -88,11 +88,19 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
 
       {/* Main content */}
       <div className="mt-4">
-        {paragraphs.map((p, index) => (
-          <p key={index} className="text-gray-700 dark:text-gray-300 mb-3">
-            {p}
-          </p>
-        ))}
+        {paragraphs.map((p, index) => {
+          // Create unique key for paragraph
+          const uniqueKey = `paragraph-${index}-${p.slice(0, 20)}`;
+
+          return (
+            <p
+              key={uniqueKey}
+              className="text-gray-700 dark:text-gray-300 mb-3"
+            >
+              {p}
+            </p>
+          );
+        })}
       </div>
 
       {/* Code blocks */}
