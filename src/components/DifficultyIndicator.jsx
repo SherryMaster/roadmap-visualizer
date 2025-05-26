@@ -1,8 +1,11 @@
+import Tooltip from "./Tooltip";
+
 const DifficultyIndicator = ({
   difficulty,
   level,
   showReason = false,
   showPrerequisites = false,
+  compact = false,
 }) => {
   // Handle both old format (level) and new format (difficulty object)
   const difficultyData = difficulty || { level: level || 3 };
@@ -108,9 +111,73 @@ const DifficultyIndicator = ({
               clipRule="evenodd"
             />
           </svg>
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Difficulty
-          </span>
+          <div className="flex items-center space-x-2">
+            {showReason && difficultyData.reason ? (
+              <Tooltip
+                content={
+                  <div className="w-full">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-base border-b border-gray-200 dark:border-gray-600 pb-2">
+                      Why this difficulty level?
+                    </div>
+                    <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                      {difficultyData.reason}
+                    </div>
+                  </div>
+                }
+                position="bottom"
+                maxWidth="600px"
+              >
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-help hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                  Difficulty
+                </span>
+              </Tooltip>
+            ) : (
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Difficulty
+              </span>
+            )}
+
+            {showPrerequisites &&
+              difficultyData.prerequisites &&
+              difficultyData.prerequisites.length > 0 && (
+                <Tooltip
+                  content={
+                    <div className="w-full">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-base border-b border-gray-200 dark:border-gray-600 pb-2">
+                        Prerequisites
+                      </div>
+                      <div className="space-y-3">
+                        {difficultyData.prerequisites.map((prereq, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start space-x-3"
+                          >
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <span className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed flex-1">
+                              {prereq}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                  position="bottom"
+                  maxWidth="550px"
+                >
+                  <svg
+                    className="w-4 h-4 text-blue-500 dark:text-blue-400 cursor-help hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-3a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zM9 9a1 1 0 112 0 1 1 0 01-2 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Tooltip>
+              )}
+          </div>
         </div>
         <span className={`text-sm font-bold ${getTextColorClass()}`}>
           {getLabel()}
@@ -135,25 +202,6 @@ const DifficultyIndicator = ({
           {difficultyLevel}/5
         </span>
       </div>
-
-      {showReason && difficultyData.reason && (
-        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-md p-2 border-l-2 border-gray-300 dark:border-gray-600">
-          <strong className="text-gray-700 dark:text-gray-300">
-            Why this difficulty:
-          </strong>
-          <br />
-          {difficultyData.reason}
-        </div>
-      )}
-
-      {showPrerequisites &&
-        difficultyData.prerequisites &&
-        difficultyData.prerequisites.length > 0 && (
-          <div className="text-xs text-gray-600 dark:text-gray-400 ml-6">
-            <strong>Prerequisites:</strong>{" "}
-            {difficultyData.prerequisites.join(", ")}
-          </div>
-        )}
     </div>
   );
 };

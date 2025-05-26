@@ -51,19 +51,20 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
 
   return (
     <div className="space-y-6">
-      {/* Primary indicators */}
+      {/* Primary indicators - Fixed height containers to prevent stretching */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {difficulty && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
             <DifficultyIndicator
               difficulty={difficulty}
               showReason={difficultyConfig.showReason}
               showPrerequisites={difficultyConfig.showPrerequisites}
+              compact={false}
             />
           </div>
         )}
         {estTime && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
             <EstimatedTime
               est_time={estTime}
               showRange={timeConfig.showRange}
@@ -72,7 +73,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
           </div>
         )}
         {priority && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
             <PriorityBadge
               priority={priority}
               showIcon={priorityConfig.showIcon}
@@ -82,7 +83,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
         )}
       </div>
 
-      {/* Tags */}
+      {/* Tags - Compact display with overflow handling */}
       {tags && tags.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
@@ -103,7 +104,8 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
             tags={tags}
             clickable={tagConfig.clickable}
             colorCoded={tagConfig.colorCoded}
-            maxDisplay={tagConfig.maxDisplay}
+            maxDisplay={tagConfig.maxDisplay || 4}
+            compact={false}
           />
         </div>
       )}

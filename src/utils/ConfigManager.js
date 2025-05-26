@@ -50,8 +50,9 @@ class ConfigManager {
         },
         tags: {
           clickable: true,
-          colorCoded: false,
-          maxDisplay: 5,
+          colorCoded: true,
+          maxDisplay: 4,
+          compact: false,
         },
         priority: {
           showIcon: true,
@@ -66,6 +67,12 @@ class ConfigManager {
           showTaskNumbers: true,
           orderByTaskNumber: true,
           fallbackToArrayOrder: true,
+        },
+        tooltips: {
+          enabled: true,
+          delay: 300,
+          maxWidth: "300px",
+          position: "top",
         },
       },
 
