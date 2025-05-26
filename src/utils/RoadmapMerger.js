@@ -134,6 +134,8 @@ class RoadmapMerger {
       ),
       task_tags: task.task_tags || [],
       task_priority: task.task_priority || task.task_priotity || "mid", // Handle both correct and typo versions
+      // Preserve task_number from skeleton task data
+      task_number: task.task_number,
     };
   }
 

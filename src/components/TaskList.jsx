@@ -1,8 +1,32 @@
 import { useState, useEffect, forwardRef } from "react";
 import Task from "./Task";
+import configManager from "../utils/ConfigManager";
 
 const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
   const [expandedTasks, setExpandedTasks] = useState(new Set());
+
+  // Sort tasks by task_number based on configuration, fallback to array order for backward compatibility
+  const taskNumberingConfig = configManager.getComponentConfig("taskNumbering");
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (!taskNumberingConfig.orderByTaskNumber) {
+      // If ordering by task number is disabled, maintain original array order
+      return 0;
+    }
+
+    const aNumber =
+      a.task_number !== undefined
+        ? a.task_number
+        : taskNumberingConfig.fallbackToArrayOrder
+        ? a.task_index + 1
+        : 999;
+    const bNumber =
+      b.task_number !== undefined
+        ? b.task_number
+        : taskNumberingConfig.fallbackToArrayOrder
+        ? b.task_index + 1
+        : 999;
+    return aNumber - bNumber;
+  });
 
   const handleTaskClick = (index) => {
     setExpandedTasks((prev) => {
@@ -18,7 +42,7 @@ const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
 
   // Function to expand a specific task (for dependency navigation)
   const expandTask = (taskId) => {
-    const taskIndex = tasks.findIndex((task) => task.task_id === taskId);
+    const taskIndex = sortedTasks.findIndex((task) => task.task_id === taskId);
     if (taskIndex !== -1) {
       setExpandedTasks((prev) => new Set(prev).add(taskIndex));
     }
@@ -30,7 +54,7 @@ const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
       const { taskId } = event.detail;
 
       // Check if this TaskList contains the target task
-      const targetTask = tasks.find((task) => task.task_id === taskId);
+      const targetTask = sortedTasks.find((task) => task.task_id === taskId);
       if (targetTask) {
         expandTask(taskId);
       }
@@ -55,11 +79,11 @@ const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
         ref.current.removeEventListener("expandTask", handleExpandTask);
       }
     };
-  }, [tasks, phaseNumber, ref]);
+  }, [sortedTasks, phaseNumber, ref]);
 
   return (
     <div ref={ref} className="space-y-4">
-      {tasks.map((task, index) => {
+      {sortedTasks.map((task, index) => {
         // Create a robust unique key using multiple identifiers
         const uniqueKey =
           task.task_id ||

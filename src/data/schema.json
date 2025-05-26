@@ -287,6 +287,9 @@
                         "high",
                         "critical"
                       ]
+                    },
+                    "task_number": {
+                      "type": "integer"
                     }
                   },
                   "required": [
@@ -296,7 +299,8 @@
                     "task_detail",
                     "task_dependencies",
                     "task_tags",
-                    "task_priority"
+                    "task_priority",
+                    "task_number"
                   ]
                 }
               }

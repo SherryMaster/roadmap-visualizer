@@ -68,6 +68,9 @@ class DataTransformer {
       task_tags: task.task_tags || [],
       task_priority: task.task_priority || "mid",
       phase_id: phaseId, // Add phase_id to each task
+      // Preserve task_number from schema, fallback to taskIndex + 1 for backward compatibility
+      task_number:
+        task.task_number !== undefined ? task.task_number : taskIndex + 1,
     };
 
     // Transform task detail
@@ -227,6 +230,8 @@ class DataTransformer {
       task_dependencies: task.task_dependencies || [],
       task_tags: task.task_tags || [],
       task_priority: task.task_priority || "mid",
+      // Include task_number in schema transformation
+      task_number: task.task_number || task.task_index + 1,
     };
 
     // Transform task detail back to schema format

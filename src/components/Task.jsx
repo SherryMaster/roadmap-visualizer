@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import TaskDetail from "./TaskDetail";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
+import configManager from "../utils/ConfigManager";
 
 const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
   const { task_title, task_summary, task_dependencies } = task;
@@ -116,15 +117,27 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 )}
               </div>
 
-              <h3
-                className={`text-lg font-semibold task-title-highlight transition-colors duration-200 ${
-                  completed
-                    ? "text-green-700 dark:text-green-400 line-through"
-                    : "text-gray-900 dark:text-white"
-                }`}
-              >
-                {task_title}
-              </h3>
+              <div className="flex items-center space-x-2">
+                {/* Task number badge - conditionally shown based on configuration */}
+                {configManager.getComponentConfig("taskNumbering")
+                  .showTaskNumbers && (
+                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full flex-shrink-0">
+                    {task.task_number !== undefined
+                      ? task.task_number
+                      : taskIndex + 1}
+                  </span>
+                )}
+
+                <h3
+                  className={`text-lg font-semibold task-title-highlight transition-colors duration-200 ${
+                    completed
+                      ? "text-green-700 dark:text-green-400 line-through"
+                      : "text-gray-900 dark:text-white"
+                  }`}
+                >
+                  {task_title}
+                </h3>
+              </div>
             </div>
           </div>
 

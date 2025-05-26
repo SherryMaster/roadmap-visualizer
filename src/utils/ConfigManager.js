@@ -16,13 +16,13 @@ class ConfigManager {
     return {
       // UI Configuration
       ui: {
-        theme: 'auto', // 'light', 'dark', 'auto'
-        layout: 'default', // 'default', 'compact', 'detailed'
+        theme: "auto", // 'light', 'dark', 'auto'
+        layout: "default", // 'default', 'compact', 'detailed'
         animations: true,
         compactMode: false,
         showProgressIndicators: true,
         autoExpandPhases: false,
-        autoExpandTasks: false
+        autoExpandTasks: false,
       },
 
       // Component Display Settings
@@ -30,38 +30,43 @@ class ConfigManager {
         difficulty: {
           showReason: true,
           showPrerequisites: true,
-          style: 'dots' // 'dots', 'bar', 'text'
+          style: "dots", // 'dots', 'bar', 'text'
         },
         estimatedTime: {
           showRange: true,
           showFactors: false,
-          format: 'short' // 'short', 'long', 'detailed'
+          format: "short", // 'short', 'long', 'detailed'
         },
         resourceLinks: {
           showType: true,
           groupByType: false,
           highlightEssential: true,
-          openInNewTab: true
+          openInNewTab: true,
         },
         taskDependencies: {
           showType: true,
           allowNavigation: true,
-          showVisualization: false
+          showVisualization: false,
         },
         tags: {
           clickable: true,
           colorCoded: false,
-          maxDisplay: 5
+          maxDisplay: 5,
         },
         priority: {
           showIcon: true,
-          style: 'badge' // 'badge', 'text', 'color'
+          style: "badge", // 'badge', 'text', 'color'
         },
         codeBlocks: {
           showLanguage: true,
           showComplexity: true,
-          syntaxHighlighting: true
-        }
+          syntaxHighlighting: true,
+        },
+        taskNumbering: {
+          showTaskNumbers: true,
+          orderByTaskNumber: true,
+          fallbackToArrayOrder: true,
+        },
       },
 
       // Data Processing
@@ -70,7 +75,7 @@ class ConfigManager {
         transformOnLoad: true,
         cacheTransformed: true,
         autoSave: true,
-        saveInterval: 30000 // 30 seconds
+        saveInterval: 30000, // 30 seconds
       },
 
       // Search and Filtering
@@ -79,7 +84,7 @@ class ConfigManager {
         searchInTags: true,
         searchInDependencies: false,
         caseSensitive: false,
-        highlightResults: true
+        highlightResults: true,
       },
 
       // Progress Tracking
@@ -87,7 +92,7 @@ class ConfigManager {
         persistBetweenSessions: true,
         showPercentages: true,
         showCompletionAnimations: true,
-        trackTimeSpent: false
+        trackTimeSpent: false,
       },
 
       // Accessibility
@@ -95,7 +100,7 @@ class ConfigManager {
         highContrast: false,
         reducedMotion: false,
         screenReaderOptimized: false,
-        keyboardNavigation: true
+        keyboardNavigation: true,
       },
 
       // Advanced Features
@@ -103,9 +108,9 @@ class ConfigManager {
         debugMode: false,
         showSchemaInfo: false,
         allowSchemaEditing: false,
-        exportFormats: ['json', 'markdown'],
-        customCSS: ''
-      }
+        exportFormats: ["json", "markdown"],
+        customCSS: "",
+      },
     };
   }
 
@@ -114,13 +119,13 @@ class ConfigManager {
    */
   loadUserConfig() {
     try {
-      const saved = localStorage.getItem('roadmap-visualizer-config');
+      const saved = localStorage.getItem("roadmap-visualizer-config");
       if (saved) {
         const userConfig = JSON.parse(saved);
         this.config = this.mergeConfigs(this.config, userConfig);
       }
     } catch (error) {
-      console.warn('Failed to load user configuration:', error);
+      console.warn("Failed to load user configuration:", error);
     }
   }
 
@@ -129,9 +134,12 @@ class ConfigManager {
    */
   saveUserConfig() {
     try {
-      localStorage.setItem('roadmap-visualizer-config', JSON.stringify(this.config));
+      localStorage.setItem(
+        "roadmap-visualizer-config",
+        JSON.stringify(this.config)
+      );
     } catch (error) {
-      console.warn('Failed to save user configuration:', error);
+      console.warn("Failed to save user configuration:", error);
     }
   }
 
@@ -140,15 +148,15 @@ class ConfigManager {
    */
   mergeConfigs(defaultConfig, userConfig) {
     const merged = { ...defaultConfig };
-    
+
     for (const [key, value] of Object.entries(userConfig)) {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
         merged[key] = this.mergeConfigs(merged[key] || {}, value);
       } else {
         merged[key] = value;
       }
     }
-    
+
     return merged;
   }
 
@@ -156,7 +164,7 @@ class ConfigManager {
    * Get configuration value by path
    */
   get(path) {
-    return path.split('.').reduce((current, key) => {
+    return path.split(".").reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, this.config);
   }
@@ -165,15 +173,15 @@ class ConfigManager {
    * Set configuration value by path
    */
   set(path, value) {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKey = keys.pop();
     const target = keys.reduce((current, key) => {
-      if (!current[key] || typeof current[key] !== 'object') {
+      if (!current[key] || typeof current[key] !== "object") {
         current[key] = {};
       }
       return current[key];
     }, this.config);
-    
+
     target[lastKey] = value;
     this.saveUserConfig();
   }
@@ -206,7 +214,7 @@ class ConfigManager {
    * Get UI configuration
    */
   getUIConfig() {
-    return this.get('ui') || {};
+    return this.get("ui") || {};
   }
 
   /**
@@ -215,35 +223,35 @@ class ConfigManager {
   updateUIConfig(updates) {
     const current = this.getUIConfig();
     const updated = { ...current, ...updates };
-    this.set('ui', updated);
+    this.set("ui", updated);
   }
 
   /**
    * Get theme configuration
    */
   getTheme() {
-    return this.get('ui.theme') || 'auto';
+    return this.get("ui.theme") || "auto";
   }
 
   /**
    * Set theme
    */
   setTheme(theme) {
-    this.set('ui.theme', theme);
+    this.set("ui.theme", theme);
   }
 
   /**
    * Get layout configuration
    */
   getLayout() {
-    return this.get('ui.layout') || 'default';
+    return this.get("ui.layout") || "default";
   }
 
   /**
    * Set layout
    */
   setLayout(layout) {
-    this.set('ui.layout', layout);
+    this.set("ui.layout", layout);
   }
 
   /**
@@ -264,21 +272,21 @@ class ConfigManager {
    * Get search configuration
    */
   getSearchConfig() {
-    return this.get('search') || {};
+    return this.get("search") || {};
   }
 
   /**
    * Get progress configuration
    */
   getProgressConfig() {
-    return this.get('progress') || {};
+    return this.get("progress") || {};
   }
 
   /**
    * Get accessibility configuration
    */
   getAccessibilityConfig() {
-    return this.get('accessibility') || {};
+    return this.get("accessibility") || {};
   }
 
   /**
@@ -286,17 +294,17 @@ class ConfigManager {
    */
   applyAccessibilitySettings() {
     const a11y = this.getAccessibilityConfig();
-    
+
     if (a11y.highContrast) {
-      document.documentElement.classList.add('high-contrast');
+      document.documentElement.classList.add("high-contrast");
     } else {
-      document.documentElement.classList.remove('high-contrast');
+      document.documentElement.classList.remove("high-contrast");
     }
-    
+
     if (a11y.reducedMotion) {
-      document.documentElement.classList.add('reduced-motion');
+      document.documentElement.classList.add("reduced-motion");
     } else {
-      document.documentElement.classList.remove('reduced-motion');
+      document.documentElement.classList.remove("reduced-motion");
     }
   }
 
@@ -319,7 +327,7 @@ class ConfigManager {
       this.saveUserConfig();
       return true;
     } catch (error) {
-      console.error('Failed to import configuration:', error);
+      console.error("Failed to import configuration:", error);
       return false;
     }
   }
@@ -329,27 +337,31 @@ class ConfigManager {
    */
   validateConfig(config = this.config) {
     const issues = [];
-    
+
     // Validate theme
-    const validThemes = ['light', 'dark', 'auto'];
+    const validThemes = ["light", "dark", "auto"];
     if (config.ui?.theme && !validThemes.includes(config.ui.theme)) {
       issues.push(`Invalid theme: ${config.ui.theme}`);
     }
-    
+
     // Validate layout
-    const validLayouts = ['default', 'compact', 'detailed'];
+    const validLayouts = ["default", "compact", "detailed"];
     if (config.ui?.layout && !validLayouts.includes(config.ui.layout)) {
       issues.push(`Invalid layout: ${config.ui.layout}`);
     }
-    
+
     // Validate save interval
-    if (config.data?.saveInterval && (typeof config.data.saveInterval !== 'number' || config.data.saveInterval < 1000)) {
-      issues.push('Save interval must be a number >= 1000ms');
+    if (
+      config.data?.saveInterval &&
+      (typeof config.data.saveInterval !== "number" ||
+        config.data.saveInterval < 1000)
+    ) {
+      issues.push("Save interval must be a number >= 1000ms");
     }
-    
+
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -359,35 +371,64 @@ class ConfigManager {
   getConfigSchema() {
     return {
       ui: {
-        title: 'User Interface',
+        title: "User Interface",
         properties: {
-          theme: { type: 'select', options: ['light', 'dark', 'auto'], title: 'Theme' },
-          layout: { type: 'select', options: ['default', 'compact', 'detailed'], title: 'Layout' },
-          animations: { type: 'boolean', title: 'Enable Animations' },
-          compactMode: { type: 'boolean', title: 'Compact Mode' }
-        }
+          theme: {
+            type: "select",
+            options: ["light", "dark", "auto"],
+            title: "Theme",
+          },
+          layout: {
+            type: "select",
+            options: ["default", "compact", "detailed"],
+            title: "Layout",
+          },
+          animations: { type: "boolean", title: "Enable Animations" },
+          compactMode: { type: "boolean", title: "Compact Mode" },
+        },
       },
       components: {
-        title: 'Component Settings',
+        title: "Component Settings",
         properties: {
           difficulty: {
-            title: 'Difficulty Display',
+            title: "Difficulty Display",
             properties: {
-              showReason: { type: 'boolean', title: 'Show Difficulty Reason' },
-              showPrerequisites: { type: 'boolean', title: 'Show Prerequisites' },
-              style: { type: 'select', options: ['dots', 'bar', 'text'], title: 'Display Style' }
-            }
-          }
-        }
+              showReason: { type: "boolean", title: "Show Difficulty Reason" },
+              showPrerequisites: {
+                type: "boolean",
+                title: "Show Prerequisites",
+              },
+              style: {
+                type: "select",
+                options: ["dots", "bar", "text"],
+                title: "Display Style",
+              },
+            },
+          },
+          taskNumbering: {
+            title: "Task Numbering",
+            properties: {
+              showTaskNumbers: { type: "boolean", title: "Show Task Numbers" },
+              orderByTaskNumber: {
+                type: "boolean",
+                title: "Order by Task Number",
+              },
+              fallbackToArrayOrder: {
+                type: "boolean",
+                title: "Fallback to Array Order",
+              },
+            },
+          },
+        },
       },
       accessibility: {
-        title: 'Accessibility',
+        title: "Accessibility",
         properties: {
-          highContrast: { type: 'boolean', title: 'High Contrast Mode' },
-          reducedMotion: { type: 'boolean', title: 'Reduced Motion' },
-          keyboardNavigation: { type: 'boolean', title: 'Keyboard Navigation' }
-        }
-      }
+          highContrast: { type: "boolean", title: "High Contrast Mode" },
+          reducedMotion: { type: "boolean", title: "Reduced Motion" },
+          keyboardNavigation: { type: "boolean", title: "Keyboard Navigation" },
+        },
+      },
     };
   }
 }
