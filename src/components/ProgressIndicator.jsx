@@ -1,4 +1,5 @@
 import { useTaskCompletion } from "../context/TaskCompletionContext";
+import Tooltip from "./Tooltip";
 
 const ProgressIndicator = ({ phases }) => {
   const { calculateOverallProgress, resetAllProgress } = useTaskCompletion();
@@ -37,17 +38,29 @@ const ProgressIndicator = ({ phases }) => {
           </p>
         </div>
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 mr-2">
-            {progress}%
-          </span>
+          <Tooltip
+            content={`${progress}% of all tasks completed across all phases`}
+            position="left"
+            maxWidth="200px"
+          >
+            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 mr-2">
+              {progress}%
+            </span>
+          </Tooltip>
           {progress > 0 && (
-            <button
-              onClick={resetAllProgress}
-              className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-              title="Reset all progress"
+            <Tooltip
+              content="Reset all task completion progress. This action cannot be undone."
+              position="left"
+              maxWidth="250px"
             >
-              Reset
-            </button>
+              <button
+                onClick={resetAllProgress}
+                className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                aria-label="Reset all progress"
+              >
+                Reset
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

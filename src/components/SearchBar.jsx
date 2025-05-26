@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Tooltip from "./Tooltip";
 
 const SearchBar = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,13 +43,20 @@ const SearchBar = ({ onSearch }) => {
       />
 
       {searchTerm && (
-        <button
-          type="button"
-          className="absolute right-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-sm px-4 py-2 transition-colors"
-          onClick={clearSearch}
+        <Tooltip
+          content="Clear search and show all phases and tasks"
+          position="top"
+          maxWidth="200px"
         >
-          Clear
-        </button>
+          <button
+            type="button"
+            className="absolute right-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-sm px-4 py-2 transition-colors"
+            onClick={clearSearch}
+            aria-label="Clear search"
+          >
+            Clear
+          </button>
+        </Tooltip>
       )}
     </div>
   );

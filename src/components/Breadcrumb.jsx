@@ -1,4 +1,5 @@
 import { Link, useParams } from "react-router-dom";
+import Tooltip from "./Tooltip";
 
 const Breadcrumb = ({ roadmapTitle, currentPhase }) => {
   const { roadmapId, phaseId } = useParams();
@@ -7,21 +8,43 @@ const Breadcrumb = ({ roadmapTitle, currentPhase }) => {
     {
       label: "Home",
       href: "/",
+      tooltip: "Return to homepage and roadmap collection",
       icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          />
         </svg>
-      )
+      ),
     },
     {
       label: roadmapTitle || "Roadmap",
       href: `/roadmap/${roadmapId}`,
+      tooltip: "Return to roadmap overview and phase list",
       icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
         </svg>
-      )
-    }
+      ),
+    },
   ];
 
   // Add phase breadcrumb if we're viewing a specific phase
@@ -29,12 +52,25 @@ const Breadcrumb = ({ roadmapTitle, currentPhase }) => {
     breadcrumbItems.push({
       label: currentPhase.phase_title || `Phase ${currentPhase.phase_number}`,
       href: `/roadmap/${roadmapId}/phase/${phaseId}`,
+      tooltip: `Current phase: ${
+        currentPhase.phase_title || `Phase ${currentPhase.phase_number}`
+      }`,
       icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+          />
         </svg>
       ),
-      current: true
+      current: true,
     });
   }
 
@@ -56,20 +92,32 @@ const Breadcrumb = ({ roadmapTitle, currentPhase }) => {
                 />
               </svg>
             )}
-            
+
             {item.current ? (
-              <span className="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
-                {item.icon}
-                <span className="ml-1 md:ml-2">{item.label}</span>
-              </span>
-            ) : (
-              <Link
-                to={item.href}
-                className="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              <Tooltip
+                content={item.tooltip}
+                position="bottom"
+                maxWidth="250px"
               >
-                {item.icon}
-                <span className="ml-1 md:ml-2">{item.label}</span>
-              </Link>
+                <span className="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {item.icon}
+                  <span className="ml-1 md:ml-2">{item.label}</span>
+                </span>
+              </Tooltip>
+            ) : (
+              <Tooltip
+                content={item.tooltip}
+                position="bottom"
+                maxWidth="250px"
+              >
+                <Link
+                  to={item.href}
+                  className="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  {item.icon}
+                  <span className="ml-1 md:ml-2">{item.label}</span>
+                </Link>
+              </Tooltip>
             )}
           </li>
         ))}

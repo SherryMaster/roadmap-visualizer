@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Tooltip from "./Tooltip";
 
 const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -54,46 +55,62 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
                   {title}
                 </h1>
                 {projectLevel && (
-                  <span
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getLevelStyling(
-                      projectLevel
-                    )}`}
+                  <Tooltip
+                    content={`This roadmap is designed for ${projectLevel} level learners`}
+                    position="bottom"
+                    maxWidth="250px"
                   >
-                    {projectLevel.charAt(0).toUpperCase() +
-                      projectLevel.slice(1)}
-                  </span>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getLevelStyling(
+                        projectLevel
+                      )}`}
+                    >
+                      {projectLevel.charAt(0).toUpperCase() +
+                        projectLevel.slice(1)}
+                    </span>
+                  </Tooltip>
                 )}
               </div>
             </div>
 
             {/* Expand/Collapse Button */}
             {shouldTruncate && (
-              <button
-                onClick={toggleDescription}
-                className="flex-shrink-0 ml-4 inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800"
-                aria-label={
+              <Tooltip
+                content={
                   isDescriptionExpanded
-                    ? "Collapse description"
-                    : "Expand description"
+                    ? "Collapse description to show summary"
+                    : "Expand to read full description"
                 }
+                position="left"
+                maxWidth="200px"
               >
-                <svg
-                  className={`w-4 h-4 mr-1.5 transition-transform duration-150 ${
-                    isDescriptionExpanded ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <button
+                  onClick={toggleDescription}
+                  className="flex-shrink-0 ml-4 inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800"
+                  aria-label={
+                    isDescriptionExpanded
+                      ? "Collapse description"
+                      : "Expand description"
+                  }
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-                {isDescriptionExpanded ? "Less" : "More"}
-              </button>
+                  <svg
+                    className={`w-4 h-4 mr-1.5 transition-transform duration-150 ${
+                      isDescriptionExpanded ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                  {isDescriptionExpanded ? "Less" : "More"}
+                </button>
+              </Tooltip>
             )}
           </div>
 
