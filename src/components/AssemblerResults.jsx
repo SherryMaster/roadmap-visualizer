@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
+import DataTransformer from "../utils/DataTransformer";
 
 const AssemblerResults = ({
   mergedRoadmap,
@@ -45,9 +46,19 @@ const AssemblerResults = ({
     try {
       console.log("Saving roadmap:", mergedRoadmap); // Debug log
 
+      // Transform the merged roadmap to UI format (same as normal upload workflow)
+      const transformedData = DataTransformer.transformToUI(mergedRoadmap);
+
+      if (!transformedData) {
+        throw new Error("Failed to transform roadmap data to UI format");
+      }
+
+      console.log("Transformed roadmap data:", transformedData); // Debug log
+
       // Save to localStorage using RoadmapPersistence
+      // Pass original merged roadmap as originalData, transformed as main data
       const roadmapId = RoadmapPersistence.saveRoadmap(
-        mergedRoadmap,
+        transformedData,
         mergedRoadmap
       );
 
