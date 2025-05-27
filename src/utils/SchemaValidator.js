@@ -15,11 +15,11 @@ class SchemaValidator {
    */
   validate(data) {
     const errors = [];
-    
+
     try {
       // Basic structure validation
-      if (!data || typeof data !== 'object') {
-        errors.push('Data must be an object');
+      if (!data || typeof data !== "object") {
+        errors.push("Data must be an object");
         return { isValid: false, errors };
       }
 
@@ -45,14 +45,13 @@ class SchemaValidator {
       if (data.tags) {
         this.validateTags(data.tags, errors);
       }
-
     } catch (error) {
       errors.push(`Validation error: ${error.message}`);
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -60,13 +59,13 @@ class SchemaValidator {
    * Validates the roadmap structure
    */
   validateRoadmap(roadmap, errors) {
-    if (!roadmap || typeof roadmap !== 'object') {
-      errors.push('Roadmap must be an object');
+    if (!roadmap || typeof roadmap !== "object") {
+      errors.push("Roadmap must be an object");
       return;
     }
 
     if (!roadmap.phases || !Array.isArray(roadmap.phases)) {
-      errors.push('Roadmap must contain a phases array');
+      errors.push("Roadmap must contain a phases array");
       return;
     }
 
@@ -81,14 +80,19 @@ class SchemaValidator {
    */
   validatePhase(phase, index, errors) {
     const phasePrefix = `Phase ${index + 1}`;
-    
-    if (!phase || typeof phase !== 'object') {
+
+    if (!phase || typeof phase !== "object") {
       errors.push(`${phasePrefix}: Must be an object`);
       return;
     }
 
     // Required phase properties
-    const requiredPhaseProps = ['phase_id', 'phase_title', 'phase_summary', 'phase_tasks'];
+    const requiredPhaseProps = [
+      "phase_id",
+      "phase_title",
+      "phase_summary",
+      "phase_tasks",
+    ];
     for (const prop of requiredPhaseProps) {
       if (!(prop in phase)) {
         errors.push(`${phasePrefix}: Missing required property '${prop}'`);
@@ -98,7 +102,11 @@ class SchemaValidator {
     // Validate phase tasks
     if (phase.phase_tasks && Array.isArray(phase.phase_tasks)) {
       phase.phase_tasks.forEach((task, taskIndex) => {
-        this.validateTask(task, `${phasePrefix}, Task ${taskIndex + 1}`, errors);
+        this.validateTask(
+          task,
+          `${phasePrefix}, Task ${taskIndex + 1}`,
+          errors
+        );
       });
     }
   }
@@ -107,13 +115,18 @@ class SchemaValidator {
    * Validates a task object
    */
   validateTask(task, taskPrefix, errors) {
-    if (!task || typeof task !== 'object') {
+    if (!task || typeof task !== "object") {
       errors.push(`${taskPrefix}: Must be an object`);
       return;
     }
 
     // Required task properties
-    const requiredTaskProps = ['task_id', 'task_title', 'task_summary', 'task_detail'];
+    const requiredTaskProps = [
+      "task_id",
+      "task_title",
+      "task_summary",
+      "task_detail",
+    ];
     for (const prop of requiredTaskProps) {
       if (!(prop in task)) {
         errors.push(`${taskPrefix}: Missing required property '${prop}'`);
@@ -128,7 +141,11 @@ class SchemaValidator {
     // Validate task dependencies
     if (task.task_dependencies && Array.isArray(task.task_dependencies)) {
       task.task_dependencies.forEach((dep, depIndex) => {
-        this.validateTaskDependency(dep, `${taskPrefix}, Dependency ${depIndex + 1}`, errors);
+        this.validateTaskDependency(
+          dep,
+          `${taskPrefix}, Dependency ${depIndex + 1}`,
+          errors
+        );
       });
     }
   }
@@ -137,7 +154,7 @@ class SchemaValidator {
    * Validates task detail object
    */
   validateTaskDetail(detail, taskPrefix, errors) {
-    if (!detail || typeof detail !== 'object') {
+    if (!detail || typeof detail !== "object") {
       errors.push(`${taskPrefix}: task_detail must be an object`);
       return;
     }
@@ -155,7 +172,11 @@ class SchemaValidator {
     // Validate resource links
     if (detail.resource_links && Array.isArray(detail.resource_links)) {
       detail.resource_links.forEach((link, linkIndex) => {
-        this.validateResourceLink(link, `${taskPrefix}, Resource ${linkIndex + 1}`, errors);
+        this.validateResourceLink(
+          link,
+          `${taskPrefix}, Resource ${linkIndex + 1}`,
+          errors
+        );
       });
     }
   }
@@ -164,14 +185,22 @@ class SchemaValidator {
    * Validates difficulty object
    */
   validateDifficulty(difficulty, taskPrefix, errors) {
-    if (!difficulty || typeof difficulty !== 'object') {
+    if (!difficulty || typeof difficulty !== "object") {
       errors.push(`${taskPrefix}: difficulty must be an object`);
       return;
     }
 
-    const validLevels = ['very_easy', 'easy', 'normal', 'difficult', 'challenging'];
+    const validLevels = [
+      "very_easy",
+      "easy",
+      "normal",
+      "difficult",
+      "challenging",
+    ];
     if (difficulty.level && !validLevels.includes(difficulty.level)) {
-      errors.push(`${taskPrefix}: Invalid difficulty level '${difficulty.level}'`);
+      errors.push(
+        `${taskPrefix}: Invalid difficulty level '${difficulty.level}'`
+      );
     }
   }
 
@@ -179,7 +208,7 @@ class SchemaValidator {
    * Validates estimated time object
    */
   validateEstimatedTime(estTime, taskPrefix, errors) {
-    if (!estTime || typeof estTime !== 'object') {
+    if (!estTime || typeof estTime !== "object") {
       errors.push(`${taskPrefix}: est_time must be an object`);
       return;
     }
@@ -187,11 +216,19 @@ class SchemaValidator {
     if (!estTime.min_time) {
       errors.push(`${taskPrefix}: est_time must have min_time`);
     } else {
-      this.validateTimeObject(estTime.min_time, `${taskPrefix}, min_time`, errors);
+      this.validateTimeObject(
+        estTime.min_time,
+        `${taskPrefix}, min_time`,
+        errors
+      );
     }
 
     if (estTime.max_time) {
-      this.validateTimeObject(estTime.max_time, `${taskPrefix}, max_time`, errors);
+      this.validateTimeObject(
+        estTime.max_time,
+        `${taskPrefix}, max_time`,
+        errors
+      );
     }
   }
 
@@ -199,18 +236,18 @@ class SchemaValidator {
    * Validates time object (min_time/max_time)
    */
   validateTimeObject(timeObj, prefix, errors) {
-    if (!timeObj || typeof timeObj !== 'object') {
+    if (!timeObj || typeof timeObj !== "object") {
       errors.push(`${prefix}: must be an object`);
       return;
     }
 
-    if (typeof timeObj.amount !== 'number' || timeObj.amount <= 0) {
+    if (typeof timeObj.amount !== "number" || timeObj.amount <= 0) {
       errors.push(`${prefix}: amount must be a positive number`);
     }
 
-    const validUnits = ['minutes', 'hours', 'days', 'weeks'];
+    const validUnits = ["minutes", "hours", "days", "weeks"];
     if (!validUnits.includes(timeObj.unit)) {
-      errors.push(`${prefix}: unit must be one of ${validUnits.join(', ')}`);
+      errors.push(`${prefix}: unit must be one of ${validUnits.join(", ")}`);
     }
   }
 
@@ -218,19 +255,28 @@ class SchemaValidator {
    * Validates resource link object
    */
   validateResourceLink(link, linkPrefix, errors) {
-    if (!link || typeof link !== 'object') {
+    if (!link || typeof link !== "object") {
       errors.push(`${linkPrefix}: must be an object`);
       return;
     }
 
-    const requiredLinkProps = ['display_text', 'url', 'type', 'is_essential'];
+    const requiredLinkProps = ["display_text", "url", "type", "is_essential"];
     for (const prop of requiredLinkProps) {
       if (!(prop in link)) {
         errors.push(`${linkPrefix}: Missing required property '${prop}'`);
       }
     }
 
-    const validTypes = ['document', 'tutorial', 'video', 'article', 'tool', 'reference', 'example', 'course'];
+    const validTypes = [
+      "document",
+      "tutorial",
+      "video",
+      "article",
+      "tool",
+      "reference",
+      "example",
+      "course",
+    ];
     if (link.type && !validTypes.includes(link.type)) {
       errors.push(`${linkPrefix}: Invalid type '${link.type}'`);
     }
@@ -240,21 +286,26 @@ class SchemaValidator {
    * Validates task dependency object
    */
   validateTaskDependency(dependency, depPrefix, errors) {
-    if (!dependency || typeof dependency !== 'object') {
+    if (!dependency || typeof dependency !== "object") {
       errors.push(`${depPrefix}: must be an object`);
       return;
     }
 
-    const requiredDepProps = ['phase_id', 'task_id', 'dependency_type'];
+    const requiredDepProps = ["phase_id", "task_id", "dependency_type"];
     for (const prop of requiredDepProps) {
       if (!(prop in dependency)) {
         errors.push(`${depPrefix}: Missing required property '${prop}'`);
       }
     }
 
-    const validDepTypes = ['required', 'recommended', 'optional'];
-    if (dependency.dependency_type && !validDepTypes.includes(dependency.dependency_type)) {
-      errors.push(`${depPrefix}: Invalid dependency_type '${dependency.dependency_type}'`);
+    const validDepTypes = ["required", "recommended", "optional"];
+    if (
+      dependency.dependency_type &&
+      !validDepTypes.includes(dependency.dependency_type)
+    ) {
+      errors.push(
+        `${depPrefix}: Invalid dependency_type '${dependency.dependency_type}'`
+      );
     }
   }
 
@@ -262,9 +313,13 @@ class SchemaValidator {
    * Validates project level
    */
   validateProjectLevel(level, errors) {
-    const validLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+    const validLevels = ["beginner", "intermediate", "advanced", "expert"];
     if (!validLevels.includes(level)) {
-      errors.push(`Invalid project_level '${level}'. Must be one of: ${validLevels.join(', ')}`);
+      errors.push(
+        `Invalid project_level '${level}'. Must be one of: ${validLevels.join(
+          ", "
+        )}`
+      );
     }
   }
 
@@ -273,12 +328,12 @@ class SchemaValidator {
    */
   validateTags(tags, errors) {
     if (!Array.isArray(tags)) {
-      errors.push('Tags must be an array');
+      errors.push("Tags must be an array");
       return;
     }
 
     tags.forEach((tag, index) => {
-      if (typeof tag !== 'string') {
+      if (typeof tag !== "string") {
         errors.push(`Tag ${index + 1}: must be a string`);
       }
     });

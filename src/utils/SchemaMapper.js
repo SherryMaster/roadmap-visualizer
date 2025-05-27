@@ -15,59 +15,59 @@ class SchemaMapper {
    */
   initializeDefaultMappings() {
     // Property mappings for different schema versions or formats
-    this.addPropertyMapping('difficulty.level', [
-      'difficulty.level',
-      'difficulty',
-      'task_difficulty',
-      'level'
+    this.addPropertyMapping("difficulty.level", [
+      "difficulty.level",
+      "difficulty",
+      "task_difficulty",
+      "level",
     ]);
 
-    this.addPropertyMapping('est_time', [
-      'est_time',
-      'estimated_time',
-      'time_estimate',
-      'duration'
+    this.addPropertyMapping("est_time", [
+      "est_time",
+      "estimated_time",
+      "time_estimate",
+      "duration",
     ]);
 
-    this.addPropertyMapping('resource_links', [
-      'resource_links',
-      'resources',
-      'links',
-      'references'
+    this.addPropertyMapping("resource_links", [
+      "resource_links",
+      "resources",
+      "links",
+      "references",
     ]);
 
-    this.addPropertyMapping('task_dependencies', [
-      'task_dependencies',
-      'dependencies',
-      'depends_on',
-      'prerequisites'
+    this.addPropertyMapping("task_dependencies", [
+      "task_dependencies",
+      "dependencies",
+      "depends_on",
+      "prerequisites",
     ]);
 
-    this.addPropertyMapping('task_tags', [
-      'task_tags',
-      'tags',
-      'categories',
-      'labels'
+    this.addPropertyMapping("task_tags", [
+      "task_tags",
+      "tags",
+      "categories",
+      "labels",
     ]);
 
-    this.addPropertyMapping('task_priority', [
-      'task_priority',
-      'priority',
-      'importance',
-      'urgency'
+    this.addPropertyMapping("task_priority", [
+      "task_priority",
+      "priority",
+      "importance",
+      "urgency",
     ]);
 
     // Component mappings
-    this.addComponentMapping('difficulty', 'DifficultyIndicator');
-    this.addComponentMapping('est_time', 'EstimatedTime');
-    this.addComponentMapping('resource_links', 'ResourceLinks');
-    this.addComponentMapping('task_dependencies', 'TaskDependencies');
-    this.addComponentMapping('task_tags', 'TagsList');
-    this.addComponentMapping('task_priority', 'PriorityBadge');
-    this.addComponentMapping('code_blocks', 'CodeBlock');
-    this.addComponentMapping('outcomes', 'OutcomesList');
-    this.addComponentMapping('subtasks', 'SubtasksList');
-    this.addComponentMapping('notes', 'TaskNotes');
+    this.addComponentMapping("difficulty", "DifficultyIndicator");
+    this.addComponentMapping("est_time", "EstimatedTime");
+    this.addComponentMapping("resource_links", "ResourceLinks");
+    this.addComponentMapping("task_dependencies", "TaskDependencies");
+    this.addComponentMapping("task_tags", "TagsList");
+    this.addComponentMapping("task_priority", "PriorityBadge");
+    this.addComponentMapping("code_blocks", "CodeBlock");
+    this.addComponentMapping("outcomes", "OutcomesList");
+    this.addComponentMapping("subtasks", "SubtasksList");
+    this.addComponentMapping("notes", "TaskNotes");
   }
 
   /**
@@ -108,7 +108,7 @@ class SchemaMapper {
    * Extract value from object using property mapping
    */
   extractValue(obj, propertyPath) {
-    if (!obj || typeof obj !== 'object') return undefined;
+    if (!obj || typeof obj !== "object") return undefined;
 
     const canonical = this.getCanonicalProperty(propertyPath);
     const aliases = this.propertyMappings.get(canonical) || [propertyPath];
@@ -127,7 +127,7 @@ class SchemaMapper {
    * Get nested value from object using dot notation
    */
   getNestedValue(obj, path) {
-    return path.split('.').reduce((current, key) => {
+    return path.split(".").reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, obj);
   }
@@ -136,15 +136,15 @@ class SchemaMapper {
    * Set nested value in object using dot notation
    */
   setNestedValue(obj, path, value) {
-    const keys = path.split('.');
+    const keys = path.split(".");
     const lastKey = keys.pop();
     const target = keys.reduce((current, key) => {
-      if (!current[key] || typeof current[key] !== 'object') {
+      if (!current[key] || typeof current[key] !== "object") {
         current[key] = {};
       }
       return current[key];
     }, obj);
-    
+
     target[lastKey] = value;
   }
 
@@ -153,7 +153,7 @@ class SchemaMapper {
    */
   getAvailableProperties(obj) {
     const available = [];
-    
+
     for (const [canonical, aliases] of this.propertyMappings) {
       for (const alias of aliases) {
         if (this.getNestedValue(obj, alias) !== undefined) {
@@ -161,7 +161,7 @@ class SchemaMapper {
             canonical,
             alias,
             component: this.componentMappings.get(canonical),
-            value: this.getNestedValue(obj, alias)
+            value: this.getNestedValue(obj, alias),
           });
           break; // Found one alias, no need to check others
         }
@@ -177,19 +177,23 @@ class SchemaMapper {
   generateComponentConfig(obj, context = {}) {
     const config = {
       components: [],
-      layout: context.layout || 'default',
-      theme: context.theme || 'default'
+      layout: context.layout || "default",
+      theme: context.theme || "default",
     };
 
     const availableProps = this.getAvailableProperties(obj);
-    
+
     for (const prop of availableProps) {
       if (prop.component) {
         config.components.push({
           type: prop.component,
           property: prop.canonical,
           value: prop.value,
-          props: this.generateComponentProps(prop.canonical, prop.value, context)
+          props: this.generateComponentProps(
+            prop.canonical,
+            prop.value,
+            context
+          ),
         });
       }
     }
@@ -204,47 +208,47 @@ class SchemaMapper {
     const baseProps = { [property]: value };
 
     switch (property) {
-      case 'difficulty':
+      case "difficulty":
         return {
           ...baseProps,
           showReason: context.showDifficultyReason !== false,
-          showPrerequisites: context.showPrerequisites !== false
+          showPrerequisites: context.showPrerequisites !== false,
         };
 
-      case 'est_time':
+      case "est_time":
         return {
           ...baseProps,
           showRange: context.showTimeRange !== false,
-          showFactors: context.showTimeFactors !== false
+          showFactors: context.showTimeFactors !== false,
         };
 
-      case 'resource_links':
+      case "resource_links":
         return {
           ...baseProps,
           showType: context.showResourceType !== false,
           groupByType: context.groupResourcesByType === true,
-          highlightEssential: context.highlightEssential !== false
+          highlightEssential: context.highlightEssential !== false,
         };
 
-      case 'task_dependencies':
+      case "task_dependencies":
         return {
           ...baseProps,
           showType: context.showDependencyType !== false,
-          allowNavigation: context.allowDependencyNavigation !== false
+          allowNavigation: context.allowDependencyNavigation !== false,
         };
 
-      case 'task_tags':
+      case "task_tags":
         return {
           ...baseProps,
           clickable: context.clickableTags !== false,
-          colorCoded: context.colorCodedTags === true
+          colorCoded: context.colorCodedTags === true,
         };
 
-      case 'task_priority':
+      case "task_priority":
         return {
           ...baseProps,
           showIcon: context.showPriorityIcon !== false,
-          style: context.priorityStyle || 'badge'
+          style: context.priorityStyle || "badge",
         };
 
       default:
@@ -260,26 +264,32 @@ class SchemaMapper {
 
     for (const [property, config] of Object.entries(expectedStructure)) {
       const value = this.extractValue(obj, property);
-      
+
       if (config.required && value === undefined) {
         issues.push(`Missing required property: ${property}`);
       }
 
       if (value !== undefined && config.type) {
-        const actualType = Array.isArray(value) ? 'array' : typeof value;
+        const actualType = Array.isArray(value) ? "array" : typeof value;
         if (actualType !== config.type) {
-          issues.push(`Property ${property} should be ${config.type}, got ${actualType}`);
+          issues.push(
+            `Property ${property} should be ${config.type}, got ${actualType}`
+          );
         }
       }
 
       if (value !== undefined && config.enum && !config.enum.includes(value)) {
-        issues.push(`Property ${property} should be one of [${config.enum.join(', ')}], got ${value}`);
+        issues.push(
+          `Property ${property} should be one of [${config.enum.join(
+            ", "
+          )}], got ${value}`
+        );
       }
     }
 
     return {
       isValid: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -307,7 +317,7 @@ class SchemaMapper {
     return (item) => {
       for (const [property, criteria] of Object.entries(filterConfig)) {
         const value = this.extractValue(item, property);
-        
+
         if (!this.matchesCriteria(value, criteria)) {
           return false;
         }
@@ -323,35 +333,35 @@ class SchemaMapper {
     if (criteria.equals !== undefined) {
       return value === criteria.equals;
     }
-    
+
     if (criteria.in !== undefined) {
       return criteria.in.includes(value);
     }
-    
+
     if (criteria.contains !== undefined) {
       return Array.isArray(value) && value.includes(criteria.contains);
     }
-    
+
     if (criteria.range !== undefined) {
-      const numValue = typeof value === 'number' ? value : parseFloat(value);
+      const numValue = typeof value === "number" ? value : parseFloat(value);
       return numValue >= criteria.range.min && numValue <= criteria.range.max;
     }
-    
+
     return true;
   }
 
   /**
    * Get sorting function for a property
    */
-  createSortFunction(property, direction = 'asc') {
+  createSortFunction(property, direction = "asc") {
     return (a, b) => {
       const valueA = this.extractValue(a, property);
       const valueB = this.extractValue(b, property);
-      
+
       if (valueA === valueB) return 0;
-      
+
       const comparison = valueA < valueB ? -1 : 1;
-      return direction === 'asc' ? comparison : -comparison;
+      return direction === "asc" ? comparison : -comparison;
     };
   }
 }
