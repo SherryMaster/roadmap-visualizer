@@ -10,6 +10,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
     toggleTaskCompletionWithValidation,
     isTaskCompleted,
     getDependencyStatus,
+    completedTasks,
   } = useTaskCompletion();
   const [completed, setCompleted] = useState(false);
   const [animateCompletion, setAnimateCompletion] = useState(false);
@@ -35,6 +36,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
     isTaskCompleted,
     task_dependencies,
     getDependencyStatus,
+    completedTasks, // Add completedTasks to trigger re-evaluation when any task completion changes
   ]);
 
   const handleCheckboxClick = (e) => {

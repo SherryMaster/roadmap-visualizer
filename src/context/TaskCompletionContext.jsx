@@ -244,6 +244,7 @@ export const TaskCompletionProvider = ({
     areRequiredDependenciesCompleted,
     getDependencyStatus,
     resetAllProgress,
+    completedTasks, // Expose completedTasks for dependency tracking
   };
 
   return (

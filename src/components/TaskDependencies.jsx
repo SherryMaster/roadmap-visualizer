@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
 
 const TaskDependencies = ({
@@ -13,6 +13,7 @@ const TaskDependencies = ({
     isTaskCompletedById,
     getDependencyStatus,
     toggleTaskCompletionWithValidation,
+    completedTasks,
   } = useTaskCompletion();
 
   const [expandedGroups, setExpandedGroups] = useState({
@@ -21,13 +22,19 @@ const TaskDependencies = ({
     optional: false,
   });
   const [navigatingTo, setNavigatingTo] = useState(null);
+  const [dependencyStatus, setDependencyStatus] = useState(null);
+
+  // Update dependency status when completedTasks changes
+  useEffect(() => {
+    if (dependencies && dependencies.length > 0) {
+      const status = getDependencyStatus(dependencies);
+      setDependencyStatus(status);
+    }
+  }, [dependencies, getDependencyStatus, completedTasks]);
 
   if (!dependencies || dependencies.length === 0) {
     return null;
   }
-
-  // Get dependency status information
-  const dependencyStatus = getDependencyStatus(dependencies);
 
   // Function to find task title by phase_id and task_id
   const getTaskInfo = (phaseId, taskId) => {
@@ -528,28 +535,32 @@ const TaskDependencies = ({
           </div>
 
           {/* Compact progress indicator */}
-          {showProgressBar && dependencyStatus.requiredTotal > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-600 dark:text-gray-300">
-                {dependencyStatus.requiredCompleted}/
-                {dependencyStatus.requiredTotal} required
-              </span>
-              <div className="w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
-                <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    dependencyStatus.canComplete ? "bg-green-500" : "bg-red-500"
-                  }`}
-                  style={{
-                    width: `${
-                      (dependencyStatus.requiredCompleted /
-                        dependencyStatus.requiredTotal) *
-                      100
-                    }%`,
-                  }}
-                />
+          {showProgressBar &&
+            dependencyStatus &&
+            dependencyStatus.requiredTotal > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-gray-600 dark:text-gray-300">
+                  {dependencyStatus.requiredCompleted}/
+                  {dependencyStatus.requiredTotal} required
+                </span>
+                <div className="w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                  <div
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      dependencyStatus.canComplete
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                    style={{
+                      width: `${
+                        (dependencyStatus.requiredCompleted /
+                          dependencyStatus.requiredTotal) *
+                        100
+                      }%`,
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 
