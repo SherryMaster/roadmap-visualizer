@@ -60,6 +60,7 @@ const ContentRenderer = ({
         return (
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <ReactMarkdown
+              skipHtml={false}
               components={{
                 // Custom components for better styling
                 h1: ({ children }) => (
@@ -97,16 +98,41 @@ const ContentRenderer = ({
                     {children}
                   </li>
                 ),
-                code: ({ children, inline }) =>
-                  inline ? (
-                    <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-900 dark:text-gray-100">
+                code: ({ children, className, node, ...props }) => {
+                  // More reliable way to detect inline vs block code
+                  // Block code usually has a parent that's a pre element or has a language class
+                  const parent = node?.parent;
+                  const isBlock =
+                    parent?.tagName === "pre" ||
+                    className?.startsWith("language-");
+
+                  if (isBlock) {
+                    return (
+                      <code
+                        className={`block bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono text-gray-900 dark:text-gray-100 overflow-x-auto whitespace-pre ${
+                          className || ""
+                        }`}
+                      >
+                        {children}
+                      </code>
+                    );
+                  } else {
+                    // Inline code
+                    return (
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-900 dark:text-gray-100 inline">
+                        {children}
+                      </code>
+                    );
+                  }
+                },
+                pre: ({ children, ...props }) => {
+                  // For block code wrapped in pre
+                  return (
+                    <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono text-gray-900 dark:text-gray-100 overflow-x-auto whitespace-pre mb-3">
                       {children}
-                    </code>
-                  ) : (
-                    <code className="block bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono text-gray-900 dark:text-gray-100 overflow-x-auto">
-                      {children}
-                    </code>
-                  ),
+                    </pre>
+                  );
+                },
                 blockquote: ({ children }) => (
                   <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400 mb-3">
                     {children}
