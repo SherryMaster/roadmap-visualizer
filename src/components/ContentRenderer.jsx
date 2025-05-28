@@ -213,26 +213,28 @@ const ContentRenderer = ({
         </div>
       )}
 
-      {/* Content container */}
-      <div
-        className={`content-container ${
-          maxHeight && !isExpanded
-            ? `max-h-[${maxHeight}px] overflow-hidden`
-            : ""
-        }`}
-        style={
-          maxHeight && !isExpanded
-            ? { maxHeight: `${maxHeight}px`, overflow: "hidden" }
-            : {}
-        }
-      >
-        {renderContent()}
-      </div>
+      {/* Content container with relative positioning for the fade overlay */}
+      <div className="relative">
+        <div
+          className={`content-container ${
+            maxHeight && !isExpanded
+              ? `max-h-[${maxHeight}px] overflow-hidden`
+              : ""
+          }`}
+          style={
+            maxHeight && !isExpanded
+              ? { maxHeight: `${maxHeight}px`, overflow: "hidden" }
+              : {}
+          }
+        >
+          {renderContent()}
+        </div>
 
-      {/* Fade overlay for collapsed content */}
-      {maxHeight && !isExpanded && (
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
-      )}
+        {/* Fade overlay for collapsed content - now properly contained */}
+        {maxHeight && !isExpanded && (
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
+        )}
+      </div>
     </div>
   );
 };

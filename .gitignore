@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 
-src/data/game_project_roadmaps/
+src/data/project_roadmaps/
