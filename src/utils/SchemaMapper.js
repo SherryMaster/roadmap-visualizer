@@ -57,6 +57,23 @@ class SchemaMapper {
       "urgency",
     ]);
 
+    // Task detail content mappings
+    this.addPropertyMapping("task_detail.content", [
+      "task_detail.content",
+      "task_detail.explanation.content",
+      "task_detail.detail",
+      "task_detail.explanation",
+      "content",
+      "detail",
+      "explanation",
+    ]);
+
+    this.addPropertyMapping("task_detail.format", [
+      "task_detail.format",
+      "task_detail.explanation.format",
+      "format",
+    ]);
+
     // Component mappings
     this.addComponentMapping("difficulty", "DifficultyIndicator");
     this.addComponentMapping("est_time", "EstimatedTime");
@@ -68,6 +85,7 @@ class SchemaMapper {
     this.addComponentMapping("outcomes", "OutcomesList");
     this.addComponentMapping("subtasks", "SubtasksList");
     this.addComponentMapping("notes", "TaskNotes");
+    this.addComponentMapping("task_detail", "ContentRenderer");
   }
 
   /**

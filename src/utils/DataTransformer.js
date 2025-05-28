@@ -86,10 +86,41 @@ class DataTransformer {
    */
   static transformTaskDetail(detail) {
     const transformed = {
-      detail: detail.explanation || "",
       code_blocks: detail.code_blocks || [],
       resource_links: this.transformResourceLinks(detail.resource_links || []),
     };
+
+    // Handle explanation field - check if it's the new format with content and format
+    if (detail.explanation) {
+      if (
+        typeof detail.explanation === "object" &&
+        detail.explanation.content
+      ) {
+        // New format: explanation = {content: "...", format: "..."}
+        transformed.explanation = {
+          content: detail.explanation.content,
+          format: detail.explanation.format || "plaintext",
+        };
+      } else if (typeof detail.explanation === "string") {
+        // Legacy format: explanation is a string
+        transformed.explanation = {
+          content: detail.explanation,
+          format: "plaintext",
+        };
+      } else {
+        // Fallback
+        transformed.explanation = {
+          content: "",
+          format: "plaintext",
+        };
+      }
+    } else {
+      // No explanation field
+      transformed.explanation = {
+        content: "",
+        format: "plaintext",
+      };
+    }
 
     // Transform difficulty
     if (detail.difficulty) {
@@ -249,7 +280,7 @@ class DataTransformer {
    */
   static transformTaskDetailToSchema(detail) {
     const transformed = {
-      explanation: detail.detail || "",
+      explanation: this.transformExplanationToSchema(detail),
       code_blocks: detail.code_blocks || [],
       resource_links: this.transformResourceLinksToSchema(
         detail.resource_links || []
@@ -271,6 +302,26 @@ class DataTransformer {
     }
 
     return transformed;
+  }
+
+  /**
+   * Transforms explanation content to schema format with format support
+   */
+  static transformExplanationToSchema(detail) {
+    // Handle new format with explanation object containing content and format
+    if (detail.explanation && typeof detail.explanation === "object") {
+      return {
+        content: detail.explanation.content || "",
+        format: detail.explanation.format || "plaintext",
+      };
+    }
+
+    // Handle legacy formats
+    const content = detail.detail || detail.explanation || "";
+    return {
+      content: content,
+      format: "plaintext",
+    };
   }
 
   /**

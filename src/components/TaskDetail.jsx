@@ -1,4 +1,5 @@
 import CodeBlock from "./CodeBlock";
+import ContentRenderer from "./ContentRenderer";
 import DifficultyIndicator from "./DifficultyIndicator";
 import EstimatedTime from "./EstimatedTime";
 import ResourceLinks from "./ResourceLinks";
@@ -32,7 +33,35 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
   const priority = task?.task_priority || "mid";
 
   // Task detail properties (from task_detail object)
-  const detailText = taskDetail?.detail || taskDetail?.explanation || "";
+  // Handle new schema format with content and format fields
+
+  // Extract content and format from the explanation object
+  let contentData = "";
+  let contentFormat = "plaintext";
+
+  if (taskDetail?.explanation && typeof taskDetail.explanation === "object") {
+    // New format: taskDetail.explanation = {content: "...", format: "..."}
+    if (taskDetail.explanation.content) {
+      contentData = taskDetail.explanation.content;
+      contentFormat = taskDetail.explanation.format || "plaintext";
+    }
+  } else if (
+    taskDetail?.explanation &&
+    typeof taskDetail.explanation === "string"
+  ) {
+    // Legacy format: taskDetail.explanation is a string
+    contentData = taskDetail.explanation;
+    contentFormat = "plaintext";
+  } else if (taskDetail?.detail && typeof taskDetail.detail === "string") {
+    // Legacy format: taskDetail.detail is a string
+    contentData = taskDetail.detail;
+    contentFormat = "plaintext";
+  } else if (Array.isArray(taskDetail?.detail)) {
+    // Legacy format: taskDetail.detail is an array
+    contentData = taskDetail.detail.join(" ");
+    contentFormat = "plaintext";
+  }
+
   const difficulty = taskDetail?.difficulty;
   const estTime = taskDetail?.est_time;
   const resourceLinks = taskDetail?.resource_links;
@@ -43,11 +72,6 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
 
   // Legacy code support
   const legacyCode = taskDetail?.code;
-
-  // Split detail text into sections based on newlines
-  const paragraphs = detailText
-    ? detailText.split("\n").filter((p) => p.trim() !== "")
-    : [];
 
   return (
     <div className="space-y-6">
@@ -110,22 +134,32 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
         </div>
       )}
 
-      {/* Main content */}
-      <div className="mt-4">
-        {paragraphs.map((p, index) => {
-          // Create unique key for paragraph
-          const uniqueKey = `paragraph-${index}-${p.slice(0, 20)}`;
-
-          return (
-            <p
-              key={uniqueKey}
-              className="text-gray-700 dark:text-gray-300 mb-3"
+      {/* Main content with format-aware rendering */}
+      {contentData && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              {p}
-            </p>
-          );
-        })}
-      </div>
+              <path
+                fillRule="evenodd"
+                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Task Details
+          </h4>
+          <ContentRenderer
+            content={contentData}
+            format={contentFormat}
+            showFormatIndicator={true}
+            collapsible={contentData.length > 500}
+            maxHeight={400}
+          />
+        </div>
+      )}
 
       {/* Code blocks */}
       {(codeBlocks || legacyCode) && (

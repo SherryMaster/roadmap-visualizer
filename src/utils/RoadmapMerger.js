@@ -119,7 +119,7 @@ class RoadmapMerger {
       task_title: task.task_title,
       task_summary: task.task_summary,
       task_detail: {
-        explanation: task.task_detail ? task.task_detail.join(" ") : "",
+        explanation: this.transformTaskDetail(task.task_detail),
         difficulty: {
           level: task.task_difficulty || "normal",
           reason_of_difficulty: task.difficulty_reason || "",
@@ -137,6 +137,41 @@ class RoadmapMerger {
       // Preserve task_number from skeleton task data
       task_number: task.task_number,
     };
+  }
+
+  /**
+   * Transforms task detail from skeleton format to final schema format
+   */
+  static transformTaskDetail(taskDetail) {
+    if (!taskDetail) {
+      return { content: "", format: "plaintext" };
+    }
+
+    // Handle new format with content and format fields
+    if (typeof taskDetail === "object" && taskDetail.content) {
+      return {
+        content: taskDetail.content,
+        format: taskDetail.format || "plaintext",
+      };
+    }
+
+    // Handle legacy array format
+    if (Array.isArray(taskDetail)) {
+      return {
+        content: taskDetail.join(" "),
+        format: "plaintext",
+      };
+    }
+
+    // Handle legacy string format
+    if (typeof taskDetail === "string") {
+      return {
+        content: taskDetail,
+        format: "plaintext",
+      };
+    }
+
+    return { content: "", format: "plaintext" };
   }
 
   /**

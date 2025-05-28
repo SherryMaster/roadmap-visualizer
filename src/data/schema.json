@@ -81,7 +81,24 @@
                       "type": "object",
                       "properties": {
                         "explanation": {
-                          "type": "string"
+                          "type": "object",
+                          "properties": {
+                            "content": {
+                              "type": "string"
+                            },
+                            "format": {
+                              "type": "string",
+                              "enum": [
+                                "markdown",
+                                "html",
+                                "plaintext"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "content",
+                            "format"
+                          ]
                         },
                         "difficulty": {
                           "type": "object",

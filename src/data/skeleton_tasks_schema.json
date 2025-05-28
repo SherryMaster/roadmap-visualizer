@@ -29,10 +29,24 @@
             "type": "string"
           },
           "task_detail": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "markdown",
+                  "html",
+                  "plaintext"
+                ]
+              }
+            },
+            "required": [
+              "content",
+              "format"
+            ]
           },
           "code_blocks": {
             "type": "array",
