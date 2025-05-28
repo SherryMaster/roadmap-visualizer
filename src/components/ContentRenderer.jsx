@@ -109,7 +109,7 @@ const ContentRenderer = ({
                   if (isBlock) {
                     return (
                       <code
-                        className={`block bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm font-mono text-gray-900 dark:text-gray-100 overflow-x-auto whitespace-pre ${
+                        className={`block bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-lg text-sm font-mono text-slate-800 dark:text-slate-200 overflow-x-auto whitespace-pre shadow-sm hover:shadow-md transition-shadow duration-200 ${
                           className || ""
                         }`}
                       >
@@ -119,7 +119,7 @@ const ContentRenderer = ({
                   } else {
                     // Inline code
                     return (
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm font-mono text-gray-900 dark:text-gray-100 inline">
+                      <code className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 px-2 py-1 rounded text-sm font-mono text-slate-800 dark:text-slate-200 inline shadow-sm">
                         {children}
                       </code>
                     );
