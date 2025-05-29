@@ -1,4 +1,10 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Create context
@@ -81,31 +87,37 @@ export const TaskCompletionProvider = ({
   };
 
   // Check if a task is completed by phase_id and task_id (for dependencies)
-  const isTaskCompletedById = (phaseId, taskId) => {
-    if (!roadmapData || !roadmapData.roadmap) return false;
+  const isTaskCompletedById = useCallback(
+    (phaseId, taskId) => {
+      if (!roadmapData || !roadmapData.roadmap) return false;
 
-    // Find the phase and task to get their indices
-    for (
-      let phaseIndex = 0;
-      phaseIndex < roadmapData.roadmap.length;
-      phaseIndex++
-    ) {
-      const phase = roadmapData.roadmap[phaseIndex];
-      if (phase.phase_id === phaseId) {
-        for (
-          let taskIndex = 0;
-          taskIndex < phase.phase_tasks.length;
-          taskIndex++
-        ) {
-          const task = phase.phase_tasks[taskIndex];
-          if (task.task_id === taskId) {
-            return isTaskCompleted(phase.phase_number, taskIndex);
+      // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+      const phases = roadmapData.roadmap.phases || roadmapData.roadmap;
+
+      if (!Array.isArray(phases)) return false;
+
+      // Find the phase and task to get their indices
+      for (let phaseIndex = 0; phaseIndex < phases.length; phaseIndex++) {
+        const phase = phases[phaseIndex];
+        if (phase.phase_id === phaseId) {
+          for (
+            let taskIndex = 0;
+            taskIndex < phase.phase_tasks.length;
+            taskIndex++
+          ) {
+            const task = phase.phase_tasks[taskIndex];
+            if (task.task_id === taskId) {
+              // Use phase.phase_number to maintain consistency with the rest of the system
+              const completed = isTaskCompleted(phase.phase_number, taskIndex);
+              return completed;
+            }
           }
         }
       }
-    }
-    return false;
-  };
+      return false;
+    },
+    [completedTasks, roadmapData, isTaskCompleted]
+  ); // Include isTaskCompleted as dependency
 
   // Get the number of completed tasks in a phase
   const getCompletedTasksInPhase = (phaseNumber, totalTasks) => {
@@ -157,54 +169,60 @@ export const TaskCompletionProvider = ({
       isTaskCompletedById(dep.phase_id, dep.task_id)
     );
   };
-
   // Get dependency completion status for a task
-  const getDependencyStatus = (dependencies) => {
-    if (!dependencies || dependencies.length === 0) {
+  const getDependencyStatus = useCallback(
+    (dependencies) => {
+      if (!dependencies || dependencies.length === 0) {
+        return {
+          canComplete: true,
+          requiredCompleted: 0,
+          requiredTotal: 0,
+          recommendedCompleted: 0,
+          recommendedTotal: 0,
+          optionalCompleted: 0,
+          optionalTotal: 0,
+          dependencyStatuses: [],
+        };
+      }
+
+      const dependencyStatuses = dependencies.map((dep) => ({
+        ...dep,
+        isCompleted: isTaskCompletedById(dep.phase_id, dep.task_id),
+      }));
+
+      const required = dependencyStatuses.filter(
+        (dep) => dep.dependency_type === "required"
+      );
+      const recommended = dependencyStatuses.filter(
+        (dep) => dep.dependency_type === "recommended"
+      );
+      const optional = dependencyStatuses.filter(
+        (dep) => dep.dependency_type === "optional"
+      );
+
+      const requiredCompleted = required.filter(
+        (dep) => dep.isCompleted
+      ).length;
+      const recommendedCompleted = recommended.filter(
+        (dep) => dep.isCompleted
+      ).length;
+      const optionalCompleted = optional.filter(
+        (dep) => dep.isCompleted
+      ).length;
+
       return {
-        canComplete: true,
-        requiredCompleted: 0,
-        requiredTotal: 0,
-        recommendedCompleted: 0,
-        recommendedTotal: 0,
-        optionalCompleted: 0,
-        optionalTotal: 0,
-        dependencyStatuses: [],
+        canComplete: requiredCompleted === required.length,
+        requiredCompleted,
+        requiredTotal: required.length,
+        recommendedCompleted,
+        recommendedTotal: recommended.length,
+        optionalCompleted,
+        optionalTotal: optional.length,
+        dependencyStatuses,
       };
-    }
-
-    const dependencyStatuses = dependencies.map((dep) => ({
-      ...dep,
-      isCompleted: isTaskCompletedById(dep.phase_id, dep.task_id),
-    }));
-
-    const required = dependencyStatuses.filter(
-      (dep) => dep.dependency_type === "required"
-    );
-    const recommended = dependencyStatuses.filter(
-      (dep) => dep.dependency_type === "recommended"
-    );
-    const optional = dependencyStatuses.filter(
-      (dep) => dep.dependency_type === "optional"
-    );
-
-    const requiredCompleted = required.filter((dep) => dep.isCompleted).length;
-    const recommendedCompleted = recommended.filter(
-      (dep) => dep.isCompleted
-    ).length;
-    const optionalCompleted = optional.filter((dep) => dep.isCompleted).length;
-
-    return {
-      canComplete: requiredCompleted === required.length,
-      requiredCompleted,
-      requiredTotal: required.length,
-      recommendedCompleted,
-      recommendedTotal: recommended.length,
-      optionalCompleted,
-      optionalTotal: optional.length,
-      dependencyStatuses,
-    };
-  };
+    },
+    [completedTasks, roadmapData, isTaskCompletedById]
+  ); // Include isTaskCompletedById as dependency
 
   // Enhanced toggle function that checks dependencies
   const toggleTaskCompletionWithValidation = (
