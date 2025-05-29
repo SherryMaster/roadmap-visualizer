@@ -124,6 +124,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 {configManager.getComponentConfig("taskNumbering")
                   .showTaskNumbers && (
                   <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full flex-shrink-0">
+                    {" "}
                     {task.task_number !== undefined
                       ? task.task_number
                       : taskIndex + 1}
@@ -133,7 +134,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 <h3
                   className={`text-lg font-semibold task-title-highlight transition-colors duration-200 ${
                     completed
-                      ? "text-green-700 dark:text-green-400 line-through"
+                      ? "text-green-700 dark:text-green-400"
                       : "text-gray-900 dark:text-white"
                   }`}
                 >
@@ -222,7 +223,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                   strokeWidth="2"
                   d="M19 9l-7 7-7-7"
                 />
-              </svg>
+              </svg>{" "}
             </button>
           </div>
         </div>
@@ -230,7 +231,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
           <p
             className={`text-sm leading-relaxed ${
               completed
-                ? "text-green-600 dark:text-green-400 line-through"
+                ? "text-green-600 dark:text-green-400"
                 : "text-gray-600 dark:text-gray-300"
             }`}
           >

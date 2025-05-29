@@ -413,11 +413,12 @@ const TaskDependencies = ({
           {/* Task title and phase */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2">
+              {" "}
               <span
                 className={`text-sm font-medium truncate ${
                   taskInfo.found
                     ? isCompleted
-                      ? "text-green-700 dark:text-green-400 line-through"
+                      ? "text-green-700 dark:text-green-400"
                       : "text-gray-900 dark:text-white"
                     : "text-red-600 dark:text-red-400"
                 }`}
@@ -425,7 +426,6 @@ const TaskDependencies = ({
               >
                 {taskInfo.title}
               </span>
-
               {/* Navigation indicator */}
               {allowNavigation && taskInfo.found && (
                 <svg
