@@ -41,6 +41,9 @@ const HomePage = () => {
   }, [location.state, navigate, location.pathname]);
 
   const loadRoadmaps = () => {
+    // Recalculate metadata to fix any incorrect phase/task counts
+    RoadmapPersistence.recalculateAllMetadata();
+
     const roadmapMetadata = RoadmapPersistence.getAllRoadmapMetadata();
     setRoadmaps(roadmapMetadata);
   };

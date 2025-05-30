@@ -50,10 +50,7 @@ class RoadmapPersistence {
         tags: roadmapData.tags || [],
         uploadDate: timestamp,
         lastAccessed: timestamp,
-        totalPhases:
-          roadmapData.roadmap && roadmapData.roadmap.phases
-            ? roadmapData.roadmap.phases.length
-            : 0,
+        totalPhases: this.calculateTotalPhases(roadmapData),
         totalTasks: this.calculateTotalTasks(roadmapData),
         progressPercentage: 0,
       };
@@ -156,6 +153,46 @@ class RoadmapPersistence {
       }
     } catch (error) {
       console.error("Error updating roadmap progress:", error);
+    }
+  }
+
+  /**
+   * Recalculate and update metadata for existing roadmaps
+   * This fixes any incorrect phase/task counts in stored metadata
+   */
+  static recalculateAllMetadata() {
+    try {
+      const allMetadata = this.getAllRoadmapMetadata();
+      let updated = false;
+
+      allMetadata.forEach((metadata) => {
+        const roadmapInfo = this.loadRoadmap(metadata.id);
+        if (roadmapInfo && roadmapInfo.data) {
+          const correctPhases = this.calculateTotalPhases(roadmapInfo.data);
+          const correctTasks = this.calculateTotalTasks(roadmapInfo.data);
+
+          if (
+            metadata.totalPhases !== correctPhases ||
+            metadata.totalTasks !== correctTasks
+          ) {
+            metadata.totalPhases = correctPhases;
+            metadata.totalTasks = correctTasks;
+            updated = true;
+          }
+        }
+      });
+
+      if (updated) {
+        localStorage.setItem(
+          this.STORAGE_KEYS.ROADMAP_METADATA,
+          JSON.stringify(allMetadata)
+        );
+      }
+
+      return updated;
+    } catch (error) {
+      console.error("Error recalculating roadmap metadata:", error);
+      return false;
     }
   }
 
@@ -272,6 +309,24 @@ class RoadmapPersistence {
       console.error("Error loading app state:", error);
       return null;
     }
+  }
+
+  /**
+   * Calculate total phases in a roadmap
+   */
+  static calculateTotalPhases(roadmapData) {
+    if (!roadmapData || !roadmapData.roadmap) {
+      return 0;
+    }
+
+    // Handle both assembled roadmap structure (roadmap.phases) and direct array structure
+    const phases = roadmapData.roadmap.phases || roadmapData.roadmap;
+
+    if (!Array.isArray(phases)) {
+      return 0;
+    }
+
+    return phases.length;
   }
 
   /**
