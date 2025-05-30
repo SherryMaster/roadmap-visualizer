@@ -9,6 +9,7 @@ import RoadmapVisualizer from "../components/RoadmapVisualizer";
 import NotFoundPage from "../components/NotFoundPage";
 import RoadmapLoader from "../components/RoadmapLoader";
 import RoadmapAssembler from "../components/RoadmapAssembler";
+import RoadmapEditor from "../components/RoadmapEditor";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Route loader for roadmap data
@@ -77,6 +78,12 @@ const router = createBrowserRouter([
         element: <RoadmapVisualizer />,
       },
     ],
+  },
+  {
+    path: "/roadmap/:roadmapId/edit",
+    element: <RoadmapEditor />,
+    loader: roadmapLoader,
+    errorElement: <NotFoundPage />,
   },
   {
     path: "/assembler",
