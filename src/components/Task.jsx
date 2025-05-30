@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import TaskDetail from "./TaskDetail";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
 import configManager from "../utils/ConfigManager";
+import Tooltip from "./Tooltip";
 
 const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
   const { task_title, task_summary, task_dependencies } = task;
@@ -123,12 +124,17 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 {/* Task number badge - conditionally shown based on configuration */}
                 {configManager.getComponentConfig("taskNumbering")
                   .showTaskNumbers && (
-                  <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full flex-shrink-0">
-                    {" "}
-                    {task.task_number !== undefined
-                      ? task.task_number
-                      : taskIndex + 1}
-                  </span>
+                  <Tooltip
+                    content="Task number in this phase"
+                    position="top"
+                    maxWidth="150px"
+                  >
+                    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full flex-shrink-0 cursor-help">
+                      {task.task_number !== undefined
+                        ? task.task_number
+                        : taskIndex + 1}
+                    </span>
+                  </Tooltip>
                 )}
 
                 <h3
@@ -146,17 +152,8 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
 
           <div className="flex items-center space-x-3">
             {/* Completion toggle button */}
-            <button
-              onClick={handleCheckboxClick}
-              disabled={!completed && !canComplete}
-              className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
-                !completed && !canComplete
-                  ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
-                  : completed
-                  ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400"
-                  : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
-              }`}
-              title={
+            <Tooltip
+              content={
                 !completed && !canComplete
                   ? `Complete required dependencies first (${
                       dependencyStatus?.requiredCompleted || 0
@@ -165,22 +162,74 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                   ? "Mark task as incomplete"
                   : "Mark task as complete"
               }
+              position="top"
+              maxWidth="250px"
             >
-              {completed ? (
+              <button
+                onClick={handleCheckboxClick}
+                disabled={!completed && !canComplete}
+                className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
+                  !completed && !canComplete
+                    ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
+                    : completed
+                    ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400"
+                    : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+                }`}
+              >
+                {completed ? (
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+
+                {animateCompletion && (
+                  <span className="absolute flex h-10 w-10 -top-1 -left-1">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-lg bg-green-400 opacity-75"></span>
+                  </span>
+                )}
+              </button>
+            </Tooltip>
+
+            {/* Expand/collapse button */}
+            <Tooltip
+              content={
+                isExpanded
+                  ? "Collapse task details"
+                  : "Expand to view task details"
+              }
+              position="top"
+              maxWidth="200px"
+            >
+              <button
+                onClick={onClick}
+                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+              >
                 <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-4 h-4"
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isExpanded ? "transform rotate-180" : ""
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -189,42 +238,11 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M5 13l4 4L19 7"
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              )}
-
-              {animateCompletion && (
-                <span className="absolute flex h-10 w-10 -top-1 -left-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-lg bg-green-400 opacity-75"></span>
-                </span>
-              )}
-            </button>
-
-            {/* Expand/collapse button */}
-            <button
-              onClick={onClick}
-              className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
-              title={
-                isExpanded ? "Collapse task details" : "Expand task details"
-              }
-            >
-              <svg
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isExpanded ? "transform rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>{" "}
-            </button>
+              </button>
+            </Tooltip>
           </div>
         </div>
         <div onClick={onClick} className="mt-3">
