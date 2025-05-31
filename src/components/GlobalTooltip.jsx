@@ -282,22 +282,58 @@ const GlobalTooltip = () => {
 
   const getTooltipClasses = () => {
     const baseClasses = `
-      px-4 py-3 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800
-      rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 transition-opacity duration-150 pointer-events-none
-      ${tooltipState.isVisible ? "opacity-100" : "opacity-0"}
+      px-5 py-4 text-sm font-medium leading-relaxed
+      text-gray-900 dark:text-gray-100
+      bg-white/95 dark:bg-gray-900/95
+      backdrop-blur-xl backdrop-saturate-150
+      rounded-xl border border-gray-200/80 dark:border-gray-700/80
+      shadow-2xl shadow-gray-900/10 dark:shadow-black/30
+      transition-all duration-200 ease-out pointer-events-none
+      ${
+        tooltipState.isVisible
+          ? "opacity-100 scale-100 translate-y-0"
+          : "opacity-0 scale-95 translate-y-1"
+      }
+      before:absolute before:inset-0 before:rounded-xl
+      before:bg-gradient-to-br before:from-white/20 before:to-transparent
+      before:pointer-events-none dark:before:from-white/5
+      ring-1 ring-gray-900/5 dark:ring-white/10
     `;
 
     return `${baseClasses} ${tooltipState.className}`;
   };
 
   const getArrowClasses = (position) => {
-    const baseArrowClasses = "border-4 border-transparent";
+    const baseArrowClasses = `
+      border-[6px] border-transparent transition-all duration-200 ease-out
+      drop-shadow-sm relative
+    `;
 
     const arrowClasses = {
-      top: `${baseArrowClasses} border-t-white dark:border-t-gray-800`,
-      bottom: `${baseArrowClasses} border-b-white dark:border-b-gray-800`,
-      left: `${baseArrowClasses} border-l-white dark:border-l-gray-800`,
-      right: `${baseArrowClasses} border-r-white dark:border-r-gray-800`,
+      top: `${baseArrowClasses}
+        border-t-white/95 dark:border-t-gray-900/95
+        after:absolute after:border-[6px] after:border-transparent
+        after:border-t-gray-200/80 after:dark:border-t-gray-700/80
+        after:top-[-7px] after:left-[-6px] after:z-[-1]
+      `,
+      bottom: `${baseArrowClasses}
+        border-b-white/95 dark:border-b-gray-900/95
+        after:absolute after:border-[6px] after:border-transparent
+        after:border-b-gray-200/80 after:dark:border-b-gray-700/80
+        after:bottom-[-7px] after:left-[-6px] after:z-[-1]
+      `,
+      left: `${baseArrowClasses}
+        border-l-white/95 dark:border-l-gray-900/95
+        after:absolute after:border-[6px] after:border-transparent
+        after:border-l-gray-200/80 after:dark:border-l-gray-700/80
+        after:left-[-7px] after:top-[-6px] after:z-[-1]
+      `,
+      right: `${baseArrowClasses}
+        border-r-white/95 dark:border-r-gray-900/95
+        after:absolute after:border-[6px] after:border-transparent
+        after:border-r-gray-200/80 after:dark:border-r-gray-700/80
+        after:right-[-7px] after:top-[-6px] after:z-[-1]
+      `,
     };
 
     return arrowClasses[position] || arrowClasses.top;
@@ -320,12 +356,15 @@ const GlobalTooltip = () => {
         ...(tooltipState.isVisible ? {} : offScreenStyle),
         maxWidth: `min(${tooltipState.maxWidth}, calc(100vw - 40px))`,
         minWidth: "400px",
+        transform: tooltipState.isVisible
+          ? "scale(1) translateY(0)"
+          : "scale(0.95) translateY(4px)",
       }}
       role="tooltip"
       aria-hidden={!tooltipState.isVisible}
     >
-      {tooltipState.content}
-      <div className="tooltip-arrow" />
+      <div className="relative z-10">{tooltipState.content}</div>
+      <div className="tooltip-arrow absolute z-0" />
     </div>,
     document.body
   );

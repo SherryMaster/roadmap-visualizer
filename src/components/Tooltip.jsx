@@ -1,8 +1,8 @@
 import useTooltipTrigger from "../hooks/useTooltipTrigger";
 
 /**
- * Backward compatible Tooltip component that uses the singleton tooltip system
- * Maintains the same API as the original Tooltip component
+ * Enhanced Tooltip component that uses the singleton tooltip system
+ * Maintains backward compatibility while providing enhanced styling and animations
  */
 const Tooltip = ({
   children,
@@ -12,14 +12,32 @@ const Tooltip = ({
   delay = 0,
   disabled = false,
   className = "",
+  variant = "default",
+  showAnimation = true,
 }) => {
-  // Use the singleton tooltip system
+  // Enhanced styling based on variant
+  const getEnhancedClassName = () => {
+    let enhancedClass = className;
+
+    if (showAnimation) {
+      enhancedClass += " tooltip-content-enter";
+    }
+
+    // Add subtle enhancements for better visual appeal
+    if (!className.includes("bg-") && variant === "default") {
+      enhancedClass += " enhanced-tooltip-default";
+    }
+
+    return enhancedClass.trim();
+  };
+
+  // Use the singleton tooltip system with enhanced options
   const { triggerRef, triggerProps } = useTooltipTrigger(content, {
     position,
     maxWidth,
     delay,
     disabled,
-    className,
+    className: getEnhancedClassName(),
   });
 
   // Don't render tooltip if disabled or no content

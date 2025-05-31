@@ -1,5 +1,6 @@
 import { useTheme } from "../context/ThemeContext";
-import Tooltip from "./Tooltip";
+import { GlassTooltip } from "./EnhancedTooltip";
+import { BasicTooltipContent } from "./TooltipContent";
 
 const ThemeSelector = () => {
   const { themePreference, setLightTheme, setDarkTheme, setSystemTheme } =
@@ -11,34 +12,50 @@ const ThemeSelector = () => {
       label: "Light",
       icon: "☀️",
       onClick: setLightTheme,
-      tooltip:
-        "Switch to light theme for better visibility in bright environments",
+      tooltip: (
+        <BasicTooltipContent
+          icon="☀️"
+          title="Light Theme"
+          description="Switch to light theme for better visibility in bright environments and improved readability during daytime use."
+        />
+      ),
     },
     {
       value: "dark",
       label: "Dark",
       icon: "🌙",
       onClick: setDarkTheme,
-      tooltip:
-        "Switch to dark theme to reduce eye strain in low-light conditions",
+      tooltip: (
+        <BasicTooltipContent
+          icon="🌙"
+          title="Dark Theme"
+          description="Switch to dark theme to reduce eye strain in low-light conditions and save battery on OLED displays."
+        />
+      ),
     },
     {
       value: "system",
       label: "System",
       icon: "💻",
       onClick: setSystemTheme,
-      tooltip: "Automatically match your system theme preference",
+      tooltip: (
+        <BasicTooltipContent
+          icon="💻"
+          title="System Theme"
+          description="Automatically match your operating system's theme preference and switch between light and dark modes based on your system settings."
+        />
+      ),
     },
   ];
 
   return (
     <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
       {options.map((option) => (
-        <Tooltip
+        <GlassTooltip
           key={option.value}
           content={option.tooltip}
           position="bottom"
-          maxWidth="300px"
+          maxWidth="350px"
         >
           <button
             onClick={option.onClick}
@@ -57,7 +74,7 @@ const ThemeSelector = () => {
             </span>
             <span className="hidden sm:inline">{option.label}</span>
           </button>
-        </Tooltip>
+        </GlassTooltip>
       ))}
     </div>
   );

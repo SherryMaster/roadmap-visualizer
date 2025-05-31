@@ -81,13 +81,51 @@
     overflow: hidden;
   }
 
-  /* Tooltip animations */
+  /* Enhanced Tooltip animations */
   .tooltip-enter {
-    animation: tooltip-fade-in 0.2s ease-out;
+    animation: tooltip-slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .tooltip-exit {
-    animation: tooltip-fade-out 0.2s ease-in;
+    animation: tooltip-slide-out 0.15s cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  /* Tooltip content animations */
+  .tooltip-content-enter {
+    animation: tooltip-content-reveal 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s
+      both;
+  }
+
+  /* Tooltip arrow animations */
+  .tooltip-arrow {
+    animation: tooltip-arrow-appear 0.2s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  }
+
+  /* Enhanced tooltip default styling */
+  .enhanced-tooltip-default {
+    position: relative;
+  }
+
+  .enhanced-tooltip-default::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Professional hover effects for interactive tooltips */
+  .tooltip-interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Smooth transitions for all tooltip elements */
+  .tooltip-transition {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   /* Subtle task card highlight for dependency navigation */
@@ -213,6 +251,60 @@
   }
 }
 
+/* Enhanced Tooltip Keyframes */
+@keyframes tooltip-slide-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes tooltip-slide-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+    filter: blur(2px);
+  }
+}
+
+@keyframes tooltip-content-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tooltip-arrow-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Legacy animations for backward compatibility */
 @keyframes tooltip-fade-in {
   from {
     opacity: 0;
