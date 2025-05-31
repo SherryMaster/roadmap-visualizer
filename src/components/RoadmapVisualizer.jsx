@@ -11,6 +11,8 @@ import { TaskCompletionProvider } from "../context/TaskCompletionContext";
 import usePageTitle from "../hooks/usePageTitle";
 import configManager from "../utils/ConfigManager";
 import DataTransformer from "../utils/DataTransformer";
+import Tooltip from "./Tooltip";
+import { InfoTooltip, SuccessTooltip } from "./EnhancedTooltip";
 
 const RoadmapVisualizer = ({
   roadmapData: initialRoadmapData,
@@ -232,12 +234,18 @@ const RoadmapVisualizer = ({
             Error Loading Roadmap
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={onReturnHome}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          <Tooltip
+            content="Return to homepage and roadmap collection"
+            position="bottom"
+            maxWidth="250px"
           >
-            Return to Home
-          </button>
+            <button
+              onClick={onReturnHome}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              Return to Home
+            </button>
+          </Tooltip>
         </div>
       </div>
     );
@@ -250,12 +258,18 @@ const RoadmapVisualizer = ({
           <p className="text-gray-600 dark:text-gray-400">
             No roadmap data available
           </p>
-          <button
-            onClick={onReturnHome}
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          <Tooltip
+            content="Return to homepage and roadmap collection"
+            position="bottom"
+            maxWidth="250px"
           >
-            Return to Home
-          </button>
+            <button
+              onClick={onReturnHome}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+            >
+              Return to Home
+            </button>
+          </Tooltip>
         </div>
       </div>
     );
@@ -273,58 +287,68 @@ const RoadmapVisualizer = ({
               />
             </div>
             <div className="flex items-center space-x-3">
-              <button
-                onClick={handleEditRoadmap}
-                className="inline-flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
-                title="Edit this roadmap"
+              <InfoTooltip
+                content="Edit roadmap content, add tasks, and modify structure"
+                position="bottom"
+                maxWidth="250px"
               >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <button
+                  onClick={handleEditRoadmap}
+                  className="inline-flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                <span>Edit Roadmap</span>
-              </button>
-              <button
-                onClick={handleDownloadRoadmap}
-                disabled={isDownloading}
-                className="inline-flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
-                title="Download roadmap as JSON file"
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  <span>Edit Roadmap</span>
+                </button>
+              </InfoTooltip>
+              <SuccessTooltip
+                content="Download the current roadmap as a JSON file for backup or sharing"
+                position="bottom"
+                maxWidth="250px"
               >
-                {isDownloading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    <span>Downloading...</span>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    <span>Download</span>
-                  </>
-                )}
-              </button>
+                <button
+                  onClick={handleDownloadRoadmap}
+                  disabled={isDownloading}
+                  className="inline-flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
+                >
+                  {isDownloading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <span>Downloading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <span>Download</span>
+                    </>
+                  )}
+                </button>
+              </SuccessTooltip>
               <ShareButton roadmapTitle={filteredRoadmapData?.title} />
               <ThemeSelector />
             </div>

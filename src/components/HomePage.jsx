@@ -153,24 +153,30 @@ const HomePage = () => {
                   {routeError.message}
                 </p>
               </div>
-              <button
-                onClick={() => setRouteError(null)}
-                className="text-red-400 hover:text-red-600 dark:hover:text-red-300 ml-3"
+              <Tooltip
+                content="Dismiss this error message"
+                position="left"
+                maxWidth="200px"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <button
+                  onClick={() => setRouteError(null)}
+                  className="text-red-400 hover:text-red-600 dark:hover:text-red-300 ml-3"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}
@@ -356,24 +362,30 @@ const HomePage = () => {
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Upload Roadmap File
                   </h3>
-                  <button
-                    onClick={() => setShowUploader(false)}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  <Tooltip
+                    content="Cancel upload and return to main view"
+                    position="left"
+                    maxWidth="250px"
                   >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                    <button
+                      onClick={() => setShowUploader(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </Tooltip>
                 </div>
                 <RoadmapUploader onRoadmapLoad={handleRoadmapUpload} />
               </div>

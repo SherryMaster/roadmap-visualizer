@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import TaskList from "./TaskList";
 import { useTaskCompletion } from "../context/TaskCompletionContext";
+import Tooltip from "./Tooltip";
+import { SuccessTooltip } from "./EnhancedTooltip";
 
 const Phase = ({ phase, isExpanded, isActive, onClick }) => {
   const { phase_number, phase_title, phase_tasks, phase_id } = phase;
@@ -55,92 +57,114 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
           : ""
       }`}
     >
-      <div
-        className={`px-6 py-4 cursor-pointer flex justify-between items-center ${
+      <Tooltip
+        content={
           isExpanded
-            ? "bg-blue-50 dark:bg-gray-700"
-            : isCompleted
-            ? "bg-green-50 dark:bg-green-900/20"
-            : isActive
-            ? "bg-blue-50/50 dark:bg-gray-700/50"
-            : ""
-        }`}
-        onClick={onClick}
+            ? "Click to collapse and hide tasks"
+            : "Click to expand and view tasks"
+        }
+        position="top"
+        maxWidth="250px"
       >
-        <div className="flex-1">
-          <div className="flex items-center mb-2">
-            <span
-              className={`inline-block text-white text-sm font-semibold px-3 py-1 rounded-full mr-3 ${
-                isCompleted
-                  ? "bg-green-600"
-                  : isActive
-                  ? "bg-blue-600"
-                  : "bg-blue-500"
-              }`}
-            >
-              Phase {phase_number}
-            </span>
-            <span
-              className={`text-lg font-semibold ${
-                isCompleted
-                  ? "text-green-700 dark:text-green-400"
-                  : "text-gray-800 dark:text-white"
-              }`}
-            >
-              {phase_title}
-            </span>
-
-            {isCompleted && (
-              <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  ></path>
-                </svg>
-                Completed
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center">
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2 flex-grow">
-              <div
-                className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${
-                  isCompleted ? "bg-green-500" : "bg-blue-500"
-                }`}
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
-            </div>
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-              {completedTasks}/{phase_tasks.length} tasks
-            </span>
-          </div>
-        </div>
-
-        <svg
-          className={`w-5 h-5 ml-4 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
-            isExpanded ? "transform rotate-180" : ""
+        <div
+          className={`px-6 py-4 cursor-pointer flex justify-between items-center ${
+            isExpanded
+              ? "bg-blue-50 dark:bg-gray-700"
+              : isCompleted
+              ? "bg-green-50 dark:bg-green-900/20"
+              : isActive
+              ? "bg-blue-50/50 dark:bg-gray-700/50"
+              : ""
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+          onClick={onClick}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M19 9l-7 7-7-7"
-          ></path>
-        </svg>
-      </div>
+          <div className="flex-1">
+            <div className="flex items-center mb-2">
+              <span
+                className={`inline-block text-white text-sm font-semibold px-3 py-1 rounded-full mr-3 ${
+                  isCompleted
+                    ? "bg-green-600"
+                    : isActive
+                    ? "bg-blue-600"
+                    : "bg-blue-500"
+                }`}
+              >
+                Phase {phase_number}
+              </span>
+              <span
+                className={`text-lg font-semibold ${
+                  isCompleted
+                    ? "text-green-700 dark:text-green-400"
+                    : "text-gray-800 dark:text-white"
+                }`}
+              >
+                {phase_title}
+              </span>
+
+              {isCompleted && (
+                <SuccessTooltip
+                  content="All tasks in this phase have been completed"
+                  position="top"
+                  maxWidth="250px"
+                >
+                  <span className="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      ></path>
+                    </svg>
+                    Completed
+                  </span>
+                </SuccessTooltip>
+              )}
+            </div>
+
+            <div className="flex items-center">
+              <Tooltip
+                content={`Progress: ${progressPercentage}% complete (${completedTasks} of ${phase_tasks.length} tasks)`}
+                position="top"
+                maxWidth="300px"
+              >
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2 flex-grow">
+                  <div
+                    className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${
+                      isCompleted ? "bg-green-500" : "bg-blue-500"
+                    }`}
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+              </Tooltip>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                {completedTasks}/{phase_tasks.length} tasks
+              </span>
+            </div>
+          </div>
+
+          <svg
+            className={`w-5 h-5 ml-4 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
+              isExpanded ? "transform rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M19 9l-7 7-7-7"
+            ></path>
+          </svg>
+        </div>
+      </Tooltip>
 
       {isExpanded && (
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
