@@ -136,9 +136,17 @@ const GlobalTooltip = () => {
     // Apply styles to tooltip
     Object.assign(tooltipRef.current.style, result.tooltipStyle);
 
-    // Apply styles to arrow
+    // Apply styles to arrow with proper cleanup
     const arrow = tooltipRef.current.querySelector(".tooltip-arrow");
     if (arrow) {
+      // Clear all positioning properties first to avoid conflicts
+      arrow.style.top = "";
+      arrow.style.bottom = "";
+      arrow.style.left = "";
+      arrow.style.right = "";
+      arrow.style.transform = "";
+
+      // Apply new styles
       Object.assign(arrow.style, result.arrowStyle);
       arrow.className = `tooltip-arrow ${getArrowClasses(optimalPosition)}`;
     }
@@ -176,11 +184,22 @@ const GlobalTooltip = () => {
     margin
   ) => {
     const tooltipStyle = { position: "fixed", zIndex: 50 };
-    const arrowStyle = { position: "absolute" };
+    // Clear all positioning properties to avoid conflicts when switching positions
+    const arrowStyle = {
+      position: "absolute",
+      top: "auto",
+      bottom: "auto",
+      left: "auto",
+      right: "auto",
+      transform: "none",
+    };
     const arrowOffset = 12;
+    const arrowSize = 6; // Arrow border size
+    const minArrowMargin = 16; // Minimum distance from tooltip edge
 
     switch (pos) {
       case "top":
+        // Position tooltip above trigger
         tooltipStyle.top = `${
           triggerRect.top - tooltipRect.height - arrowOffset
         }px`;
@@ -192,20 +211,26 @@ const GlobalTooltip = () => {
           )
         )}px`;
 
+        // Calculate arrow horizontal position relative to tooltip
+        const tooltipLeft = parseFloat(tooltipStyle.left);
         const arrowLeftOffset = Math.max(
-          16,
+          minArrowMargin,
           Math.min(
-            triggerCenterX - parseFloat(tooltipStyle.left),
-            tooltipRect.width - 16
+            triggerCenterX - tooltipLeft,
+            tooltipRect.width - minArrowMargin
           )
         );
 
+        // Reset conflicting properties and set arrow position
+        arrowStyle.bottom = "auto";
+        arrowStyle.right = "auto";
         arrowStyle.top = "100%";
         arrowStyle.left = `${arrowLeftOffset}px`;
         arrowStyle.transform = "translateX(-50%)";
         break;
 
       case "bottom":
+        // Position tooltip below trigger
         tooltipStyle.top = `${triggerRect.bottom + arrowOffset}px`;
         tooltipStyle.left = `${Math.max(
           margin,
@@ -215,20 +240,26 @@ const GlobalTooltip = () => {
           )
         )}px`;
 
+        // Calculate arrow horizontal position relative to tooltip
+        const tooltipLeftBottom = parseFloat(tooltipStyle.left);
         const arrowLeftOffsetBottom = Math.max(
-          16,
+          minArrowMargin,
           Math.min(
-            triggerCenterX - parseFloat(tooltipStyle.left),
-            tooltipRect.width - 16
+            triggerCenterX - tooltipLeftBottom,
+            tooltipRect.width - minArrowMargin
           )
         );
 
+        // Reset conflicting properties and set arrow position
+        arrowStyle.top = "auto";
+        arrowStyle.right = "auto";
         arrowStyle.bottom = "100%";
         arrowStyle.left = `${arrowLeftOffsetBottom}px`;
         arrowStyle.transform = "translateX(-50%)";
         break;
 
       case "left":
+        // Position tooltip to the left of trigger
         tooltipStyle.left = `${
           triggerRect.left - tooltipRect.width - arrowOffset
         }px`;
@@ -240,20 +271,26 @@ const GlobalTooltip = () => {
           )
         )}px`;
 
+        // Calculate arrow vertical position relative to tooltip
+        const tooltipTop = parseFloat(tooltipStyle.top);
         const arrowTopOffset = Math.max(
-          16,
+          minArrowMargin,
           Math.min(
-            triggerCenterY - parseFloat(tooltipStyle.top),
-            tooltipRect.height - 16
+            triggerCenterY - tooltipTop,
+            tooltipRect.height - minArrowMargin
           )
         );
 
+        // Reset conflicting properties and set arrow position
+        arrowStyle.bottom = "auto";
+        arrowStyle.right = "auto";
         arrowStyle.left = "100%";
         arrowStyle.top = `${arrowTopOffset}px`;
         arrowStyle.transform = "translateY(-50%)";
         break;
 
       case "right":
+        // Position tooltip to the right of trigger
         tooltipStyle.left = `${triggerRect.right + arrowOffset}px`;
         tooltipStyle.top = `${Math.max(
           margin,
@@ -263,14 +300,19 @@ const GlobalTooltip = () => {
           )
         )}px`;
 
+        // Calculate arrow vertical position relative to tooltip
+        const tooltipTopRight = parseFloat(tooltipStyle.top);
         const arrowTopOffsetRight = Math.max(
-          16,
+          minArrowMargin,
           Math.min(
-            triggerCenterY - parseFloat(tooltipStyle.top),
-            tooltipRect.height - 16
+            triggerCenterY - tooltipTopRight,
+            tooltipRect.height - minArrowMargin
           )
         );
 
+        // Reset conflicting properties and set arrow position
+        arrowStyle.bottom = "auto";
+        arrowStyle.left = "auto";
         arrowStyle.right = "100%";
         arrowStyle.top = `${arrowTopOffsetRight}px`;
         arrowStyle.transform = "translateY(-50%)";

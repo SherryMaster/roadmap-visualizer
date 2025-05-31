@@ -10,6 +10,8 @@ import NotFoundPage from "../components/NotFoundPage";
 import RoadmapLoader from "../components/RoadmapLoader";
 import RoadmapAssembler from "../components/RoadmapAssembler";
 import RoadmapEditor from "../components/RoadmapEditor";
+import TooltipShowcase from "../components/TooltipShowcase";
+import TooltipArrowTest from "../components/TooltipArrowTest";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Route loader for roadmap data
@@ -91,6 +93,26 @@ const router = createBrowserRouter([
       <>
         <PageTitleUpdater title="Roadmap Assembler" />
         <RoadmapAssembler />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/tooltip-showcase",
+    element: (
+      <>
+        <PageTitleUpdater title="Tooltip Showcase" />
+        <TooltipShowcase />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/tooltip-arrow-test",
+    element: (
+      <>
+        <PageTitleUpdater title="Tooltip Arrow Test" />
+        <TooltipArrowTest />
       </>
     ),
     errorElement: <NotFoundPage />,
