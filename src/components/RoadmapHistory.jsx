@@ -126,7 +126,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
                   {getProjectLevelBadge(roadmap.project_level)}
                   <ErrorTooltip
                     content="Delete this roadmap permanently (cannot be undone)"
-                    position="left"
+                    position="top"
                     maxWidth="250px"
                   >
                     <button
