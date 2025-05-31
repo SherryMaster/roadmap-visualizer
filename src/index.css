@@ -175,6 +175,55 @@
   .dark .task-title-navigation-indicator::before {
     color: rgb(147 197 253);
   }
+
+  /* Modern Dashboard Animations */
+  .animate-scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Hero section gradient text animation */
+  .gradient-text {
+    background-size: 200% auto;
+    animation: gradient-text-flow 3s linear infinite;
+  }
+
+  /* Card hover glow effect */
+  .card-glow:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(59, 130, 246, 0.1),
+      0 0 20px rgba(59, 130, 246, 0.1);
+  }
+
+  .dark .card-glow:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
+      0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.2),
+      0 0 20px rgba(59, 130, 246, 0.15);
+  }
+
+  /* Progress ring animation */
+  .progress-ring {
+    transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Floating action button */
+  .floating-action {
+    transform: translateY(0);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .floating-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
 }
 
 @keyframes spin {
@@ -324,5 +373,38 @@
   to {
     opacity: 0;
     transform: scale(0.95);
+  }
+}
+
+/* Modern Dashboard Keyframes */
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gradient-text-flow {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
   }
 }
