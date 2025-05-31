@@ -15,6 +15,151 @@ import skeletonSchema from "../data/roadmap_skeleton_schema.json";
 import tasksSchema from "../data/skeleton_tasks_schema.json";
 import finalSchema from "../data/schema.json";
 
+// Modern SVG Icons
+const Icons = {
+  Upload: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+      />
+    </svg>
+  ),
+  CheckCircle: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  ),
+  Document: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  ),
+  Folder: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+      />
+    </svg>
+  ),
+  Refresh: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
+    </svg>
+  ),
+  Download: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  ),
+  Home: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+      />
+    </svg>
+  ),
+  Cog: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+    </svg>
+  ),
+  X: ({ className = "w-5 h-5" }) => (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  ),
+};
+
 const RoadmapAssembler = () => {
   usePageTitle("Roadmap Assembler");
 
@@ -308,44 +453,72 @@ const RoadmapAssembler = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Roadmap Assembler
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Merge skeleton and task files into a complete roadmap
-            </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Modern Header */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Icons.Cog className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Roadmap Assembler
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Professional roadmap construction from modular components
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            {(skeletonFile || taskFiles.length > 0) && (
+              <div className="flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+                {skeletonFile && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Skeleton loaded</span>
+                  </div>
+                )}
+                {taskFiles.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>
+                      {taskFiles.length} task file
+                      {taskFiles.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+                {mergedRoadmap && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span>Ready to deploy</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex items-center space-x-4">
+
+          <div className="flex items-center space-x-3">
             <Tooltip
               content="View schema documentation and download reference files"
               position="bottom"
-              maxWidth="250px"
+              maxWidth="280px"
             >
               <button
                 onClick={() => setShowSchemaReference(!showSchemaReference)}
-                className="inline-flex items-center px-3 py-2 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-all duration-200 ${
+                  showSchemaReference
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+                }`}
               >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
+                <Icons.Download className="w-4 h-4 mr-2" />
                 Schema Reference
               </button>
             </Tooltip>
+
             <Tooltip
               content="Return to homepage and roadmap collection"
               position="bottom"
@@ -353,223 +526,369 @@ const RoadmapAssembler = () => {
             >
               <Link
                 to="/"
-                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+                className="inline-flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200"
               >
-                ← Back to Home
+                <Icons.Home className="w-4 h-4 mr-2" />
+                Back to Home
               </Link>
             </Tooltip>
+
             <ThemeSelector />
           </div>
         </div>
 
-        {/* Schema Reference Section */}
+        {/* Enhanced Schema Reference Section */}
         {showSchemaReference && (
-          <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 animate-fade-in">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                <Icons.Document className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Schema Documentation
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Download reference files and view format specifications
+                </p>
+              </div>
+            </div>
             <SchemaDownloader variant="full" />
           </div>
         )}
 
-        {/* Progress Indicator */}
+        {/* Enhanced Progress Indicator */}
         <div className="mb-8">
-          <AssemblerProgress
-            currentStep={currentStep}
-            totalSteps={stepLabels.length}
-            stepLabels={stepLabels}
-            isProcessing={isProcessing}
-            error={error}
-            onRetry={retryCurrentStep}
-            onStartOver={resetAssembler}
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {currentStep + 1}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Assembly Progress
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {stepLabels[currentStep] || `Step ${currentStep + 1}`}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {Math.round((currentStep / (stepLabels.length - 1)) * 100)}%
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Complete
+                </div>
+              </div>
+            </div>
+
+            <AssemblerProgress
+              currentStep={currentStep}
+              totalSteps={stepLabels.length}
+              stepLabels={stepLabels}
+              isProcessing={isProcessing}
+              error={error}
+              onRetry={retryCurrentStep}
+              onStartOver={resetAssembler}
+            />
+          </div>
         </div>
 
         {/* Main Content */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {currentStep < 4 && (
             <>
-              {/* Step 1: Skeleton Upload */}
+              {/* Step 1: Enhanced Skeleton Upload */}
               {currentStep >= 0 && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    Step 1: Upload Roadmap Skeleton
-                  </h2>
-                  <div className="text-gray-600 dark:text-gray-400 mb-4">
-                    <p className="mb-2">
-                      Upload a single JSON file containing the roadmap skeleton
-                      structure.
-                    </p>
-                    <p className="text-sm">
-                      Need help creating your skeleton file? Download the{" "}
-                      <SchemaDownloader
-                        variant="inline"
-                        showTitle={false}
-                        className="inline"
-                        filter="skeleton"
-                      />{" "}
-                      to see the required format and structure.
-                    </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 card-glow transition-all duration-200">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                      <Icons.Document className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        Step 1: Upload Roadmap Skeleton
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Foundation structure defining phases and roadmap
+                        metadata
+                      </p>
+                    </div>
+                    {skeletonFile && (
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                        <Icons.CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <span className="text-green-700 dark:text-green-300 text-sm font-medium">
+                          Loaded
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {skeletonFile ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <svg
-                            className="w-5 h-5 text-green-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <div>
-                            <span className="text-green-800 dark:text-green-200 font-medium">
-                              Skeleton file loaded:{" "}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-5 animate-fade-in">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+                            <Icons.CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-green-800 dark:text-green-200 font-semibold text-lg">
                               {skeletonFile.roadmap_title ||
                                 skeletonFile.project_title ||
-                                "Untitled"}
-                            </span>
-                            <p className="text-green-700 dark:text-green-300 text-sm mt-1">
-                              {skeletonFile.phases?.length || 0} phases found
-                            </p>
+                                "Untitled Roadmap"}
+                            </h3>
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center space-x-4 text-sm text-green-700 dark:text-green-300">
+                                <span className="flex items-center space-x-1">
+                                  <Icons.Folder className="w-4 h-4" />
+                                  <span>
+                                    {skeletonFile.phases?.length || 0} phases
+                                  </span>
+                                </span>
+                                {skeletonFile.description && (
+                                  <span className="flex items-center space-x-1">
+                                    <Icons.Document className="w-4 h-4" />
+                                    <span>Description included</span>
+                                  </span>
+                                )}
+                              </div>
+                              {skeletonFile.description && (
+                                <p className="text-green-600 dark:text-green-400 text-sm mt-2 line-clamp-2">
+                                  {skeletonFile.description}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <Tooltip
                           content="Upload a different skeleton file and restart the process"
                           position="left"
-                          maxWidth="250px"
+                          maxWidth="280px"
                         >
                           <button
                             onClick={() => {
                               setSkeletonFile(null);
                               setError(null);
                               setCurrentStep(0);
-                              // Remove step 0 and all subsequent steps from completed
                               setCompletedSteps(new Set());
-                              // Clear all subsequent data
                               setTaskFiles([]);
                               setValidationResults(null);
                               setMergedRoadmap(null);
                               setMergeStats(null);
                             }}
-                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            className="inline-flex items-center px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 shadow-sm"
                           >
+                            <Icons.Refresh className="w-4 h-4 mr-2" />
                             Re-upload
                           </button>
                         </Tooltip>
                       </div>
                     </div>
                   ) : (
-                    <FileUploadZone
-                      onFilesSelected={handleSkeletonUpload}
-                      title="Drop skeleton file here"
-                      description="Must conform to roadmap_skeleton_schema.json"
-                      disabled={false} // Always allow re-upload
-                    />
+                    <div className="space-y-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <Icons.Document className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="text-blue-800 dark:text-blue-200 font-medium mb-1">
+                              Skeleton File Requirements
+                            </p>
+                            <p className="text-blue-700 dark:text-blue-300 mb-2">
+                              Upload a JSON file containing the roadmap
+                              structure with phases and metadata.
+                            </p>
+                            <p className="text-blue-600 dark:text-blue-400 text-xs">
+                              Need help? Download the{" "}
+                              <SchemaDownloader
+                                variant="inline"
+                                showTitle={false}
+                                className="inline font-medium underline hover:no-underline"
+                                filter="skeleton"
+                              />{" "}
+                              for format specifications.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <FileUploadZone
+                        onFilesSelected={handleSkeletonUpload}
+                        title="Drop skeleton file here"
+                        description="Must conform to roadmap_skeleton_schema.json"
+                        disabled={false}
+                      />
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Step 2: Task Files Upload */}
+              {/* Step 2: Enhanced Task Files Upload */}
               {currentStep >= 1 && (
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    Step 2: Upload Task Files
-                  </h2>
-                  <div className="text-gray-600 dark:text-gray-400 mb-4">
-                    <p className="mb-2">
-                      Upload one or more JSON files containing task definitions.
-                    </p>
-                    <p className="text-sm">
-                      Need help creating your task files? Download the{" "}
-                      <SchemaDownloader
-                        variant="inline"
-                        showTitle={false}
-                        className="inline"
-                        filter="tasks"
-                      />{" "}
-                      to see the required format and structure.
-                    </p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 card-glow transition-all duration-200">
+                  <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md">
+                      <Icons.Folder className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                        Step 2: Upload Task Files
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Detailed task definitions and implementation guidance
+                      </p>
+                    </div>
+                    {taskFiles.length > 0 && (
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                        <Icons.CheckCircle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                        <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">
+                          {taskFiles.length} file
+                          {taskFiles.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {taskFiles.length > 0 ? (
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <svg
-                            className="w-5 h-5 text-green-500"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <div>
-                            <span className="text-green-800 dark:text-green-200 font-medium">
-                              {taskFiles.length} task file
-                              {taskFiles.length > 1 ? "s" : ""} loaded
-                            </span>
-                            <p className="text-green-700 dark:text-green-300 text-sm mt-1">
-                              {taskFiles.reduce(
-                                (sum, file) => sum + (file.tasks?.length || 0),
-                                0
-                              )}{" "}
-                              total tasks found
-                            </p>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-5 animate-fade-in">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
+                            <Icons.CheckCircle className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-purple-800 dark:text-purple-200 font-semibold text-lg">
+                              {taskFiles.length} Task File
+                              {taskFiles.length > 1 ? "s" : ""} Loaded
+                            </h3>
+                            <div className="mt-2 space-y-2">
+                              <div className="flex items-center space-x-4 text-sm text-purple-700 dark:text-purple-300">
+                                <span className="flex items-center space-x-1">
+                                  <Icons.Document className="w-4 h-4" />
+                                  <span>
+                                    {taskFiles.reduce(
+                                      (sum, file) =>
+                                        sum + (file.tasks?.length || 0),
+                                      0
+                                    )}{" "}
+                                    total tasks
+                                  </span>
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <Icons.Folder className="w-4 h-4" />
+                                  <span>Multiple phases covered</span>
+                                </span>
+                              </div>
+
+                              {/* File breakdown */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                                {taskFiles.slice(0, 4).map((file, index) => (
+                                  <div
+                                    key={index}
+                                    className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-200 dark:border-purple-700"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <Icons.Document className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        File {index + 1}
+                                      </span>
+                                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        {file.tasks?.length || 0} tasks
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                                {taskFiles.length > 4 && (
+                                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-200 dark:border-purple-700 flex items-center justify-center">
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                                      +{taskFiles.length - 4} more files
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            setTaskFiles([]);
-                            setError(null);
-                            setCurrentStep(1);
-                            // Remove step 1 and all subsequent steps from completed
-                            const newCompleted = new Set();
-                            if (completedSteps.has(0)) newCompleted.add(0);
-                            setCompletedSteps(newCompleted);
-                            // Clear all subsequent data
-                            setValidationResults(null);
-                            setMergedRoadmap(null);
-                            setMergeStats(null);
-                          }}
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        <Tooltip
+                          content="Upload different task files and restart from this step"
+                          position="left"
+                          maxWidth="280px"
                         >
-                          Re-upload
-                        </button>
+                          <button
+                            onClick={() => {
+                              setTaskFiles([]);
+                              setError(null);
+                              setCurrentStep(1);
+                              const newCompleted = new Set();
+                              if (completedSteps.has(0)) newCompleted.add(0);
+                              setCompletedSteps(newCompleted);
+                              setValidationResults(null);
+                              setMergedRoadmap(null);
+                              setMergeStats(null);
+                            }}
+                            className="inline-flex items-center px-4 py-2 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 shadow-sm"
+                          >
+                            <Icons.Refresh className="w-4 h-4 mr-2" />
+                            Re-upload
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                   ) : (
-                    <FileUploadZone
-                      onFilesSelected={handleTaskFilesUpload}
-                      multiple={true}
-                      title="Drop task files here"
-                      description="Each must conform to skeleton_tasks_schema.json"
-                      disabled={false} // Always allow re-upload
-                    />
+                    <div className="space-y-4">
+                      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <Icons.Folder className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="text-purple-800 dark:text-purple-200 font-medium mb-1">
+                              Task Files Requirements
+                            </p>
+                            <p className="text-purple-700 dark:text-purple-300 mb-2">
+                              Upload one or more JSON files containing detailed
+                              task definitions and implementation guidance.
+                            </p>
+                            <p className="text-purple-600 dark:text-purple-400 text-xs">
+                              Need help? Download the{" "}
+                              <SchemaDownloader
+                                variant="inline"
+                                showTitle={false}
+                                className="inline font-medium underline hover:no-underline"
+                                filter="tasks"
+                              />{" "}
+                              for format specifications.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <FileUploadZone
+                        onFilesSelected={handleTaskFilesUpload}
+                        multiple={true}
+                        title="Drop task files here"
+                        description="Each must conform to skeleton_tasks_schema.json"
+                        disabled={false}
+                      />
+                    </div>
                   )}
                 </div>
               )}
             </>
           )}
 
-          {/* Step 5: Results */}
+          {/* Step 5: Enhanced Results */}
           {currentStep >= 4 && mergedRoadmap && (
-            <AssemblerResults
-              mergedRoadmap={mergedRoadmap}
-              mergeStats={mergeStats}
-              validationResults={validationResults}
-              onReset={resetAssembler}
-              onDownload={() => console.log("Download completed")}
-            />
+            <div className="animate-fade-in">
+              <AssemblerResults
+                mergedRoadmap={mergedRoadmap}
+                mergeStats={mergeStats}
+                validationResults={validationResults}
+                onReset={resetAssembler}
+                onDownload={() => console.log("Download completed")}
+              />
+            </div>
           )}
         </div>
       </div>
