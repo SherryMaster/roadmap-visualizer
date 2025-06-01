@@ -16,10 +16,10 @@ const EditorControls = ({
   showPreview,
 }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6">
+      <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         {/* Primary Actions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3">
           <Tooltip
             content={
               !isModified
@@ -34,17 +34,17 @@ const EditorControls = ({
             <button
               onClick={onSave}
               disabled={!isModified || !validationStatus.isValid || isSaving}
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
             >
               {isSaving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 flex-shrink-0"></div>
                   <span>Saving...</span>
                 </>
               ) : (
                 <>
                   <svg
-                    className="w-4 h-4 mr-2"
+                    className="w-4 h-4 mr-2 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -73,14 +73,14 @@ const EditorControls = ({
           >
             <button
               onClick={onPreview}
-              className={`inline-flex items-center px-4 py-2 rounded-md transition-colors ${
+              className={`inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md ${
                 showPreview
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"
               }`}
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-4 h-4 mr-2 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -109,10 +109,10 @@ const EditorControls = ({
           >
             <button
               onClick={onCancel}
-              className="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-4 h-4 mr-2 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -130,7 +130,7 @@ const EditorControls = ({
         </div>
 
         {/* History Actions */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-2">
           <Tooltip
             content={canUndo ? "Undo the last action" : "No actions to undo"}
             position="bottom"
@@ -139,10 +139,10 @@ const EditorControls = ({
             <button
               onClick={onUndo}
               disabled={!canUndo}
-              className="inline-flex items-center px-3 py-2 text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-3 py-2.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
             >
               <svg
-                className="w-4 h-4 mr-1"
+                className="w-4 h-4 mr-1 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -168,10 +168,10 @@ const EditorControls = ({
             <button
               onClick={onRedo}
               disabled={!canRedo}
-              className="inline-flex items-center px-3 py-2 text-sm bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-3 py-2.5 text-sm font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
             >
               <svg
-                className="w-4 h-4 mr-1"
+                className="w-4 h-4 mr-1 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -199,10 +199,10 @@ const EditorControls = ({
             <button
               onClick={onReset}
               disabled={!isModified}
-              className="inline-flex items-center px-3 py-2 text-sm bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-3 py-2.5 text-sm font-medium bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
             >
               <svg
-                className="w-4 h-4 mr-1"
+                className="w-4 h-4 mr-1 flex-shrink-0"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

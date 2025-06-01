@@ -205,27 +205,34 @@ const HomePage = () => {
         )}
 
         {/* Compact Action Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {roadmaps.length === 0 ? "Get Started" : "Quick Actions"}
-            </h2>
-            {stats.totalRoadmaps > 0 && (
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="hidden sm:inline">
-                  {Math.floor((stats.totalTasks * stats.averageProgress) / 100)}{" "}
-                  of {stats.totalTasks} tasks completed
-                </span>
-                <span className="sm:hidden">
-                  {Math.floor((stats.totalTasks * stats.averageProgress) / 100)}
-                  /{stats.totalTasks} done
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6 shadow-sm">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+            {/* Header Section */}
+            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {roadmaps.length === 0 ? "Get Started" : "Quick Actions"}
+              </h2>
+              {stats.totalRoadmaps > 0 && (
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="hidden sm:inline">
+                    {Math.floor(
+                      (stats.totalTasks * stats.averageProgress) / 100
+                    )}{" "}
+                    of {stats.totalTasks} tasks completed
+                  </span>
+                  <span className="sm:hidden">
+                    {Math.floor(
+                      (stats.totalTasks * stats.averageProgress) / 100
+                    )}
+                    /{stats.totalTasks} done
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
             {!showUploader && (
-              <>
+              <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:space-x-3">
                 <Tooltip
                   content="Upload a roadmap JSON file"
                   position="top"
@@ -233,10 +240,10 @@ const HomePage = () => {
                 >
                   <button
                     onClick={() => setShowUploader(true)}
-                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 min-h-[44px]"
+                    className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 min-h-[44px] font-medium shadow-sm hover:shadow-md"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-4 h-4 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -248,7 +255,7 @@ const HomePage = () => {
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                       />
                     </svg>
-                    <span>Upload</span>
+                    <span>Upload Roadmap</span>
                   </button>
                 </Tooltip>
                 <Tooltip
@@ -258,10 +265,10 @@ const HomePage = () => {
                 >
                   <button
                     onClick={() => navigate("/assembler")}
-                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 min-h-[44px]"
+                    className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 min-h-[44px] font-medium shadow-sm hover:shadow-md"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-4 h-4 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -276,7 +283,7 @@ const HomePage = () => {
                     <span>Assembler</span>
                   </button>
                 </Tooltip>
-              </>
+              </div>
             )}
           </div>
         </div>

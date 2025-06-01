@@ -279,61 +279,33 @@ const RoadmapVisualizer = ({
     <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4">
-            <div className="flex-1 min-w-0">
+          {/* Header with Breadcrumb and Actions */}
+          <div className="mb-6">
+            {/* Breadcrumb Section */}
+            <div className="mb-4">
               <Breadcrumb
                 roadmapTitle={filteredRoadmapData?.title}
                 currentPhase={currentPhase}
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-              <InfoTooltip
-                content="Edit roadmap content, add tasks, and modify structure"
-                position="bottom"
-                maxWidth="250px"
-              >
-                <button
-                  onClick={handleEditRoadmap}
-                  className="inline-flex items-center justify-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors min-h-[44px] w-full sm:w-auto"
-                  aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
-                >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+
+            {/* Action Buttons Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 shadow-sm">
+              <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+                {/* Primary Actions */}
+                <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-3">
+                  <InfoTooltip
+                    content="Edit roadmap content, add tasks, and modify structure"
+                    position="bottom"
+                    maxWidth="250px"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  <span className="hidden sm:inline">Edit Roadmap</span>
-                  <span className="sm:hidden">Edit</span>
-                </button>
-              </InfoTooltip>
-              <SuccessTooltip
-                content="Download the current roadmap as a JSON file for backup or sharing"
-                position="bottom"
-                maxWidth="250px"
-              >
-                <button
-                  onClick={handleDownloadRoadmap}
-                  disabled={isDownloading}
-                  className="inline-flex items-center px-3 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
-                >
-                  {isDownloading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      <span>Downloading...</span>
-                    </>
-                  ) : (
-                    <>
+                    <button
+                      onClick={handleEditRoadmap}
+                      className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
+                      aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
+                    >
                       <svg
-                        className="w-4 h-4 mr-2"
+                        className="w-4 h-4 mr-2 flex-shrink-0"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -342,16 +314,57 @@ const RoadmapVisualizer = ({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
                       </svg>
-                      <span>Download</span>
-                    </>
-                  )}
-                </button>
-              </SuccessTooltip>
-              <ShareButton roadmapTitle={filteredRoadmapData?.title} />
-              <ThemeSelector />
+                      <span>Edit Roadmap</span>
+                    </button>
+                  </InfoTooltip>
+
+                  <SuccessTooltip
+                    content="Download the current roadmap as a JSON file for backup or sharing"
+                    position="bottom"
+                    maxWidth="250px"
+                  >
+                    <button
+                      onClick={handleDownloadRoadmap}
+                      disabled={isDownloading}
+                      className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[44px] shadow-sm hover:shadow-md"
+                      aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
+                    >
+                      {isDownloading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 flex-shrink-0"></div>
+                          <span>Downloading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            className="w-4 h-4 mr-2 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <span>Download</span>
+                        </>
+                      )}
+                    </button>
+                  </SuccessTooltip>
+                </div>
+
+                {/* Secondary Actions */}
+                <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-3">
+                  <ShareButton roadmapTitle={filteredRoadmapData?.title} />
+                  <ThemeSelector />
+                </div>
+              </div>
             </div>
           </div>
 
