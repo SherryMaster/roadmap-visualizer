@@ -1,8 +1,49 @@
 import { Link, useParams } from "react-router-dom";
 import Tooltip from "../tooltips/Tooltip";
 
-const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
+const Breadcrumb = ({
+  roadmapTitle,
+  currentPhase,
+  isEditing = false,
+  isHomePage = false,
+}) => {
   const { roadmapId, phaseId } = useParams();
+
+  // Handle home page case
+  if (isHomePage) {
+    return (
+      <nav className="flex mb-4 sm:mb-6" aria-label="Breadcrumb">
+        <ol className="inline-flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3">
+          <li className="inline-flex items-center">
+            <Tooltip
+              content="You are currently on the homepage"
+              position="bottom"
+              maxWidth="250px"
+            >
+              <span className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                <span className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
+                </span>
+                <span>Home</span>
+              </span>
+            </Tooltip>
+          </li>
+        </ol>
+      </nav>
+    );
+  }
 
   const breadcrumbItems = [
     {
@@ -27,8 +68,10 @@ const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
     },
     {
       label: roadmapTitle || "Roadmap",
-      href: `/roadmap/${roadmapId}`,
-      tooltip: "Return to roadmap overview and phase list",
+      href: roadmapId ? `/roadmap/${roadmapId}` : "#",
+      tooltip: roadmapId
+        ? "Return to roadmap overview and phase list"
+        : "Current page",
       icon: (
         <svg
           className="w-4 h-4"
@@ -44,6 +87,7 @@ const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
           />
         </svg>
       ),
+      current: !roadmapId && !isEditing, // Mark as current if no roadmapId (like Assembler page)
     },
   ];
 
