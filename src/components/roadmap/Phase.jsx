@@ -126,13 +126,13 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
               )}
             </div>
 
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
               <Tooltip
                 content={`Progress: ${progressPercentage}% complete (${completedTasks} of ${phase_tasks.length} tasks)`}
                 position="top"
                 maxWidth="300px"
               >
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-2.5 mr-2 flex-grow">
+                <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-2.5 min-w-[80px]">
                   <div
                     className={`h-2 sm:h-2.5 rounded-full transition-all duration-500 ease-in-out ${
                       isCompleted ? "bg-green-500" : "bg-blue-500"
@@ -141,7 +141,7 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
                   ></div>
                 </div>
               </Tooltip>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap flex-shrink-0">
                 {completedTasks}/{phase_tasks.length} tasks
               </span>
             </div>
