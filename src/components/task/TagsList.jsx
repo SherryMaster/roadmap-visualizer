@@ -65,7 +65,7 @@ const TagsList = ({
             clipRule="evenodd"
           />
         </svg>
-        <span className="truncate max-w-24">{tag}</span>
+        <span>{tag}</span>
       </span>
     );
 

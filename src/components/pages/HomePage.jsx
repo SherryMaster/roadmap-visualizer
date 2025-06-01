@@ -115,29 +115,40 @@ const HomePage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         {/* Compact Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               Roadmap Visualizer
             </h1>
             {stats.totalRoadmaps > 0 && (
-              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <span className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span>{stats.totalRoadmaps} roadmaps</span>
+                  <span className="hidden sm:inline">
+                    {stats.totalRoadmaps} roadmaps
+                  </span>
+                  <span className="sm:hidden">{stats.totalRoadmaps}R</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span>{stats.totalTasks} tasks</span>
+                  <span className="hidden sm:inline">
+                    {stats.totalTasks} tasks
+                  </span>
+                  <span className="sm:hidden">{stats.totalTasks}T</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <span>{stats.averageProgress}% progress</span>
+                  <span className="hidden sm:inline">
+                    {stats.averageProgress}% progress
+                  </span>
+                  <span className="sm:hidden">{stats.averageProgress}%</span>
                 </span>
               </div>
             )}
           </div>
-          <ThemeSelector />
+          <div className="flex-shrink-0">
+            <ThemeSelector />
+          </div>
         </div>
 
         {/* Route Error Alert */}
@@ -194,21 +205,25 @@ const HomePage = () => {
         )}
 
         {/* Compact Action Bar */}
-        <div className="flex items-center justify-between mb-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {roadmaps.length === 0 ? "Get Started" : "Quick Actions"}
             </h2>
             {stats.totalRoadmaps > 0 && (
-              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                <span>
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="hidden sm:inline">
                   {Math.floor((stats.totalTasks * stats.averageProgress) / 100)}{" "}
                   of {stats.totalTasks} tasks completed
+                </span>
+                <span className="sm:hidden">
+                  {Math.floor((stats.totalTasks * stats.averageProgress) / 100)}
+                  /{stats.totalTasks} done
                 </span>
               </div>
             )}
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             {!showUploader && (
               <>
                 <Tooltip
@@ -218,7 +233,7 @@ const HomePage = () => {
                 >
                   <button
                     onClick={() => setShowUploader(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 min-h-[44px]"
                   >
                     <svg
                       className="w-4 h-4"
@@ -243,7 +258,7 @@ const HomePage = () => {
                 >
                   <button
                     onClick={() => navigate("/assembler")}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 min-h-[44px]"
                   >
                     <svg
                       className="w-4 h-4"

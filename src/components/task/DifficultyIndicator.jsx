@@ -97,11 +97,11 @@ const DifficultyIndicator = ({
   const dots = Array.from({ length: 5 }, (_, index) => index + 1);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+    <div className="space-y-2 sm:space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <svg
-            className="w-5 h-5 text-gray-500 dark:text-gray-400"
+            className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -179,17 +179,17 @@ const DifficultyIndicator = ({
               )}
           </div>
         </div>
-        <span className={`text-sm font-bold ${getTextColorClass()}`}>
+        <span className={`text-xs sm:text-sm font-bold ${getTextColorClass()}`}>
           {getLabel()}
         </span>
       </div>
 
       <div className="flex items-center space-x-2">
-        <div className="flex space-x-1.5">
+        <div className="flex space-x-1 sm:space-x-1.5">
           {dots.map((dot) => (
             <div
               key={dot}
-              className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-colors duration-200 ${
                 dot <= difficultyLevel
                   ? getColorClass()
                   : "bg-gray-200 dark:bg-gray-700"
@@ -198,7 +198,7 @@ const DifficultyIndicator = ({
             />
           ))}
         </div>
-        <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 sm:ml-2">
           {difficultyLevel}/5
         </span>
       </div>

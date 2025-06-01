@@ -82,7 +82,7 @@ const TaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
   }, [sortedTasks, phaseNumber, ref]);
 
   return (
-    <div ref={ref} className="space-y-4">
+    <div ref={ref} className="space-y-3 sm:space-y-4">
       {sortedTasks.map((task, index) => {
         // Create a robust unique key using multiple identifiers
         const uniqueKey =

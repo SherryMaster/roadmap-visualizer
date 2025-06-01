@@ -86,7 +86,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
       data-phase-id={task.phase_id || `P${phaseNumber}`}
     >
       <div
-        className={`px-6 py-4 cursor-pointer transition-colors duration-200 ${
+        className={`px-4 sm:px-6 py-3 sm:py-4 cursor-pointer transition-colors duration-200 ${
           isExpanded
             ? "bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800"
             : completed
@@ -94,8 +94,8 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
         }`}
       >
-        <div className="flex justify-between items-center">
-          <div className="flex items-center flex-1" onClick={onClick}>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+          <div className="flex items-center flex-1 min-w-0" onClick={onClick}>
             <div className="flex items-center space-x-3">
               {/* Task status icon */}
               <div
@@ -120,7 +120,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
                 {/* Task number badge - conditionally shown based on configuration */}
                 {configManager.getComponentConfig("taskNumbering")
                   .showTaskNumbers && (
@@ -138,7 +138,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
                 )}
 
                 <h3
-                  className={`text-lg font-semibold task-title-highlight transition-colors duration-200 ${
+                  className={`text-base sm:text-lg font-semibold task-title-highlight transition-colors duration-200 ${
                     completed
                       ? "text-green-700 dark:text-green-400"
                       : "text-gray-900 dark:text-white"
@@ -150,7 +150,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Completion toggle button */}
             <Tooltip
               content={
@@ -168,7 +168,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
               <button
                 onClick={handleCheckboxClick}
                 disabled={!completed && !canComplete}
-                className={`relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 ${
+                className={`relative flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-lg transition-all duration-200 ${
                   !completed && !canComplete
                     ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
                     : completed
@@ -224,7 +224,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             >
               <button
                 onClick={onClick}
-                className="flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
+                className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-lg transition-all duration-200 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400"
               >
                 <svg
                   className={`w-4 h-4 transition-transform duration-200 ${
@@ -245,7 +245,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             </Tooltip>
           </div>
         </div>
-        <div onClick={onClick} className="mt-3">
+        <div onClick={onClick} className="mt-3 sm:mt-3">
           <p
             className={`text-sm leading-relaxed ${
               completed
@@ -261,7 +261,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             dependencyStatus &&
             dependencyStatus.requiredTotal > 0 && (
               <div
-                className={`inline-flex items-center text-xs mt-3 px-3 py-2 rounded-lg font-medium ${
+                className={`inline-flex items-center text-xs mt-3 px-2 sm:px-3 py-2 rounded-lg font-medium ${
                   canComplete
                     ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200 border border-green-200 dark:border-green-800"
                     : "bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
@@ -305,7 +305,7 @@ const Task = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
       </div>
 
       {isExpanded && (
-        <div className="px-6 py-5 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
           <TaskDetail
             detail={task.task_detail}
             task={task}

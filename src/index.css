@@ -13,6 +13,51 @@
 }
 
 @layer utilities {
+  /* Responsive container utilities */
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .responsive-grid {
+    @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-4;
+  }
+
+  /* Mobile-first responsive spacing */
+  .responsive-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .responsive-margin {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .mobile-button {
+    @apply px-4 py-3 sm:px-3 sm:py-2 text-sm sm:text-xs;
+  }
+
+  /* Responsive text utilities */
+  .responsive-title {
+    @apply text-xl sm:text-2xl lg:text-3xl font-bold;
+  }
+
+  .responsive-subtitle {
+    @apply text-base sm:text-lg lg:text-xl;
+  }
+
+  .responsive-body {
+    @apply text-sm sm:text-base;
+  }
+
+  /* Animation utilities */
   .animate-spin-slow {
     animation: spin 20s linear infinite;
   }
@@ -251,11 +296,29 @@
   }
 
   .compact-stats {
-    @apply flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700;
+    @apply flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-2 sm:py-1.5 rounded-lg border border-gray-200 dark:border-gray-700;
   }
 
   .compact-indicator {
     @apply w-1.5 h-1.5 rounded-full;
+  }
+
+  /* Responsive modal utilities */
+  .responsive-modal {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50;
+  }
+
+  .responsive-modal-content {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg lg:max-w-xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-700;
+  }
+
+  /* Responsive navigation utilities */
+  .responsive-nav {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-1 md:gap-3;
+  }
+
+  .responsive-breadcrumb {
+    @apply flex flex-wrap items-center gap-1 sm:gap-1 md:gap-3;
   }
 
   /* Enhanced professional animations */

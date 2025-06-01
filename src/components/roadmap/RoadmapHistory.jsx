@@ -103,7 +103,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {roadmaps.map((roadmap) => (
           <div
             key={roadmap.id}
@@ -114,7 +114,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {roadmap.title}
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -153,7 +153,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
 
               {/* Description */}
               {roadmap.description && (
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-1">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                   {roadmap.description}
                 </p>
               )}
@@ -240,7 +240,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
       {/* Enhanced Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-scale-in border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-8 animate-scale-in border border-gray-200 dark:border-gray-700">
             <div className="flex items-center mb-6">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mr-4">
                 <svg
@@ -273,7 +273,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
               forever.
             </p>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
               <Tooltip
                 content="Cancel deletion and keep the roadmap"
                 position="top"
@@ -281,7 +281,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
               >
                 <button
                   onClick={() => setShowDeleteConfirm(null)}
-                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-all duration-200 hover:scale-105"
+                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-medium transition-all duration-200 hover:scale-105 min-h-[44px] w-full sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -293,7 +293,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
               >
                 <button
                   onClick={() => confirmDelete(showDeleteConfirm)}
-                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl min-h-[44px] w-full sm:w-auto"
                 >
                   Delete Forever
                 </button>

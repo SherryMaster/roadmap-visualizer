@@ -415,7 +415,7 @@ const TaskDependencies = ({
             <div className="flex items-center space-x-2">
               {" "}
               <span
-                className={`text-sm font-medium truncate ${
+                className={`text-sm font-medium ${
                   taskInfo.found
                     ? isCompleted
                       ? "text-green-700 dark:text-green-400"

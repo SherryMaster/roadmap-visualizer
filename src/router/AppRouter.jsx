@@ -20,7 +20,24 @@ const roadmapLoader = async ({ params }) => {
     throw new Response("Roadmap ID is required", { status: 400 });
   }
 
-  const roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
+  const allMetadata = RoadmapPersistence.getAllRoadmapMetadata();
+  let roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
+
+  // If roadmap not found, try to find it by title or other means
+  if (!roadmapInfo) {
+    // Try to find roadmap by checking if the ID exists in metadata but with different casing or format
+    const matchingMetadata = allMetadata.find(
+      (m) =>
+        m.id === roadmapId ||
+        m.id.toLowerCase() === roadmapId.toLowerCase() ||
+        m.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase() ===
+          roadmapId.toLowerCase()
+    );
+
+    if (matchingMetadata) {
+      roadmapInfo = RoadmapPersistence.loadRoadmap(matchingMetadata.id);
+    }
+  }
 
   if (!roadmapInfo) {
     throw new Response("Roadmap not found", { status: 404 });

@@ -74,11 +74,11 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
   const legacyCode = taskDetail?.code;
 
   return (
-    <div className="space-y-6">
-      {/* Primary indicators - Fixed height containers to prevent stretching */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Primary indicators - Responsive grid with mobile-first approach */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {difficulty && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[100px] sm:min-h-[120px] flex flex-col">
             <DifficultyIndicator
               difficulty={difficulty}
               showReason={difficultyConfig.showReason}
@@ -88,7 +88,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
           </div>
         )}
         {estTime && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[100px] sm:min-h-[120px] flex flex-col">
             <EstimatedTime
               est_time={estTime}
               showRange={timeConfig.showRange}
@@ -97,7 +97,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
           </div>
         )}
         {priority && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[120px] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700 h-fit min-h-[100px] sm:min-h-[120px] flex flex-col">
             <PriorityBadge
               priority={priority}
               showIcon={priorityConfig.showIcon}
@@ -109,7 +109,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
 
       {/* Tags - Compact display with overflow handling */}
       {tags && tags.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
             <svg
               className="w-4 h-4 mr-2"
@@ -136,7 +136,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
 
       {/* Main content with format-aware rendering */}
       {contentData && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
             <svg
               className="w-4 h-4 mr-2"
@@ -156,7 +156,7 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
             format={contentFormat}
             showFormatIndicator={true}
             collapsible={contentData.length > 500}
-            maxHeight={400}
+            maxHeight={300}
           />
         </div>
       )}

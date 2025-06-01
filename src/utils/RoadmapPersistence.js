@@ -213,18 +213,32 @@ class RoadmapPersistence {
       let updated = false;
 
       allMetadata.forEach((metadata) => {
-        const roadmapInfo = this.loadRoadmap(metadata.id);
-        if (roadmapInfo && roadmapInfo.data) {
-          const correctPhases = this.calculateTotalPhases(roadmapInfo.data);
-          const correctTasks = this.calculateTotalTasks(roadmapInfo.data);
+        // Use direct localStorage access to avoid circular calls
+        const roadmapKey = `roadmap-data-${metadata.id}`;
+        const stored = localStorage.getItem(roadmapKey);
 
-          if (
-            metadata.totalPhases !== correctPhases ||
-            metadata.totalTasks !== correctTasks
-          ) {
-            metadata.totalPhases = correctPhases;
-            metadata.totalTasks = correctTasks;
-            updated = true;
+        if (stored) {
+          try {
+            const roadmapInfo = JSON.parse(stored);
+            if (roadmapInfo && roadmapInfo.data) {
+              const correctPhases = this.calculateTotalPhases(roadmapInfo.data);
+              const correctTasks = this.calculateTotalTasks(roadmapInfo.data);
+
+              if (
+                metadata.totalPhases !== correctPhases ||
+                metadata.totalTasks !== correctTasks
+              ) {
+                metadata.totalPhases = correctPhases;
+                metadata.totalTasks = correctTasks;
+                updated = true;
+              }
+            }
+          } catch (parseError) {
+            console.error(
+              "Error parsing roadmap data for",
+              metadata.id,
+              parseError
+            );
           }
         }
       });

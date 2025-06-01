@@ -67,7 +67,7 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
         maxWidth="250px"
       >
         <div
-          className={`px-6 py-4 cursor-pointer flex justify-between items-center ${
+          className={`px-4 sm:px-6 py-3 sm:py-4 cursor-pointer flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 ${
             isExpanded
               ? "bg-blue-50 dark:bg-gray-700"
               : isCompleted
@@ -78,10 +78,10 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
           }`}
           onClick={onClick}
         >
-          <div className="flex-1">
-            <div className="flex items-center mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center mb-2 gap-2 sm:gap-0">
               <span
-                className={`inline-block text-white text-sm font-semibold px-3 py-1 rounded-full mr-3 ${
+                className={`inline-block text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full mr-0 sm:mr-3 self-start ${
                   isCompleted
                     ? "bg-green-600"
                     : isActive
@@ -92,7 +92,7 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
                 Phase {phase_number}
               </span>
               <span
-                className={`text-lg font-semibold ${
+                className={`text-base sm:text-lg font-semibold ${
                   isCompleted
                     ? "text-green-700 dark:text-green-400"
                     : "text-gray-800 dark:text-white"
@@ -132,9 +132,9 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
                 position="top"
                 maxWidth="300px"
               >
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mr-2 flex-grow">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-2.5 mr-2 flex-grow">
                   <div
-                    className={`h-2.5 rounded-full transition-all duration-500 ease-in-out ${
+                    className={`h-2 sm:h-2.5 rounded-full transition-all duration-500 ease-in-out ${
                       isCompleted ? "bg-green-500" : "bg-blue-500"
                     }`}
                     style={{ width: `${progressPercentage}%` }}
@@ -148,7 +148,7 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
           </div>
 
           <svg
-            className={`w-5 h-5 ml-4 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
+            className={`w-5 h-5 ml-2 sm:ml-4 text-gray-500 dark:text-gray-400 transition-transform duration-300 flex-shrink-0 ${
               isExpanded ? "transform rotate-180" : ""
             }`}
             fill="none"
@@ -167,7 +167,7 @@ const Phase = ({ phase, isExpanded, isActive, onClick }) => {
       </Tooltip>
 
       {isExpanded && (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700">
           <TaskList
             ref={taskListRef}
             tasks={phase_tasks}

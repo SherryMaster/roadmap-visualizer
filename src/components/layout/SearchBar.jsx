@@ -36,7 +36,7 @@ const SearchBar = ({ onSearch }) => {
 
       <input
         type="search"
-        className="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        className="block w-full p-3 sm:p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         placeholder="Search tasks, phases..."
         value={searchTerm}
         onChange={handleSearch}
@@ -50,7 +50,7 @@ const SearchBar = ({ onSearch }) => {
         >
           <button
             type="button"
-            className="absolute right-2.5 bottom-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-sm px-4 py-2 transition-colors"
+            className="absolute right-2 sm:right-2.5 bottom-2 sm:bottom-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-2 transition-colors min-h-[40px] sm:min-h-auto"
             onClick={clearSearch}
             aria-label="Clear search"
           >

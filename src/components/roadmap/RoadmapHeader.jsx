@@ -46,12 +46,12 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
       {/* Professional Header Container */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Main Header Content */}
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-4 sm:py-5">
           {/* Title Row with Level Badge */}
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
                   {title}
                 </h1>
                 {projectLevel && (
@@ -61,7 +61,7 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
                     maxWidth="250px"
                   >
                     <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getLevelStyling(
+                      className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getLevelStyling(
                         projectLevel
                       )}`}
                     >
@@ -86,7 +86,7 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
               >
                 <button
                   onClick={toggleDescription}
-                  className="flex-shrink-0 ml-4 inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800"
+                  className="flex-shrink-0 inline-flex items-center px-3 py-2 sm:py-1.5 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800 min-h-[44px] sm:min-h-auto"
                   aria-label={
                     isDescriptionExpanded
                       ? "Collapse description"
@@ -126,13 +126,13 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
           {/* Tags Section */}
           {tags && tags.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mr-1">
+              <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mr-1">
                 Tags:
               </span>
               {visibleTags?.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
+                  className="inline-flex items-center px-2 sm:px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
                 >
                   {tag}
                 </span>

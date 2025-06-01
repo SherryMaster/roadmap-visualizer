@@ -234,12 +234,12 @@ const CodeBlock = ({
             }`}
           >
             {/* Header with language, complexity, and controls */}
-            <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+            <div className="bg-gray-50 dark:bg-gray-800 px-3 sm:px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 {showLanguage && block.language && (
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 capitalize bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                  <div className="flex items-center space-x-1 sm:space-x-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 capitalize bg-gray-100 dark:bg-gray-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
                       {block.language}
                     </span>
                   </div>
@@ -247,7 +247,7 @@ const CodeBlock = ({
 
                 {showComplexity && block.complexity && (
                   <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${getComplexityColor(
+                    className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium ${getComplexityColor(
                       block.complexity
                     )}`}
                   >
@@ -256,12 +256,12 @@ const CodeBlock = ({
                 )}
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2 self-end sm:self-auto">
                 {/* Expand/Collapse button */}
                 {isCollapsible && (
                   <button
                     onClick={() => toggleExpanded(index)}
-                    className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150"
+                    className="p-2 sm:p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150 min-h-[44px] sm:min-h-auto"
                     aria-label={isExpanded ? "Collapse code" : "Expand code"}
                     title={isExpanded ? "Collapse code" : "Expand code"}
                   >
@@ -286,7 +286,7 @@ const CodeBlock = ({
                 {/* Copy button */}
                 <button
                   onClick={() => copyToClipboard(formattedCode, index)}
-                  className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150 relative"
+                  className="p-2 sm:p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150 relative min-h-[44px] sm:min-h-auto"
                   aria-label="Copy code to clipboard"
                   title="Copy code (Ctrl+C)"
                 >
@@ -339,10 +339,11 @@ const CodeBlock = ({
                 customStyle={{
                   margin: 0,
                   borderRadius: 0,
-                  fontSize: "0.875rem",
+                  fontSize: window.innerWidth < 640 ? "0.75rem" : "0.875rem",
                   maxHeight:
                     isCollapsible && !isExpanded ? "300px" : `${maxHeight}px`,
                   overflow: "auto",
+                  padding: window.innerWidth < 640 ? "0.75rem" : "1rem",
                 }}
                 codeTagProps={{
                   style: {
@@ -364,17 +365,17 @@ const CodeBlock = ({
 
             {/* Explanation */}
             {showExplanation && block.explanation && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="bg-blue-50 dark:bg-blue-900/20 px-3 sm:px-4 py-3 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-sm">
                   <div className="font-semibold mb-2 flex items-center justify-between text-blue-800 dark:text-blue-200">
                     <div className="flex items-center">
                       <span className="mr-2">💡</span>
-                      Explanation:
+                      <span className="text-xs sm:text-sm">Explanation:</span>
                     </div>
                     {shouldExplanationBeCollapsible(block.explanation) && (
                       <button
                         onClick={() => toggleExplanationExpanded(index)}
-                        className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors duration-150 ml-2"
+                        className="p-2 sm:p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors duration-150 ml-2 min-h-[44px] sm:min-h-auto"
                         aria-label={
                           explanationExpandedStates[index]
                             ? "Collapse explanation"

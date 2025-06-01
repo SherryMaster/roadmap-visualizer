@@ -100,13 +100,13 @@ const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
   }
 
   return (
-    <nav className="flex mb-6" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center space-x-1 md:space-x-3">
+    <nav className="flex mb-4 sm:mb-6" aria-label="Breadcrumb">
+      <ol className="inline-flex flex-wrap items-center gap-1 sm:gap-1 md:gap-3">
         {breadcrumbItems.map((item, index) => (
           <li key={index} className="inline-flex items-center">
             {index > 0 && (
               <svg
-                className="w-4 h-4 text-gray-400 mx-1"
+                className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mx-1"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -124,8 +124,8 @@ const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
                 position="bottom"
                 maxWidth="250px"
               >
-                <span className="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {item.icon}
+                <span className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                  <span className="w-3 h-3 sm:w-4 sm:h-4">{item.icon}</span>
                   <span className="ml-1 md:ml-2">{item.label}</span>
                 </span>
               </Tooltip>
@@ -137,9 +137,9 @@ const Breadcrumb = ({ roadmapTitle, currentPhase, isEditing = false }) => {
               >
                 <Link
                   to={item.href}
-                  className="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="inline-flex items-center text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  {item.icon}
+                  <span className="w-3 h-3 sm:w-4 sm:h-4">{item.icon}</span>
                   <span className="ml-1 md:ml-2">{item.label}</span>
                 </Link>
               </Tooltip>

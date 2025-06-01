@@ -278,15 +278,15 @@ const RoadmapVisualizer = ({
   return (
     <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex-1">
+        <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4">
+            <div className="flex-1 min-w-0">
               <Breadcrumb
                 roadmapTitle={filteredRoadmapData?.title}
                 currentPhase={currentPhase}
               />
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <InfoTooltip
                 content="Edit roadmap content, add tasks, and modify structure"
                 position="bottom"
@@ -294,7 +294,7 @@ const RoadmapVisualizer = ({
               >
                 <button
                   onClick={handleEditRoadmap}
-                  className="inline-flex items-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center justify-center px-3 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors min-h-[44px] w-full sm:w-auto"
                   aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
                 >
                   <svg
@@ -310,7 +310,8 @@ const RoadmapVisualizer = ({
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
-                  <span>Edit Roadmap</span>
+                  <span className="hidden sm:inline">Edit Roadmap</span>
+                  <span className="sm:hidden">Edit</span>
                 </button>
               </InfoTooltip>
               <SuccessTooltip

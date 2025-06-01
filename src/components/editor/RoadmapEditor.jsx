@@ -106,17 +106,17 @@ const RoadmapEditorContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex-1">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-6 gap-4">
+          <div className="flex-1 min-w-0">
             <Breadcrumb
               roadmapTitle={currentRoadmap.title}
               currentPhase={null}
               isEditing={true}
             />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <SaveIndicator
               isSaving={isSaving}
               lastSaved={lastSaved}
@@ -146,14 +146,14 @@ const RoadmapEditorContent = () => {
         <ValidationPanel />
 
         {/* Main Editor Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Task Upload Zone */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <EditorTaskUpload />
           </div>
 
           {/* Task Manager */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-1 lg:order-2">
             {showPreview ? (
               <EditorPreview roadmap={currentRoadmap} />
             ) : (
@@ -164,8 +164,8 @@ const RoadmapEditorContent = () => {
 
         {/* Unsaved Changes Warning Modal */}
         {showUnsavedWarning && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md w-full">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Unsaved Changes
               </h3>
@@ -173,16 +173,16 @@ const RoadmapEditorContent = () => {
                 You have unsaved changes. Are you sure you want to leave without
                 saving?
               </p>
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleConfirmCancel}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  className="flex-1 px-4 py-3 sm:py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors min-h-[44px] sm:min-h-auto"
                 >
                   Leave Without Saving
                 </button>
                 <button
                   onClick={() => setShowUnsavedWarning(false)}
-                  className="flex-1 px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                  className="flex-1 px-4 py-3 sm:py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors min-h-[44px] sm:min-h-auto"
                 >
                   Continue Editing
                 </button>
