@@ -1,13 +1,13 @@
 import ThemeSelector from "./ThemeSelector";
 import Breadcrumb from "./Breadcrumb";
 
-const PageLayout = ({ 
-  title, 
-  subtitle, 
-  showBreadcrumb = false, 
-  breadcrumbProps = {}, 
+const PageLayout = ({
+  title,
+  subtitle,
+  showBreadcrumb = false,
+  breadcrumbProps = {},
   actions = null,
-  children 
+  children,
 }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
