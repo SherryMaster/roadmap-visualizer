@@ -5,8 +5,10 @@ import PhaseList from "../roadmap/PhaseList";
 import SearchBar from "../layout/SearchBar";
 import PageLayout from "../layout/PageLayout";
 import ShareButton from "../layout/ShareButton";
+import PrivacyToggle from "../roadmap/PrivacyToggle";
 
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
+import { useAuth } from "../../context/AuthContext";
 import usePageTitle from "../../hooks/usePageTitle";
 import configManager from "../../utils/ConfigManager";
 import DataTransformer from "../../utils/DataTransformer";
@@ -16,10 +18,12 @@ import { InfoTooltip, SuccessTooltip } from "../tooltips/EnhancedTooltip";
 const RoadmapVisualizer = ({
   roadmapData: initialRoadmapData,
   roadmapId,
+  metadata,
   onReturnHome,
 }) => {
   const params = useParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
   const [filteredRoadmapData, setFilteredRoadmapData] =
     useState(initialRoadmapData);
@@ -28,6 +32,9 @@ const RoadmapVisualizer = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPhase, setCurrentPhase] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [currentPrivacy, setCurrentPrivacy] = useState(
+    metadata?.isPublic || false
+  );
 
   // Set dynamic page title
   const pageTitle = currentPhase
@@ -51,6 +58,13 @@ const RoadmapVisualizer = ({
       }
     }
   }, [initialRoadmapData, params.phaseId]);
+
+  // Update privacy state when metadata changes
+  useEffect(() => {
+    if (metadata?.isPublic !== undefined) {
+      setCurrentPrivacy(metadata.isPublic);
+    }
+  }, [metadata?.isPublic]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -183,6 +197,24 @@ const RoadmapVisualizer = ({
     navigate(`/roadmap/${roadmapId}/edit`);
   };
 
+  const handlePrivacyChange = (newIsPublic) => {
+    setCurrentPrivacy(newIsPublic);
+    console.log(`🔄 Privacy changed: ${newIsPublic ? "Public" : "Private"}`);
+  };
+
+  // Check if current user is the owner of the roadmap
+  // Try multiple sources for userId: metadata, roadmap data, or localStorage assumption
+  const isOwner =
+    currentUser &&
+    // Check metadata userId (Firestore roadmaps)
+    ((metadata && currentUser.uid === metadata.userId) ||
+      // Check roadmap data userId (alternative source)
+      (initialRoadmapData?.userId &&
+        currentUser.uid === initialRoadmapData.userId) ||
+      // For localStorage roadmaps without userId, assume ownership if user is authenticated
+      // and metadata exists but has no userId (localStorage case)
+      (metadata && !metadata.userId && !initialRoadmapData?.userId));
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -282,37 +314,46 @@ const RoadmapVisualizer = ({
           Roadmap Actions
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Edit, download, or share this roadmap
+          {isOwner
+            ? "Edit, download, or share this roadmap"
+            : "Download or share this roadmap"}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto">
-        <InfoTooltip
-          content="Edit roadmap content, add tasks, and modify structure"
-          position="top"
-          maxWidth="250px"
-        >
-          <button
-            onClick={handleEditRoadmap}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
-            aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
+      <div
+        className={`grid grid-cols-1 ${
+          isOwner ? "sm:grid-cols-3" : "sm:grid-cols-2"
+        } gap-3 max-w-2xl mx-auto`}
+      >
+        {/* Edit Button - Only show to roadmap owners */}
+        {isOwner && (
+          <InfoTooltip
+            content="Edit roadmap content, add tasks, and modify structure"
+            position="top"
+            maxWidth="250px"
           >
-            <svg
-              className="w-5 h-5 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <button
+              onClick={handleEditRoadmap}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
+              aria-label={`Edit ${filteredRoadmapData?.title} roadmap`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
-            </svg>
-            <span>Edit Roadmap</span>
-          </button>
-        </InfoTooltip>
+              <svg
+                className="w-5 h-5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+              <span>Edit Roadmap</span>
+            </button>
+          </InfoTooltip>
+        )}
 
         <SuccessTooltip
           content="Download the current roadmap as a JSON file for backup or sharing"
@@ -375,6 +416,45 @@ const RoadmapVisualizer = ({
           projectLevel={filteredRoadmapData.project_level}
           tags={filteredRoadmapData.tags}
         />
+
+        {/* Privacy Toggle - Only show for Firestore roadmaps with metadata */}
+        {metadata && (
+          <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg
+                  className="w-5 h-5 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.50 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Roadmap Settings
+                </span>
+              </div>
+
+              <PrivacyToggle
+                roadmapId={roadmapId}
+                isPublic={currentPrivacy}
+                userId={metadata.userId}
+                onPrivacyChange={handlePrivacyChange}
+              />
+            </div>
+          </div>
+        )}
 
         <SearchBar onSearch={handleSearch} />
 

@@ -51,6 +51,7 @@ const RoadmapLoader = () => {
     <RoadmapVisualizer
       roadmapData={roadmapData}
       roadmapId={roadmapId}
+      metadata={metadata}
       onReturnHome={handleReturnHome}
     />
   );

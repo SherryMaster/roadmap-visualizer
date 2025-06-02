@@ -14,6 +14,7 @@ import Login from "../components/auth/Login";
 import Signup from "../components/auth/Signup";
 import ForgotPassword from "../components/auth/ForgotPassword";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
+import OwnerProtectedRoute from "../components/auth/OwnerProtectedRoute";
 import ProfilePage from "../components/pages/ProfilePage";
 import SettingsPage from "../components/pages/SettingsPage";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
@@ -28,31 +29,17 @@ const waitForAuthInLoader = () => {
     // Note: auth.currentUser can be null (not authenticated) or User object (authenticated)
     // We need to distinguish between "not determined yet" vs "determined as null"
 
-    console.log("🔐 Router: Checking auth state...", {
-      currentUser: auth.currentUser,
-      hasCurrentUser: !!auth.currentUser,
-    });
-
     // Try to resolve immediately if auth state seems determined
     if (auth.currentUser) {
-      console.log(
-        "🔐 Router: User already authenticated, proceeding immediately"
-      );
       resolve(auth.currentUser);
       return;
     }
-
-    console.log("⏳ Router: Waiting for auth state determination...");
     let resolved = false;
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (resolved) return; // Prevent multiple resolutions
 
       resolved = true;
-      console.log("🔐 Router: Auth state determined:", {
-        user: user ? `${user.displayName || user.email} (${user.uid})` : "null",
-        isAuthenticated: !!user,
-      });
       unsubscribe();
       resolve(user);
     });
@@ -62,7 +49,6 @@ const waitForAuthInLoader = () => {
       if (resolved) return; // Already resolved
 
       resolved = true;
-      console.log("⚠️ Router: Auth timeout, proceeding with current state");
       unsubscribe();
       resolve(auth.currentUser);
     }, 2000); // Reduced timeout for better UX
@@ -90,45 +76,50 @@ const roadmapLoader = async ({ params }) => {
   // Wait for auth state to be determined (especially important for direct URL access)
   const currentUser = await waitForAuthInLoader();
 
-  if (currentUser) {
-    try {
-      console.log(
-        "🔍 Loading roadmap from Firestore:",
-        roadmapId,
-        "User:",
-        currentUser.uid
-      );
-      roadmapInfo = await FirestorePersistence.loadRoadmap(
-        roadmapId,
-        currentUser.uid
-      );
+  // Always try Firestore first (for both authenticated and unauthenticated users)
+  // This allows access to public roadmaps even without authentication
+  try {
+    roadmapInfo = await FirestorePersistence.loadRoadmap(
+      roadmapId,
+      currentUser?.uid || null
+    );
 
-      if (roadmapInfo) {
-        console.log("✅ Roadmap loaded from Firestore");
-        return {
-          roadmapData: roadmapInfo.data,
-          roadmapId: roadmapId,
-          metadata: {
-            id: roadmapInfo.id,
-            title: roadmapInfo.data.title,
-            description: roadmapInfo.data.description,
-            project_level: roadmapInfo.data.project_level,
-            tags: roadmapInfo.data.tags,
-          },
-        };
-      }
-    } catch (error) {
-      console.log(
-        "⚠️ Firestore load failed, trying localStorage:",
-        error.message
-      );
+    if (roadmapInfo) {
+      return {
+        roadmapData: roadmapInfo.data,
+        roadmapId: roadmapId,
+        metadata: {
+          id: roadmapInfo.id,
+          title: roadmapInfo.data.title,
+          description: roadmapInfo.data.description,
+          project_level: roadmapInfo.data.project_level,
+          tags: roadmapInfo.data.tags,
+          isPublic: roadmapInfo.data.isPublic,
+          userId: roadmapInfo.userId, // Use userId from the roadmap object, not data
+        },
+      };
     }
-  } else {
-    console.log("👤 No authenticated user, using localStorage only");
+  } catch (error) {
+    // If it's an access denied error and user is not authenticated,
+    // suggest authentication
+    if (error.message.includes("Access denied") && !currentUser) {
+      const response = new Response(
+        `This roadmap is private. Please sign in to access it.`,
+        { status: 403, statusText: "Access Denied" }
+      );
+      response.debugInfo = {
+        roadmapId,
+        error: error.message,
+        userAuthenticated: false,
+        suggestion: "Sign in to access private roadmaps",
+      };
+      throw response;
+    }
+
+    // For other errors, continue to localStorage fallback
   }
 
   // Fallback to localStorage
-  console.log("🔍 Loading roadmap from localStorage:", roadmapId);
   allMetadata = RoadmapPersistence.getAllRoadmapMetadata();
   roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
 
@@ -165,15 +156,10 @@ const roadmapLoader = async ({ params }) => {
       },
     };
 
-    console.log(
-      "❌ Roadmap not found in either Firestore or localStorage:",
-      debugInfo
-    );
-
     const errorMessage = `Roadmap not found: ${roadmapId}. ${
       currentUser
-        ? "This roadmap may not exist or you may not have access to it."
-        : "Please sign in to access your roadmaps."
+        ? "This roadmap may not exist, may be private, or you may not have access to it."
+        : "This roadmap may not exist, or it may be private. Please sign in if you have access to this roadmap."
     }`;
 
     // Create a Response with additional data for debugging
@@ -195,19 +181,15 @@ const roadmapLoader = async ({ params }) => {
     (m) => m.id === roadmapId
   );
 
-  console.log("✅ Roadmap loaded successfully:", {
-    roadmapId,
-    source: currentUser ? "Firestore" : "localStorage",
-    hasData: !!roadmapInfo.data,
-    hasMetadata: !!metadata,
-    dataStructure: {
-      title: roadmapInfo.data?.title,
-      hasRoadmap: !!roadmapInfo.data?.roadmap,
-      roadmapType: Array.isArray(roadmapInfo.data?.roadmap)
-        ? "array"
-        : typeof roadmapInfo.data?.roadmap,
-    },
-  });
+  // For localStorage roadmaps, add userId to metadata if user is authenticated
+  // localStorage roadmaps are inherently owned by the current user
+  if (metadata && currentUser && !metadata.userId) {
+    metadata = {
+      ...metadata,
+      userId: currentUser.uid,
+      isPublic: false, // localStorage roadmaps are private by default
+    };
+  }
 
   return {
     roadmapData: roadmapInfo.data,
@@ -262,7 +244,12 @@ const router = createBrowserRouter([
   },
   {
     path: "/roadmap/:roadmapId/edit",
-    element: <RoadmapEditor />,
+    element: (
+      <OwnerProtectedRoute>
+        <PageTitleUpdater title="Edit Roadmap" />
+        <RoadmapEditor />
+      </OwnerProtectedRoute>
+    ),
     loader: roadmapLoader,
     errorElement: <NotFoundPage />,
   },
