@@ -3,7 +3,7 @@
  * Manages user authentication state and provides auth methods
  */
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -15,17 +15,17 @@ import {
   signInWithPopup,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+  reauthenticateWithCredential,
+} from "firebase/auth";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "../config/firebase";
 
 const AuthContext = createContext({});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -34,12 +34,13 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
   const [error, setError] = useState(null);
 
   // Create user profile in Firestore
   const createUserProfile = async (user, additionalData = {}) => {
     try {
-      const userRef = doc(db, 'users', user.uid);
+      const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
@@ -47,13 +48,13 @@ export const AuthProvider = ({ children }) => {
         const createdAt = new Date();
 
         await setDoc(userRef, {
-          displayName: displayName || '',
+          displayName: displayName || "",
           email,
-          photoURL: photoURL || '',
+          photoURL: photoURL || "",
           createdAt,
           lastLoginAt: createdAt,
           preferences: {
-            theme: 'auto',
+            theme: "auto",
             emailNotifications: true,
             roadmapSharing: true,
           },
@@ -70,23 +71,27 @@ export const AuthProvider = ({ children }) => {
       const updatedUserSnap = await getDoc(userRef);
       setUserProfile(updatedUserSnap.data());
     } catch (error) {
-      console.error('Error creating user profile:', error);
-      setError('Failed to create user profile');
+      console.error("Error creating user profile:", error);
+      setError("Failed to create user profile");
     }
   };
 
   // Sign up with email and password
-  const signup = async (email, password, displayName = '') => {
+  const signup = async (email, password, displayName = "") => {
     try {
       setError(null);
       setLoading(true);
-      
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
+
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       if (displayName) {
         await updateProfile(user, { displayName });
       }
-      
+
       await createUserProfile(user, { displayName });
       return user;
     } catch (error) {
@@ -102,7 +107,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
-      
+
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       await createUserProfile(user);
       return user;
@@ -119,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setLoading(true);
-      
+
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
       await createUserProfile(user);
@@ -159,24 +164,26 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = async (updates) => {
     try {
       setError(null);
-      
-      if (!currentUser) throw new Error('No user logged in');
-      
+
+      if (!currentUser) throw new Error("No user logged in");
+
       // Update Firebase Auth profile
       if (updates.displayName !== undefined || updates.photoURL !== undefined) {
         await updateProfile(currentUser, {
-          ...(updates.displayName !== undefined && { displayName: updates.displayName }),
+          ...(updates.displayName !== undefined && {
+            displayName: updates.displayName,
+          }),
           ...(updates.photoURL !== undefined && { photoURL: updates.photoURL }),
         });
       }
-      
+
       // Update Firestore profile
-      const userRef = doc(db, 'users', currentUser.uid);
+      const userRef = doc(db, "users", currentUser.uid);
       await updateDoc(userRef, {
         ...updates,
         updatedAt: new Date(),
       });
-      
+
       // Refresh user profile
       const updatedUserSnap = await getDoc(userRef);
       setUserProfile(updatedUserSnap.data());
@@ -190,13 +197,16 @@ export const AuthProvider = ({ children }) => {
   const changePassword = async (currentPassword, newPassword) => {
     try {
       setError(null);
-      
-      if (!currentUser) throw new Error('No user logged in');
-      
+
+      if (!currentUser) throw new Error("No user logged in");
+
       // Re-authenticate user
-      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
       await reauthenticateWithCredential(currentUser, credential);
-      
+
       // Update password
       await updatePassword(currentUser, newPassword);
     } catch (error) {
@@ -208,39 +218,73 @@ export const AuthProvider = ({ children }) => {
   // Clear error
   const clearError = () => setError(null);
 
+  // Load user profile in background (non-blocking)
+  const loadUserProfile = async (user) => {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        setUserProfile(userSnap.data());
+        console.log("👤 User profile loaded from Firestore");
+      } else {
+        // Create profile if it doesn't exist (non-blocking)
+        console.log("👤 Creating new user profile...");
+        await createUserProfile(user);
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+      // Don't block auth flow for profile errors
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    console.log("🔐 AuthProvider: Setting up auth state listener");
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("🔐 Auth state changed:", {
+        user: user ? `${user.displayName || user.email} (${user.uid})` : "null",
+        isInitialized: authInitialized,
+      });
+
+      // Set user immediately (this is fast - from cache)
       setCurrentUser(user);
-      
+
+      // Mark auth as initialized after first state change
+      if (!authInitialized) {
+        setAuthInitialized(true);
+        setLoading(false); // Stop loading immediately when auth state is determined
+        console.log("✅ Auth state initialized");
+      }
+
+      // Load user profile in background (non-blocking)
       if (user) {
-        // Fetch user profile from Firestore
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
-          
-          if (userSnap.exists()) {
-            setUserProfile(userSnap.data());
-          } else {
-            // Create profile if it doesn't exist
-            await createUserProfile(user);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        }
+        loadUserProfile(user);
       } else {
         setUserProfile(null);
       }
-      
-      setLoading(false);
     });
 
-    return unsubscribe;
-  }, []);
+    // Set a timeout as fallback to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (!authInitialized) {
+        console.log("⚠️ Auth initialization timeout, proceeding without user");
+        setLoading(false);
+        setAuthInitialized(true);
+      }
+    }, 2000); // Reduced to 2 seconds for better UX
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [authInitialized]);
 
   const value = {
     currentUser,
     userProfile,
     loading,
+    authInitialized,
     error,
     signup,
     login,
@@ -252,9 +296,5 @@ export const AuthProvider = ({ children }) => {
     clearError,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
