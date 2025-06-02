@@ -1,5 +1,6 @@
 import ThemeSelector from "./ThemeSelector";
 import Breadcrumb from "./Breadcrumb";
+import UserMenu from "../auth/UserMenu";
 
 const PageLayout = ({
   title,
@@ -33,7 +34,8 @@ const PageLayout = ({
                 </div>
               )}
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center space-x-4">
+              <UserMenu />
               <ThemeSelector />
             </div>
           </div>

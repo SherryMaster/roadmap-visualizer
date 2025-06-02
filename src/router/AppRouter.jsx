@@ -10,6 +10,12 @@ import NotFoundPage from "../components/pages/NotFoundPage";
 import RoadmapLoader from "../components/pages/RoadmapLoader";
 import RoadmapAssembler from "../components/assembler/RoadmapAssembler";
 import RoadmapEditor from "../components/editor/RoadmapEditor";
+import Login from "../components/auth/Login";
+import Signup from "../components/auth/Signup";
+import ForgotPassword from "../components/auth/ForgotPassword";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+import ProfilePage from "../components/pages/ProfilePage";
+import SettingsPage from "../components/pages/SettingsPage";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Route loader for roadmap data
@@ -105,14 +111,73 @@ const router = createBrowserRouter([
   {
     path: "/assembler",
     element: (
-      <>
+      <ProtectedRoute>
         <PageTitleUpdater title="Roadmap Assembler" />
         <RoadmapAssembler />
+      </ProtectedRoute>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/login",
+    element: (
+      <>
+        <PageTitleUpdater title="Sign In" />
+        <Login />
       </>
     ),
     errorElement: <NotFoundPage />,
   },
-
+  {
+    path: "/signup",
+    element: (
+      <>
+        <PageTitleUpdater title="Sign Up" />
+        <Signup />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <>
+        <PageTitleUpdater title="Reset Password" />
+        <ForgotPassword />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/profile",
+    element: (
+      <ProtectedRoute>
+        <PageTitleUpdater title="Profile" />
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/settings",
+    element: (
+      <ProtectedRoute>
+        <PageTitleUpdater title="Settings" />
+        <SettingsPage />
+      </ProtectedRoute>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/my-roadmaps",
+    element: (
+      <ProtectedRoute>
+        <PageTitleUpdater title="My Roadmaps" />
+        <HomePage />
+      </ProtectedRoute>
+    ),
+    errorElement: <NotFoundPage />,
+  },
   {
     path: "/roadmaps",
     element: <Navigate to="/" replace />,
