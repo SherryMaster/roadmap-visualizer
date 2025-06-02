@@ -96,10 +96,10 @@ service cloud.firestore {
       // Create: Authenticated users can create roadmaps with valid data
       allow create: if isAuthenticated() && isValidRoadmapData();
 
-      // Update: Only owners can update their roadmaps (restricted fields for split format)
+      // Update: Only owners can update their roadmaps (expanded fields for editor support)
       allow update: if isAuthenticated() &&
                     isOwner(resource.data.userId) &&
-                    isValidUpdate(['outline', 'isPublic', 'updatedAt', 'lastAccessed', 'version', 'tags']);
+                    isValidUpdate(['outline', 'isPublic', 'updatedAt', 'lastAccessed', 'version', 'tags', 'title', 'description', 'project_level']);
 
       // Delete: Only owners can delete their roadmaps
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
@@ -123,11 +123,11 @@ service cloud.firestore {
       // Create: Allow authenticated users to create phase tasks (roadmap ownership validated by batch operation)
       allow create: if isAuthenticated() && isValidPhaseTasksData();
 
-      // Update: Only if user owns the parent roadmap
+      // Update: Only if user owns the parent roadmap (expanded fields for editor support)
       allow update: if isAuthenticated() &&
                     exists(/databases/$(database)/documents/roadmaps/$(resource.data.roadmapId)) &&
                     get(/databases/$(database)/documents/roadmaps/$(resource.data.roadmapId)).data.userId == request.auth.uid &&
-                    isValidUpdate(['tasks', 'updatedAt']);
+                    isValidUpdate(['tasks', 'updatedAt', 'createdAt', 'phaseId', 'phaseNumber', 'roadmapId']);
 
       // Delete: Only if user owns the parent roadmap
       allow delete: if isAuthenticated() &&

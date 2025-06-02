@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import RoadmapEditor from "../utils/RoadmapEditor";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
+import { useAuth } from "./AuthContext";
+import { useFirestore } from "./FirestoreContext";
 
 const EditorContext = createContext();
 
@@ -13,6 +15,10 @@ export const useEditor = () => {
 };
 
 export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
+  // Hooks for authentication and Firestore
+  const { currentUser } = useAuth();
+  const { updateRoadmap } = useFirestore();
+
   // Core state
   const [originalRoadmap] = useState(initialRoadmap);
   const [currentRoadmap, setCurrentRoadmap] = useState(initialRoadmap);
@@ -328,19 +334,89 @@ export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
     setIsSaving(true);
     try {
       if (roadmapId) {
-        // Update existing roadmap in place
-        const success = RoadmapPersistence.updateRoadmapData(
+        console.log("🔄 Editor: Saving roadmap changes:", {
           roadmapId,
-          currentRoadmap
-        );
+          userAuthenticated: !!currentUser,
+          hasUpdateFunction: !!updateRoadmap,
+        });
 
-        if (success) {
-          return { success: true };
+        // Try Firestore first if user is authenticated
+        if (currentUser && updateRoadmap) {
+          try {
+            console.log("💾 Editor: Updating roadmap in Firestore");
+            await updateRoadmap(roadmapId, currentRoadmap);
+            console.log("✅ Editor: Successfully updated roadmap in Firestore");
+            return { success: true };
+          } catch (firestoreError) {
+            console.warn(
+              "⚠️ Editor: Firestore update failed, falling back to localStorage:",
+              firestoreError.message
+            );
+            // For Firestore roadmaps that don't exist in localStorage, create them
+            try {
+              // First try to update if it exists
+              const success = RoadmapPersistence.updateRoadmapData(
+                roadmapId,
+                currentRoadmap
+              );
+
+              if (success) {
+                console.log(
+                  "✅ Editor: Successfully updated roadmap in localStorage"
+                );
+                return { success: true };
+              } else {
+                // If update fails, try to save as new roadmap in localStorage
+                console.log(
+                  "💾 Editor: Creating roadmap in localStorage as fallback"
+                );
+                const newRoadmapId =
+                  RoadmapPersistence.saveRoadmap(currentRoadmap);
+                console.log(
+                  "✅ Editor: Created new roadmap in localStorage:",
+                  newRoadmapId
+                );
+
+                // Note: This creates a new ID, but we'll still return success
+                return {
+                  success: true,
+                  message:
+                    "Saved to local storage with new ID due to sync issues",
+                  newRoadmapId: newRoadmapId,
+                };
+              }
+            } catch (localStorageError) {
+              console.error(
+                "❌ Editor: localStorage fallback also failed:",
+                localStorageError.message
+              );
+              throw new Error(
+                `Failed to update roadmap: Firestore (${firestoreError.message}) and localStorage (${localStorageError.message})`
+              );
+            }
+          }
         } else {
-          throw new Error("Failed to update roadmap in storage");
+          // Update in localStorage for unauthenticated users
+          console.log(
+            "💾 Editor: Updating roadmap in localStorage (user not authenticated)"
+          );
+          const success = RoadmapPersistence.updateRoadmapData(
+            roadmapId,
+            currentRoadmap
+          );
+
+          if (success) {
+            console.log(
+              "✅ Editor: Successfully updated roadmap in localStorage"
+            );
+            return { success: true };
+          } else {
+            throw new Error("Failed to update roadmap in localStorage");
+          }
         }
       } else {
         // Fallback to download if no roadmapId (shouldn't happen in normal editor flow)
+        console.log("📥 Editor: No roadmapId, downloading edited roadmap");
         const schemaData = RoadmapEditor.transformToSchema(currentRoadmap);
         const blob = new Blob([JSON.stringify(schemaData, null, 2)], {
           type: "application/json",
@@ -361,12 +437,12 @@ export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
         return { success: true };
       }
     } catch (error) {
-      console.error("Error saving roadmap:", error);
+      console.error("❌ Editor: Save error:", error);
       return { success: false, error: error.message };
     } finally {
       setIsSaving(false);
     }
-  }, [currentRoadmap, validationStatus, roadmapId]);
+  }, [currentRoadmap, validationStatus, roadmapId, currentUser, updateRoadmap]);
 
   const value = {
     // State

@@ -368,23 +368,68 @@ class FirestorePersistence {
     }
 
     try {
+      console.log("🔄 Starting roadmap update:", {
+        roadmapId,
+        userId,
+        roadmapTitle: roadmapData.title,
+        hasRoadmapData: !!roadmapData.roadmap,
+      });
+
+      // First, verify the roadmap exists and user owns it
+      const roadmapRef = doc(db, "roadmaps", roadmapId);
+      const roadmapSnap = await getDoc(roadmapRef);
+
+      if (!roadmapSnap.exists()) {
+        throw new Error(`Roadmap ${roadmapId} not found`);
+      }
+
+      const existingRoadmapData = roadmapSnap.data();
+      if (existingRoadmapData.userId !== userId) {
+        throw new Error(
+          `Access denied: User ${userId} does not own roadmap ${roadmapId} (owned by ${existingRoadmapData.userId})`
+        );
+      }
+
+      console.log("✅ Ownership verified:", {
+        roadmapId,
+        owner: existingRoadmapData.userId,
+        requestingUser: userId,
+        isPublic: existingRoadmapData.isPublic,
+      });
+
       // Split roadmap data into outline and tasks
       const { outline, phaseTasks } = this.splitRoadmapData(roadmapData);
 
       const batch = writeBatch(db);
 
-      // Update roadmap outline document
-      const roadmapRef = doc(db, "roadmaps", roadmapId);
-      batch.update(roadmapRef, {
+      console.log("📝 Preparing batch updates:", {
+        outlinePhases: outline.roadmap?.phases?.length || 0,
+        phaseTasksCount: phaseTasks.length,
+      });
+
+      // Update roadmap outline document (reuse existing roadmapRef)
+      const roadmapUpdateData = {
         outline: outline,
         updatedAt: serverTimestamp(),
         lastAccessed: serverTimestamp(),
         version: increment(1),
+      };
+
+      console.log("📄 Updating roadmap document:", {
+        roadmapId,
+        updateFields: Object.keys(roadmapUpdateData),
+        outlineStructure: {
+          title: outline.title,
+          hasRoadmap: !!outline.roadmap,
+          phasesCount: outline.roadmap?.phases?.length || 0,
+        },
       });
+
+      batch.update(roadmapRef, roadmapUpdateData);
 
       // Update metadata document
       const metadataRef = doc(db, "roadmapMetadata", roadmapId);
-      batch.update(metadataRef, {
+      const metadataUpdateData = {
         title: roadmapData.title,
         description: roadmapData.description || "",
         projectLevel: roadmapData.project_level || "beginner",
@@ -393,7 +438,18 @@ class FirestorePersistence {
         lastAccessed: serverTimestamp(),
         totalPhases: this.calculateTotalPhases(roadmapData),
         totalTasks: this.calculateTotalTasks(roadmapData),
+      };
+
+      console.log("📊 Updating metadata document:", {
+        roadmapId,
+        updateFields: Object.keys(metadataUpdateData),
+        title: metadataUpdateData.title,
+        projectLevel: metadataUpdateData.projectLevel,
+        totalPhases: metadataUpdateData.totalPhases,
+        totalTasks: metadataUpdateData.totalTasks,
       });
+
+      batch.update(metadataRef, metadataUpdateData);
 
       // Delete existing phase tasks documents
       const existingPhaseTasksQuery = query(
@@ -401,11 +457,31 @@ class FirestorePersistence {
         where("roadmapId", "==", roadmapId)
       );
       const existingPhaseTasksSnap = await getDocs(existingPhaseTasksQuery);
+
+      console.log("🗑️ Deleting existing phase tasks:", {
+        roadmapId,
+        existingDocsCount: existingPhaseTasksSnap.size,
+        existingDocs: existingPhaseTasksSnap.docs.map((doc) => ({
+          id: doc.id,
+          phaseId: doc.data().phaseId,
+        })),
+      });
+
       existingPhaseTasksSnap.forEach((doc) => {
         batch.delete(doc.ref);
       });
 
       // Add updated phase tasks documents
+      console.log("📝 Creating new phase tasks documents:", {
+        roadmapId,
+        newPhaseTasksCount: phaseTasks.length,
+        phases: phaseTasks.map((pt, index) => ({
+          index: index + 1,
+          phaseId: pt.phase_id,
+          tasksCount: pt.phase_tasks.length,
+        })),
+      });
+
       phaseTasks.forEach((phaseData, index) => {
         const phaseTasksRef = doc(
           db,

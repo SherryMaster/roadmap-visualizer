@@ -19,6 +19,62 @@ import SettingsPage from "../components/pages/SettingsPage";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 import FirestorePersistence from "../utils/FirestorePersistence";
 import { auth } from "../config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+
+// Helper function to wait for auth state in router loader
+const waitForAuthInLoader = () => {
+  return new Promise((resolve) => {
+    // Check if we already have a definitive auth state
+    // Note: auth.currentUser can be null (not authenticated) or User object (authenticated)
+    // We need to distinguish between "not determined yet" vs "determined as null"
+
+    console.log("🔐 Router: Checking auth state...", {
+      currentUser: auth.currentUser,
+      hasCurrentUser: !!auth.currentUser,
+    });
+
+    // Try to resolve immediately if auth state seems determined
+    if (auth.currentUser) {
+      console.log(
+        "🔐 Router: User already authenticated, proceeding immediately"
+      );
+      resolve(auth.currentUser);
+      return;
+    }
+
+    console.log("⏳ Router: Waiting for auth state determination...");
+    let resolved = false;
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (resolved) return; // Prevent multiple resolutions
+
+      resolved = true;
+      console.log("🔐 Router: Auth state determined:", {
+        user: user ? `${user.displayName || user.email} (${user.uid})` : "null",
+        isAuthenticated: !!user,
+      });
+      unsubscribe();
+      resolve(user);
+    });
+
+    // Timeout to prevent infinite waiting
+    const timeoutId = setTimeout(() => {
+      if (resolved) return; // Already resolved
+
+      resolved = true;
+      console.log("⚠️ Router: Auth timeout, proceeding with current state");
+      unsubscribe();
+      resolve(auth.currentUser);
+    }, 2000); // Reduced timeout for better UX
+
+    // Clean up timeout if auth resolves first
+    const originalUnsubscribe = unsubscribe;
+    unsubscribe = () => {
+      clearTimeout(timeoutId);
+      originalUnsubscribe();
+    };
+  });
+};
 
 // Route loader for roadmap data
 const roadmapLoader = async ({ params }) => {
@@ -31,8 +87,8 @@ const roadmapLoader = async ({ params }) => {
   let roadmapInfo = null;
   let allMetadata = [];
 
-  // Check if user is authenticated and try Firestore first
-  const currentUser = auth.currentUser;
+  // Wait for auth state to be determined (especially important for direct URL access)
+  const currentUser = await waitForAuthInLoader();
 
   if (currentUser) {
     try {
@@ -93,16 +149,70 @@ const roadmapLoader = async ({ params }) => {
   }
 
   if (!roadmapInfo) {
-    console.log("❌ Roadmap not found in either Firestore or localStorage");
-    throw new Response("Roadmap not found", { status: 404 });
+    const debugInfo = {
+      roadmapId,
+      userAuthenticated: !!currentUser,
+      userId: currentUser?.uid,
+      timestamp: new Date().toISOString(),
+      authState: {
+        currentUser: !!auth.currentUser,
+        userEmail: currentUser?.email,
+      },
+      searchAttempts: {
+        firestore: !!currentUser,
+        localStorage: true,
+        metadataCount: allMetadata.length,
+      },
+    };
+
+    console.log(
+      "❌ Roadmap not found in either Firestore or localStorage:",
+      debugInfo
+    );
+
+    const errorMessage = `Roadmap not found: ${roadmapId}. ${
+      currentUser
+        ? "This roadmap may not exist or you may not have access to it."
+        : "Please sign in to access your roadmaps."
+    }`;
+
+    // Create a Response with additional data for debugging
+    const response = new Response(errorMessage, {
+      status: 404,
+      statusText: "Roadmap Not Found",
+    });
+
+    // Add debug info to the response for development
+    response.debugInfo = debugInfo;
+    response.roadmapId = roadmapId;
+    response.userAuthenticated = !!currentUser;
+
+    throw response;
   }
+
+  // Successfully found roadmap
+  const metadata = RoadmapPersistence.getAllRoadmapMetadata().find(
+    (m) => m.id === roadmapId
+  );
+
+  console.log("✅ Roadmap loaded successfully:", {
+    roadmapId,
+    source: currentUser ? "Firestore" : "localStorage",
+    hasData: !!roadmapInfo.data,
+    hasMetadata: !!metadata,
+    dataStructure: {
+      title: roadmapInfo.data?.title,
+      hasRoadmap: !!roadmapInfo.data?.roadmap,
+      roadmapType: Array.isArray(roadmapInfo.data?.roadmap)
+        ? "array"
+        : typeof roadmapInfo.data?.roadmap,
+    },
+  });
 
   return {
     roadmapData: roadmapInfo.data,
     roadmapId: roadmapId,
-    metadata: RoadmapPersistence.getAllRoadmapMetadata().find(
-      (m) => m.id === roadmapId
-    ),
+    metadata: metadata,
   };
 };
 

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RoadmapPersistence from "../../utils/RoadmapPersistence";
 import DataTransformer from "../../utils/DataTransformer";
+import { useAuth } from "../../context/AuthContext";
+import { useFirestore } from "../../context/FirestoreContext";
 
 const AssemblerResults = ({
   mergedRoadmap,
@@ -13,6 +15,8 @@ const AssemblerResults = ({
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { saveRoadmap } = useFirestore();
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -44,7 +48,7 @@ const AssemblerResults = ({
   const handleSaveAndView = async () => {
     setIsSaving(true);
     try {
-      console.log("Saving roadmap:", mergedRoadmap); // Debug log
+      console.log("🔄 Assembler: Saving roadmap:", mergedRoadmap);
 
       // Transform the merged roadmap to UI format (same as normal upload workflow)
       const transformedData = DataTransformer.transformToUI(mergedRoadmap);
@@ -53,17 +57,43 @@ const AssemblerResults = ({
         throw new Error("Failed to transform roadmap data to UI format");
       }
 
-      console.log("Transformed roadmap data:", transformedData); // Debug log
+      console.log("🔄 Assembler: Transformed roadmap data:", transformedData);
 
-      // Save to localStorage using RoadmapPersistence
-      const roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
+      let roadmapId;
 
-      console.log("Generated roadmap ID:", roadmapId); // Debug log
+      // Try Firestore first if user is authenticated
+      if (currentUser && saveRoadmap) {
+        try {
+          console.log(
+            "💾 Assembler: Saving to Firestore for authenticated user"
+          );
+          roadmapId = await saveRoadmap(transformedData);
+          console.log("✅ Assembler: Saved to Firestore with ID:", roadmapId);
+        } catch (firestoreError) {
+          console.warn(
+            "⚠️ Assembler: Firestore save failed, falling back to localStorage:",
+            firestoreError.message
+          );
+          // Fallback to localStorage
+          roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
+          console.log(
+            "✅ Assembler: Saved to localStorage with ID:",
+            roadmapId
+          );
+        }
+      } else {
+        // Save to localStorage for unauthenticated users
+        console.log(
+          "💾 Assembler: Saving to localStorage (user not authenticated)"
+        );
+        roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
+        console.log("✅ Assembler: Saved to localStorage with ID:", roadmapId);
+      }
 
       // Navigate to the roadmap visualizer
       navigate(`/roadmap/${roadmapId}`);
     } catch (error) {
-      console.error("Error saving roadmap:", error);
+      console.error("❌ Assembler: Error saving roadmap:", error);
       // Show error to user
       alert("Failed to save roadmap. Please try again.");
     } finally {
@@ -346,7 +376,9 @@ const AssemblerResults = ({
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              <span>Save & View</span>
+              <span>
+                {currentUser ? "Save to Cloud & View" : "Save Locally & View"}
+              </span>
             </>
           )}
         </button>
