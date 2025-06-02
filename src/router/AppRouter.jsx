@@ -119,83 +119,24 @@ const roadmapLoader = async ({ params }) => {
     // For other errors, continue to localStorage fallback
   }
 
-  // Fallback to localStorage
-  allMetadata = RoadmapPersistence.getAllRoadmapMetadata();
-  roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
+  // No localStorage fallback - Firestore only
+  const errorMessage = `Roadmap not found: ${roadmapId}. ${
+    currentUser
+      ? "This roadmap may not exist, may be private, or you may not have access to it."
+      : "This roadmap may not exist, or it may be private. Please sign in if you have access to this roadmap."
+  }`;
 
-  // If roadmap not found, try to find it by title or other means
-  if (!roadmapInfo) {
-    // Try to find roadmap by checking if the ID exists in metadata but with different casing or format
-    const matchingMetadata = allMetadata.find(
-      (m) =>
-        m.id === roadmapId ||
-        m.id.toLowerCase() === roadmapId.toLowerCase() ||
-        m.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase() ===
-          roadmapId.toLowerCase()
-    );
-
-    if (matchingMetadata) {
-      roadmapInfo = RoadmapPersistence.loadRoadmap(matchingMetadata.id);
-    }
-  }
-
-  if (!roadmapInfo) {
-    const debugInfo = {
-      roadmapId,
-      userAuthenticated: !!currentUser,
-      userId: currentUser?.uid,
-      timestamp: new Date().toISOString(),
-      authState: {
-        currentUser: !!auth.currentUser,
-        userEmail: currentUser?.email,
-      },
-      searchAttempts: {
-        firestore: !!currentUser,
-        localStorage: true,
-        metadataCount: allMetadata.length,
-      },
-    };
-
-    const errorMessage = `Roadmap not found: ${roadmapId}. ${
-      currentUser
-        ? "This roadmap may not exist, may be private, or you may not have access to it."
-        : "This roadmap may not exist, or it may be private. Please sign in if you have access to this roadmap."
-    }`;
-
-    // Create a Response with additional data for debugging
-    const response = new Response(errorMessage, {
-      status: 404,
-      statusText: "Roadmap Not Found",
-    });
-
-    // Add debug info to the response for development
-    response.debugInfo = debugInfo;
-    response.roadmapId = roadmapId;
-    response.userAuthenticated = !!currentUser;
-
-    throw response;
-  }
-
-  // Successfully found roadmap
-  const metadata = RoadmapPersistence.getAllRoadmapMetadata().find(
-    (m) => m.id === roadmapId
-  );
-
-  // For localStorage roadmaps, add userId to metadata if user is authenticated
-  // localStorage roadmaps are inherently owned by the current user
-  if (metadata && currentUser && !metadata.userId) {
-    metadata = {
-      ...metadata,
-      userId: currentUser.uid,
-      isPublic: false, // localStorage roadmaps are private by default
-    };
-  }
-
-  return {
-    roadmapData: roadmapInfo.data,
-    roadmapId: roadmapId,
-    metadata: metadata,
+  const response = new Response(errorMessage, {
+    status: 404,
+    statusText: "Roadmap Not Found",
+  });
+  response.debugInfo = {
+    roadmapId,
+    userAuthenticated: !!currentUser,
+    userId: currentUser?.uid,
+    source: "Firestore only",
   };
+  throw response;
 };
 
 // Component to handle page titles

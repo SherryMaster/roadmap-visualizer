@@ -10,7 +10,7 @@ import Tooltip from "../tooltips/Tooltip";
 import { LoadingSpinner, ProgressBar } from "../feedback/LoadingStates";
 import { useAuth } from "../../context/AuthContext";
 import { useFirestore } from "../../context/FirestoreContext";
-import RoadmapPersistence from "../../utils/RoadmapPersistence";
+
 import SchemaValidator from "../../utils/SchemaValidator";
 import DataTransformer from "../../utils/DataTransformer";
 import usePageTitle from "../../hooks/usePageTitle";
@@ -22,16 +22,8 @@ const HomePage = () => {
   usePageTitle("Home");
 
   const { currentUser } = useAuth();
-  const {
-    userRoadmaps,
-    publicRoadmaps,
-    loading,
-    error,
-    migrationStatus,
-    saveRoadmap,
-    deleteRoadmap,
-    clearError,
-  } = useFirestore();
+  const { userRoadmaps, publicRoadmaps, saveRoadmap, deleteRoadmap } =
+    useFirestore();
 
   const [showUploader, setShowUploader] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
@@ -118,6 +110,11 @@ const HomePage = () => {
         message: "Saving roadmap to database...",
         progress: 50,
       });
+
+      // Require authentication for saving roadmaps
+      if (!currentUser || !saveRoadmap) {
+        throw new Error("You must be signed in to upload roadmaps");
+      }
 
       // Save the roadmap to Firestore
       const roadmapId = await saveRoadmap(transformedData);

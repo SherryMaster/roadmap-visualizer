@@ -6,6 +6,7 @@ import SearchBar from "../layout/SearchBar";
 import PageLayout from "../layout/PageLayout";
 import ShareButton from "../layout/ShareButton";
 import PrivacyToggle from "../roadmap/PrivacyToggle";
+import DownloadToggle from "../roadmap/DownloadToggle";
 
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
 import { useAuth } from "../../context/AuthContext";
@@ -32,9 +33,9 @@ const RoadmapVisualizer = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPhase, setCurrentPhase] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [currentPrivacy, setCurrentPrivacy] = useState(
-    metadata?.isPublic || false
-  );
+  const [currentPrivacy, setCurrentPrivacy] = useState(false);
+  const [currentDownloadPermission, setCurrentDownloadPermission] =
+    useState(true);
 
   // Set dynamic page title
   const pageTitle = currentPhase
@@ -59,12 +60,46 @@ const RoadmapVisualizer = ({
     }
   }, [initialRoadmapData, params.phaseId]);
 
-  // Update privacy state when metadata changes
+  // Update privacy and download permission state when metadata or roadmap data changes
   useEffect(() => {
+    // Determine privacy status from multiple sources
+    let isPublic = false;
+    let allowDownload = true; // Default to allow downloads
+
+    // Check metadata first (Firestore roadmaps)
     if (metadata?.isPublic !== undefined) {
-      setCurrentPrivacy(metadata.isPublic);
+      isPublic = metadata.isPublic;
     }
-  }, [metadata?.isPublic]);
+    // Check roadmap data as fallback (alternative source)
+    else if (initialRoadmapData?.isPublic !== undefined) {
+      isPublic = initialRoadmapData.isPublic;
+    }
+    // For localStorage roadmaps, default to private
+    else {
+      isPublic = false;
+    }
+
+    // Check download permission from metadata first (Firestore roadmaps)
+    if (metadata?.allowDownload !== undefined) {
+      allowDownload = metadata.allowDownload;
+    }
+    // Check roadmap data (fallback for localStorage roadmaps)
+    else if (initialRoadmapData?.allowDownload !== undefined) {
+      allowDownload = initialRoadmapData.allowDownload;
+    }
+    // For localStorage roadmaps or missing field, default to allow downloads
+    else {
+      allowDownload = true;
+    }
+
+    setCurrentPrivacy(isPublic);
+    setCurrentDownloadPermission(allowDownload);
+  }, [
+    metadata?.isPublic,
+    metadata?.allowDownload,
+    initialRoadmapData?.isPublic,
+    initialRoadmapData?.allowDownload,
+  ]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -154,6 +189,12 @@ const RoadmapVisualizer = ({
 
   // Download functionality
   const handleDownloadRoadmap = async () => {
+    // Check download permissions
+    if (!isOwner && !currentDownloadPermission) {
+      console.warn("Download not allowed for this roadmap");
+      return;
+    }
+
     setIsDownloading(true);
     try {
       // Transform UI data back to schema-compliant format
@@ -200,6 +241,15 @@ const RoadmapVisualizer = ({
   const handlePrivacyChange = (newIsPublic) => {
     setCurrentPrivacy(newIsPublic);
     console.log(`🔄 Privacy changed: ${newIsPublic ? "Public" : "Private"}`);
+  };
+
+  const handleDownloadPermissionChange = (newAllowDownload) => {
+    setCurrentDownloadPermission(newAllowDownload);
+    console.log(
+      `🔄 Download permission changed: ${
+        newAllowDownload ? "Enabled" : "Disabled"
+      }`
+    );
   };
 
   // Check if current user is the owner of the roadmap
@@ -316,13 +366,19 @@ const RoadmapVisualizer = ({
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {isOwner
             ? "Edit, download, or share this roadmap"
-            : "Download or share this roadmap"}
+            : currentDownloadPermission
+            ? "Download or share this roadmap"
+            : "Share this roadmap"}
         </p>
       </div>
 
       <div
         className={`grid grid-cols-1 ${
-          isOwner ? "sm:grid-cols-3" : "sm:grid-cols-2"
+          isOwner
+            ? "sm:grid-cols-3"
+            : currentDownloadPermission
+            ? "sm:grid-cols-2"
+            : "sm:grid-cols-1"
         } gap-3 max-w-2xl mx-auto`}
       >
         {/* Edit Button - Only show to roadmap owners */}
@@ -355,42 +411,51 @@ const RoadmapVisualizer = ({
           </InfoTooltip>
         )}
 
-        <SuccessTooltip
-          content="Download the current roadmap as a JSON file for backup or sharing"
-          position="top"
-          maxWidth="250px"
-        >
-          <button
-            onClick={handleDownloadRoadmap}
-            disabled={isDownloading}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
-            aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
+        {/* Download Button - Show to owners or if downloads are allowed */}
+        {(isOwner || currentDownloadPermission) && (
+          <SuccessTooltip
+            content={
+              isOwner
+                ? "Download the current roadmap as a JSON file for backup or sharing"
+                : "Download this roadmap as a JSON file"
+            }
+            position="top"
+            maxWidth="250px"
           >
-            {isDownloading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-                <span>Downloading...</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-5 h-5 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span>Download</span>
-              </>
-            )}
-          </button>
-        </SuccessTooltip>
+            <button
+              onClick={handleDownloadRoadmap}
+              disabled={
+                isDownloading || (!isOwner && !currentDownloadPermission)
+              }
+              className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
+              aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
+            >
+              {isDownloading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                  <span>Downloading...</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span>Download</span>
+                </>
+              )}
+            </button>
+          </SuccessTooltip>
+        )}
 
         <div className="flex justify-center">
           <ShareButton roadmapTitle={filteredRoadmapData?.title} />
@@ -417,10 +482,10 @@ const RoadmapVisualizer = ({
           tags={filteredRoadmapData.tags}
         />
 
-        {/* Privacy Toggle - Only show for Firestore roadmaps with metadata */}
+        {/* Roadmap Settings - Only show for Firestore roadmaps with metadata */}
         {metadata && (
           <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <svg
                   className="w-5 h-5 text-gray-500"
@@ -451,6 +516,16 @@ const RoadmapVisualizer = ({
                 isPublic={currentPrivacy}
                 userId={metadata.userId}
                 onPrivacyChange={handlePrivacyChange}
+              />
+            </div>
+
+            {/* Download Permission Toggle */}
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+              <DownloadToggle
+                roadmapId={roadmapId}
+                allowDownload={currentDownloadPermission}
+                userId={metadata.userId}
+                onDownloadPermissionChange={handleDownloadPermissionChange}
               />
             </div>
           </div>

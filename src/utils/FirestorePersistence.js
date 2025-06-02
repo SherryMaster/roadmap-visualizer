@@ -80,6 +80,7 @@ class FirestorePersistence {
         outline: outline,
         // Note: originalData removed to avoid size limits - can be reconstructed from split documents
         isPublic: false, // Default to private
+        allowDownload: true, // Default to allow downloads
         createdAt: timestamp,
         updatedAt: timestamp,
         lastAccessed: timestamp,
@@ -110,6 +111,7 @@ class FirestorePersistence {
         projectLevel: roadmapData.project_level || "beginner",
         tags: roadmapData.tags || [],
         isPublic: false,
+        allowDownload: true, // Default to allow downloads
         createdAt: timestamp,
         updatedAt: timestamp,
         lastAccessed: timestamp,
@@ -198,25 +200,6 @@ class FirestorePersistence {
         where("roadmapId", "==", roadmapId)
       );
       const phaseTasksSnap = await getDocs(phaseTasksQuery);
-
-      console.log("📊 Loading roadmap debug:", {
-        roadmapId,
-        hasOutline: !!roadmapData.outline,
-        phaseTasksCount: phaseTasksSnap.size,
-        outlinePhases: roadmapData.outline?.roadmap?.phases?.length || 0,
-        phaseTasksDocs: phaseTasksSnap.docs.map((doc) => ({
-          id: doc.id,
-          phaseId: doc.data().phaseId,
-          tasksCount: doc.data().tasks?.length || 0,
-        })),
-        sampleOutlinePhase: roadmapData.outline?.roadmap?.phases?.[0]
-          ? {
-              phase_id: roadmapData.outline.roadmap.phases[0].phase_id,
-              phase_title: roadmapData.outline.roadmap.phases[0].phase_title,
-              task_count: roadmapData.outline.roadmap.phases[0].task_count,
-            }
-          : null,
-      });
 
       // Reconstruct full roadmap data
       const fullRoadmapData = this.reconstructRoadmapData(
@@ -356,6 +339,51 @@ class FirestorePersistence {
     } catch (error) {
       console.error("❌ Error updating roadmap privacy:", error);
       throw new Error("Failed to update roadmap privacy: " + error.message);
+    }
+  }
+
+  /**
+   * Update roadmap download permission setting
+   */
+  static async updateRoadmapDownloadPermission(
+    roadmapId,
+    allowDownload,
+    userId
+  ) {
+    if (!userId) {
+      throw new Error("User must be authenticated");
+    }
+
+    try {
+      const batch = writeBatch(db);
+
+      // Update roadmap document
+      const roadmapRef = doc(db, "roadmaps", roadmapId);
+      batch.update(roadmapRef, {
+        allowDownload: allowDownload,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update metadata document
+      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
+      batch.update(metadataRef, {
+        allowDownload: allowDownload,
+        updatedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      console.log(
+        `✅ Roadmap download permission updated: ${roadmapId} -> ${
+          allowDownload ? "downloads allowed" : "downloads disabled"
+        }`
+      );
+      return true;
+    } catch (error) {
+      console.error("❌ Error updating roadmap download permission:", error);
+      throw new Error(
+        "Failed to update roadmap download permission: " + error.message
+      );
     }
   }
 
@@ -517,11 +545,6 @@ class FirestorePersistence {
     }
 
     try {
-      console.log("🗑️ Starting roadmap deletion:", {
-        roadmapId,
-        userId,
-      });
-
       // First, verify the roadmap exists and user owns it
       const roadmapRef = doc(db, "roadmaps", roadmapId);
       const roadmapSnap = await getDoc(roadmapRef);
@@ -543,31 +566,19 @@ class FirestorePersistence {
       );
       const phaseTasksSnap = await getDocs(phaseTasksQuery);
 
-      console.log("📋 Found documents to delete:", {
-        roadmapExists: roadmapSnap.exists(),
-        phaseTasksCount: phaseTasksSnap.size,
-        phaseTasksDocs: phaseTasksSnap.docs.map((doc) => ({
-          id: doc.id,
-          phaseId: doc.data().phaseId,
-        })),
-      });
-
       // Use batch write for atomic deletion
       const batch = writeBatch(db);
 
       // Delete roadmap document
       batch.delete(roadmapRef);
-      console.log("🗑️ Queued roadmap document for deletion");
 
       // Delete metadata document
       const metadataRef = doc(db, "roadmapMetadata", roadmapId);
       batch.delete(metadataRef);
-      console.log("🗑️ Queued metadata document for deletion");
 
       // Delete all phase tasks documents
       phaseTasksSnap.forEach((doc) => {
         batch.delete(doc.ref);
-        console.log(`🗑️ Queued phase tasks document for deletion: ${doc.id}`);
       });
 
       // Delete task completions (if they exist)
@@ -579,21 +590,11 @@ class FirestorePersistence {
         roadmapId
       );
       batch.delete(completionRef);
-      console.log("🗑️ Queued task completions for deletion");
 
       // Execute all deletions atomically
       await batch.commit();
 
-      console.log("✅ Roadmap deletion completed successfully:", {
-        roadmapId,
-        deletedDocuments: {
-          roadmap: 1,
-          metadata: 1,
-          phaseTasks: phaseTasksSnap.size,
-          taskCompletions: 1,
-        },
-        totalDeleted: 3 + phaseTasksSnap.size,
-      });
+      console.log("✅ Roadmap deleted successfully:", roadmapId);
 
       return true;
     } catch (error) {
@@ -795,41 +796,12 @@ class FirestorePersistence {
    * Reconstruct full roadmap data from split documents
    */
   static reconstructRoadmapData(roadmapData, phaseTasksSnap) {
-    console.log("🔄 Starting roadmap reconstruction:", {
-      hasOutline: !!roadmapData.outline,
-      outlinePhases: roadmapData.outline?.roadmap?.phases?.length || 0,
-      phaseTasksDocsCount: phaseTasksSnap.size,
-    });
-
     // Get phase tasks data
     const phaseTasksMap = new Map();
     phaseTasksSnap.forEach((doc) => {
       const data = doc.data();
-      console.log(`📋 Processing phase tasks document:`, {
-        docId: doc.id,
-        phaseId: data.phaseId,
-        tasksCount: data.tasks?.length || 0,
-        sampleTask: data.tasks?.[0]
-          ? {
-              task_id: data.tasks[0].task_id,
-              task_title: data.tasks[0].task_title,
-            }
-          : null,
-      });
-
       // Use the correct field name - we store as 'tasks' not 'data.tasks'
       phaseTasksMap.set(data.phaseId, data.tasks || []);
-    });
-
-    console.log("🗺️ Phase tasks map created:", {
-      mapSize: phaseTasksMap.size,
-      phaseIds: Array.from(phaseTasksMap.keys()),
-      taskCounts: Array.from(phaseTasksMap.entries()).map(
-        ([phaseId, tasks]) => ({
-          phaseId,
-          taskCount: tasks.length,
-        })
-      ),
     });
 
     // Reconstruct full roadmap - need to determine output format
@@ -839,13 +811,6 @@ class FirestorePersistence {
         // Remove task_count field and add actual tasks
         const { task_count, ...phaseWithoutCount } = phase;
         const phaseTasks = phaseTasksMap.get(phase.phase_id) || [];
-
-        console.log(`🔗 Reconstructing phase ${phase.phase_id}:`, {
-          phase_title: phase.phase_title,
-          originalTaskCount: task_count,
-          foundTasksCount: phaseTasks.length,
-          hasTasksInMap: phaseTasksMap.has(phase.phase_id),
-        });
 
         return {
           ...phaseWithoutCount,
@@ -859,32 +824,6 @@ class FirestorePersistence {
       ...roadmapData.outline,
       roadmap: reconstructedPhases, // Direct array format for UI compatibility
     };
-
-    // Calculate totals using the direct array format
-    const totalReconstructedTasks = Array.isArray(fullData.roadmap)
-      ? fullData.roadmap.reduce(
-          (sum, phase) => sum + phase.phase_tasks.length,
-          0
-        )
-      : 0;
-
-    console.log("✅ Roadmap reconstruction complete:", {
-      phasesCount: Array.isArray(fullData.roadmap)
-        ? fullData.roadmap.length
-        : 0,
-      totalTasks: totalReconstructedTasks,
-      phaseTasksMapSize: phaseTasksMap.size,
-      roadmapFormat: Array.isArray(fullData.roadmap)
-        ? "direct array"
-        : "object with phases",
-      reconstructedPhases: Array.isArray(fullData.roadmap)
-        ? fullData.roadmap.map((phase) => ({
-            phase_id: phase.phase_id,
-            phase_title: phase.phase_title,
-            taskCount: phase.phase_tasks.length,
-          }))
-        : [],
-    });
 
     return {
       id: roadmapData.id,

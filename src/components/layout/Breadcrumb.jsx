@@ -6,8 +6,85 @@ const Breadcrumb = ({
   currentPhase,
   isEditing = false,
   isHomePage = false,
+  isAuthPage = false,
 }) => {
   const { roadmapId, phaseId } = useParams();
+
+  // Handle authentication page case
+  if (isAuthPage) {
+    return (
+      <nav className="flex mb-4 sm:mb-6" aria-label="Breadcrumb">
+        <ol className="inline-flex flex-wrap items-center gap-1 sm:gap-2 md:gap-3">
+          <li className="inline-flex items-center">
+            <Tooltip
+              content="Return to homepage and roadmap collection"
+              position="bottom"
+              maxWidth="250px"
+            >
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+              >
+                <span className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
+                </span>
+                <span>Home</span>
+              </Link>
+            </Tooltip>
+          </li>
+          <li className="inline-flex items-center">
+            <svg
+              className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mx-1 sm:mx-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <Tooltip
+              content={`You are currently on the ${roadmapTitle} page`}
+              position="bottom"
+              maxWidth="250px"
+            >
+              <span className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                <span className="w-3 h-3 sm:w-4 sm:h-4 flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </span>
+                <span>{roadmapTitle}</span>
+              </span>
+            </Tooltip>
+          </li>
+        </ol>
+      </nav>
+    );
+  }
 
   // Handle home page case
   if (isHomePage) {

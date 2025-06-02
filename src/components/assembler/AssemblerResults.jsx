@@ -61,34 +61,14 @@ const AssemblerResults = ({
 
       let roadmapId;
 
-      // Try Firestore first if user is authenticated
-      if (currentUser && saveRoadmap) {
-        try {
-          console.log(
-            "💾 Assembler: Saving to Firestore for authenticated user"
-          );
-          roadmapId = await saveRoadmap(transformedData);
-          console.log("✅ Assembler: Saved to Firestore with ID:", roadmapId);
-        } catch (firestoreError) {
-          console.warn(
-            "⚠️ Assembler: Firestore save failed, falling back to localStorage:",
-            firestoreError.message
-          );
-          // Fallback to localStorage
-          roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
-          console.log(
-            "✅ Assembler: Saved to localStorage with ID:",
-            roadmapId
-          );
-        }
-      } else {
-        // Save to localStorage for unauthenticated users
-        console.log(
-          "💾 Assembler: Saving to localStorage (user not authenticated)"
-        );
-        roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
-        console.log("✅ Assembler: Saved to localStorage with ID:", roadmapId);
+      // Require authentication for saving roadmaps
+      if (!currentUser || !saveRoadmap) {
+        throw new Error("You must be signed in to save roadmaps");
       }
+
+      console.log("💾 Assembler: Saving to Firestore");
+      roadmapId = await saveRoadmap(transformedData);
+      console.log("✅ Assembler: Saved to Firestore with ID:", roadmapId);
 
       // Navigate to the roadmap visualizer
       navigate(`/roadmap/${roadmapId}`);

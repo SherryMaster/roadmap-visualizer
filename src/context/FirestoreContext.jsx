@@ -34,48 +34,25 @@ export const FirestoreProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [migrationInProgress, setMigrationInProgress] = useState(false);
 
   // Clear error helper
   const clearError = useCallback(() => setError(null), []);
 
-  // Migration handling (silent - no popup)
+  // Migration disabled - localStorage no longer used
   const checkAndRunMigration = useCallback(async () => {
     if (!currentUser) return;
 
-    try {
-      // Check if migration is needed
-      const isCompleted = DataMigration.isMigrationCompleted(currentUser.uid);
-
-      if (!isCompleted) {
-        console.log("🔄 Starting data migration...");
-        const result = await DataMigration.migrateToFirestore(currentUser.uid);
-
-        setMigrationStatus({
-          completed: true,
-          result: result,
-          timestamp: new Date().toISOString(),
-        });
-
-        console.log("✅ Migration completed:", result);
-      } else {
-        setMigrationStatus({
-          completed: true,
-          result: {
-            success: true,
-            migratedCount: 0,
-            message: "Already migrated",
-          },
-          timestamp: new Date().toISOString(),
-        });
-      }
-    } catch (error) {
-      console.error("❌ Migration failed:", error);
-      setMigrationStatus({
-        completed: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      });
-    }
+    // Skip migration entirely - mark as completed immediately
+    setMigrationStatus({
+      completed: true,
+      result: {
+        success: true,
+        migratedCount: 0,
+        message: "Migration disabled - localStorage no longer used",
+      },
+      timestamp: new Date().toISOString(),
+    });
   }, [currentUser]);
 
   // Load user roadmaps
@@ -260,54 +237,98 @@ export const FirestoreProvider = ({ children }) => {
     [currentUser, loadUserRoadmaps, loadPublicRoadmaps]
   );
 
-  // Set up real-time subscriptions
+  // Update roadmap download permission
+  const updateRoadmapDownloadPermission = useCallback(
+    async (roadmapId, allowDownload) => {
+      if (!currentUser) {
+        throw new Error("User must be authenticated");
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        await FirestorePersistence.updateRoadmapDownloadPermission(
+          roadmapId,
+          allowDownload,
+          currentUser.uid
+        );
+
+        // Refresh both user and public roadmaps
+        await Promise.all([loadUserRoadmaps(), loadPublicRoadmaps()]);
+
+        return true;
+      } catch (error) {
+        console.error("❌ Error updating roadmap download permission:", error);
+        setError(
+          "Failed to update roadmap download permission: " + error.message
+        );
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUser, loadUserRoadmaps, loadPublicRoadmaps]
+  );
+
+  // Combined effect for authentication, migration, and subscriptions
   useEffect(() => {
     if (!currentUser) {
       // Clear subscriptions when user logs out
       subscriptions.forEach((unsubscribe) => unsubscribe());
       setSubscriptions([]);
       setUserRoadmaps([]);
+      setMigrationStatus(null);
       return;
     }
 
-    // Subscribe to user roadmaps
-    const userRoadmapsUnsubscribe =
-      FirestorePersistence.subscribeToUserRoadmaps(
-        currentUser.uid,
-        (roadmaps) => {
-          setUserRoadmaps(roadmaps);
+    // Run migration first, then set up subscriptions
+    const initializeUserData = async () => {
+      try {
+        // Step 1: Handle migration if needed
+        if (!migrationStatus) {
+          await checkAndRunMigration();
         }
-      );
 
-    // Subscribe to public roadmaps
-    const publicRoadmapsUnsubscribe =
-      FirestorePersistence.subscribeToPublicRoadmaps((roadmaps) => {
-        setPublicRoadmaps(roadmaps);
-      });
+        // Step 2: Set up real-time subscriptions (these will handle data loading)
+        const userRoadmapsUnsubscribe =
+          FirestorePersistence.subscribeToUserRoadmaps(
+            currentUser.uid,
+            (roadmaps) => {
+              setUserRoadmaps(roadmaps);
+            }
+          );
 
-    setSubscriptions([userRoadmapsUnsubscribe, publicRoadmapsUnsubscribe]);
+        const publicRoadmapsUnsubscribe =
+          FirestorePersistence.subscribeToPublicRoadmaps((roadmaps) => {
+            setPublicRoadmaps(roadmaps);
+          });
 
-    // Cleanup subscriptions on unmount
-    return () => {
-      userRoadmapsUnsubscribe();
-      publicRoadmapsUnsubscribe();
+        setSubscriptions([userRoadmapsUnsubscribe, publicRoadmapsUnsubscribe]);
+
+        // Cleanup function
+        return () => {
+          userRoadmapsUnsubscribe();
+          publicRoadmapsUnsubscribe();
+        };
+      } catch (error) {
+        console.error("❌ Error initializing user data:", error);
+      }
     };
-  }, [currentUser]);
 
-  // Run migration when user first authenticates
-  useEffect(() => {
-    if (currentUser && !migrationStatus) {
-      checkAndRunMigration();
-    }
-  }, [currentUser, migrationStatus, checkAndRunMigration]);
+    initializeUserData();
 
-  // Initial data load
+    // Cleanup subscriptions on unmount or user change
+    return () => {
+      subscriptions.forEach((unsubscribe) => unsubscribe());
+      setSubscriptions([]);
+    };
+  }, [currentUser?.uid]); // Only depend on user ID to prevent multiple triggers
+
+  // Load public roadmaps independently (doesn't require authentication)
   useEffect(() => {
-    if (currentUser && migrationStatus?.completed) {
-      loadUserRoadmaps();
-    }
     loadPublicRoadmaps();
-  }, [currentUser, migrationStatus, loadUserRoadmaps, loadPublicRoadmaps]);
+  }, [loadPublicRoadmaps]);
 
   const value = {
     // Data
@@ -323,6 +344,7 @@ export const FirestoreProvider = ({ children }) => {
     updateRoadmap,
     deleteRoadmap,
     updateRoadmapPrivacy,
+    updateRoadmapDownloadPermission,
     loadUserRoadmaps,
     loadPublicRoadmaps,
     clearError,
