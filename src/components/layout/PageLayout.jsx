@@ -28,9 +28,9 @@ const PageLayout = ({
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {subtitle}
-                </p>
+                </div>
               )}
             </div>
             <div className="flex-shrink-0">
