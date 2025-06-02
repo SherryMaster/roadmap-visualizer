@@ -441,27 +441,60 @@ class FirestorePersistence {
     }
 
     try {
-      const batch = writeBatch(db);
+      console.log("🗑️ Starting roadmap deletion:", {
+        roadmapId,
+        userId,
+      });
 
-      // Delete roadmap document
+      // First, verify the roadmap exists and user owns it
       const roadmapRef = doc(db, "roadmaps", roadmapId);
-      batch.delete(roadmapRef);
+      const roadmapSnap = await getDoc(roadmapRef);
 
-      // Delete metadata document
-      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
-      batch.delete(metadataRef);
+      if (!roadmapSnap.exists()) {
+        console.log("⚠️ Roadmap not found, may already be deleted");
+        return true; // Consider it successful if already deleted
+      }
 
-      // Delete all phase tasks documents
+      const roadmapData = roadmapSnap.data();
+      if (roadmapData.userId !== userId) {
+        throw new Error("Access denied: You don't own this roadmap");
+      }
+
+      // Find all phase tasks documents to delete
       const phaseTasksQuery = query(
         collection(db, "phaseTasks"),
         where("roadmapId", "==", roadmapId)
       );
       const phaseTasksSnap = await getDocs(phaseTasksQuery);
-      phaseTasksSnap.forEach((doc) => {
-        batch.delete(doc.ref);
+
+      console.log("📋 Found documents to delete:", {
+        roadmapExists: roadmapSnap.exists(),
+        phaseTasksCount: phaseTasksSnap.size,
+        phaseTasksDocs: phaseTasksSnap.docs.map((doc) => ({
+          id: doc.id,
+          phaseId: doc.data().phaseId,
+        })),
       });
 
-      // Delete task completions
+      // Use batch write for atomic deletion
+      const batch = writeBatch(db);
+
+      // Delete roadmap document
+      batch.delete(roadmapRef);
+      console.log("🗑️ Queued roadmap document for deletion");
+
+      // Delete metadata document
+      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
+      batch.delete(metadataRef);
+      console.log("🗑️ Queued metadata document for deletion");
+
+      // Delete all phase tasks documents
+      phaseTasksSnap.forEach((doc) => {
+        batch.delete(doc.ref);
+        console.log(`🗑️ Queued phase tasks document for deletion: ${doc.id}`);
+      });
+
+      // Delete task completions (if they exist)
       const completionRef = doc(
         db,
         "taskCompletions",
@@ -470,16 +503,30 @@ class FirestorePersistence {
         roadmapId
       );
       batch.delete(completionRef);
+      console.log("🗑️ Queued task completions for deletion");
 
+      // Execute all deletions atomically
       await batch.commit();
 
-      console.log(
-        "✅ Roadmap deleted from Firestore (split format):",
-        roadmapId
-      );
+      console.log("✅ Roadmap deletion completed successfully:", {
+        roadmapId,
+        deletedDocuments: {
+          roadmap: 1,
+          metadata: 1,
+          phaseTasks: phaseTasksSnap.size,
+          taskCompletions: 1,
+        },
+        totalDeleted: 3 + phaseTasksSnap.size,
+      });
+
       return true;
     } catch (error) {
-      console.error("❌ Error deleting roadmap:", error);
+      console.error("❌ Error deleting roadmap:", {
+        roadmapId,
+        userId,
+        error: error.message,
+        stack: error.stack,
+      });
       throw new Error("Failed to delete roadmap: " + error.message);
     }
   }

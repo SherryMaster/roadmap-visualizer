@@ -7,6 +7,7 @@ import ValidationErrorModal from "../modals/ValidationErrorModal";
 
 import PageLayout from "../layout/PageLayout";
 import Tooltip from "../tooltips/Tooltip";
+import { LoadingSpinner, ProgressBar } from "../feedback/LoadingStates";
 import { useAuth } from "../../context/AuthContext";
 import { useFirestore } from "../../context/FirestoreContext";
 import RoadmapPersistence from "../../utils/RoadmapPersistence";
@@ -28,6 +29,7 @@ const HomePage = () => {
     error,
     migrationStatus,
     saveRoadmap,
+    deleteRoadmap,
     clearError,
   } = useFirestore();
 
@@ -37,6 +39,12 @@ const HomePage = () => {
 
   const [activeTab, setActiveTab] = useState("my-roadmaps");
   const [routeError, setRouteError] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({
+    step: "",
+    message: "",
+    progress: 0,
+  });
 
   // Handle route error state
   useEffect(() => {
@@ -73,6 +81,14 @@ const HomePage = () => {
     }
 
     try {
+      // Start upload process
+      setIsUploading(true);
+      setUploadProgress({
+        step: "validation",
+        message: "Validating roadmap data...",
+        progress: 10,
+      });
+
       // Validate the data against schema
       const validator = new SchemaValidator(schema);
       const validation = validator.validate(rawData);
@@ -80,8 +96,15 @@ const HomePage = () => {
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         setShowValidationModal(true);
+        setIsUploading(false);
         return;
       }
+
+      setUploadProgress({
+        step: "transformation",
+        message: "Transforming data format...",
+        progress: 30,
+      });
 
       // Transform data to UI-friendly format
       const transformedData = DataTransformer.transformToUI(rawData);
@@ -90,16 +113,44 @@ const HomePage = () => {
         throw new Error("Failed to transform roadmap data");
       }
 
+      setUploadProgress({
+        step: "saving",
+        message: "Saving roadmap to database...",
+        progress: 50,
+      });
+
       // Save the roadmap to Firestore
       const roadmapId = await saveRoadmap(transformedData);
+
+      setUploadProgress({
+        step: "finalizing",
+        message: "Finalizing upload...",
+        progress: 90,
+      });
+
+      // Small delay to show completion
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      setUploadProgress({
+        step: "complete",
+        message: "Upload successful! Redirecting...",
+        progress: 100,
+      });
 
       // Navigate to the roadmap visualizer
       navigate(`/roadmap/${roadmapId}`);
       setShowUploader(false);
+      setIsUploading(false);
     } catch (error) {
       console.error("Error processing roadmap:", error);
       setValidationErrors([`Failed to process roadmap: ${error.message}`]);
       setShowValidationModal(true);
+      setIsUploading(false);
+      setUploadProgress({
+        step: "",
+        message: "",
+        progress: 0,
+      });
     }
   };
 
@@ -112,10 +163,12 @@ const HomePage = () => {
     if (!currentUser) return;
 
     try {
-      // Note: deleteRoadmap function will be called from RoadmapHistory component
-      // which will use the Firestore context
+      console.log("🗑️ Deleting roadmap:", roadmapId);
+      await deleteRoadmap(roadmapId);
+      console.log("✅ Roadmap deleted successfully");
     } catch (error) {
-      console.error("Error deleting roadmap:", error);
+      console.error("❌ Error deleting roadmap:", error);
+      // The error will be handled by the Firestore context and shown in the UI
     }
   };
 
@@ -321,13 +374,22 @@ const HomePage = () => {
                 Upload Roadmap File
               </h3>
               <Tooltip
-                content="Cancel upload and return to main view"
+                content={
+                  isUploading
+                    ? "Cannot close during upload"
+                    : "Cancel upload and return to main view"
+                }
                 position="left"
                 maxWidth="250px"
               >
                 <button
-                  onClick={() => setShowUploader(false)}
-                  className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  onClick={() => !isUploading && setShowUploader(false)}
+                  disabled={isUploading}
+                  className={`p-1 rounded transition-colors ${
+                    isUploading
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
                 >
                   <svg
                     className="w-5 h-5"
@@ -345,7 +407,10 @@ const HomePage = () => {
                 </button>
               </Tooltip>
             </div>
-            <RoadmapUploader onRoadmapLoad={handleRoadmapUpload} />
+            <RoadmapUploader
+              onRoadmapLoad={handleRoadmapUpload}
+              disabled={isUploading}
+            />
           </div>
         </div>
       )}
@@ -478,6 +543,93 @@ const HomePage = () => {
               >
                 Get Started
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Progress Modal */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-scale-in border border-gray-200 dark:border-gray-700">
+            <div className="text-center">
+              {/* Upload Icon */}
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                {uploadProgress.step === "complete" ? (
+                  <svg
+                    className="w-8 h-8 text-green-600 dark:text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <LoadingSpinner size="lg" color="blue" />
+                )}
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {uploadProgress.step === "complete"
+                  ? "Upload Complete!"
+                  : "Uploading Roadmap"}
+              </h3>
+
+              {/* Progress Message */}
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {uploadProgress.message}
+              </p>
+
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <ProgressBar
+                  progress={uploadProgress.progress}
+                  text=""
+                  showPercentage={true}
+                />
+              </div>
+
+              {/* Step Indicator */}
+              <div className="flex justify-center space-x-2 mb-4">
+                {[
+                  "validation",
+                  "transformation",
+                  "saving",
+                  "finalizing",
+                  "complete",
+                ].map((step, index) => (
+                  <div
+                    key={step}
+                    className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                      uploadProgress.step === step
+                        ? "bg-blue-600"
+                        : index <
+                          [
+                            "validation",
+                            "transformation",
+                            "saving",
+                            "finalizing",
+                            "complete",
+                          ].indexOf(uploadProgress.step)
+                        ? "bg-green-500"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Status Text */}
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {uploadProgress.step === "complete"
+                  ? "Redirecting to your roadmap..."
+                  : "Please wait while we process your roadmap..."}
+              </p>
             </div>
           </div>
         </div>

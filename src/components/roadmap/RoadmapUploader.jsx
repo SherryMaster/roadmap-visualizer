@@ -1,20 +1,26 @@
 import { useState } from "react";
 
-const RoadmapUploader = ({ onRoadmapLoad }) => {
+const RoadmapUploader = ({ onRoadmapLoad, disabled = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Combine internal processing state with external disabled state
+  const isDisabled = disabled || isProcessing;
+
   const handleDragOver = (e) => {
+    if (isDisabled) return;
     e.preventDefault();
     setIsDragging(true);
   };
 
   const handleDragLeave = () => {
+    if (isDisabled) return;
     setIsDragging(false);
   };
 
   const handleDrop = (e) => {
+    if (isDisabled) return;
     e.preventDefault();
     setIsDragging(false);
 
@@ -25,6 +31,7 @@ const RoadmapUploader = ({ onRoadmapLoad }) => {
   };
 
   const handleFileInput = (e) => {
+    if (isDisabled) return;
     const files = e.target.files;
     if (files.length > 0) {
       processFile(files[0]);
@@ -85,17 +92,19 @@ const RoadmapUploader = ({ onRoadmapLoad }) => {
     <div className="mb-8">
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          isProcessing
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-wait"
+          isDisabled
+            ? disabled
+              ? "border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 cursor-not-allowed opacity-60"
+              : "border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-wait"
             : isDragging
             ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-pointer"
             : "border-gray-300 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 cursor-pointer"
         }`}
-        onDragOver={!isProcessing ? handleDragOver : undefined}
-        onDragLeave={!isProcessing ? handleDragLeave : undefined}
-        onDrop={!isProcessing ? handleDrop : undefined}
+        onDragOver={!isDisabled ? handleDragOver : undefined}
+        onDragLeave={!isDisabled ? handleDragLeave : undefined}
+        onDrop={!isDisabled ? handleDrop : undefined}
         onClick={
-          !isProcessing
+          !isDisabled
             ? () => document.getElementById("file-upload").click()
             : undefined
         }
@@ -106,19 +115,43 @@ const RoadmapUploader = ({ onRoadmapLoad }) => {
           accept=".json"
           className="hidden"
           onChange={handleFileInput}
-          disabled={isProcessing}
+          disabled={isDisabled}
         />
 
-        {isProcessing ? (
-          <>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-              Processing your roadmap...
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Validating and preparing your roadmap
-            </p>
-          </>
+        {isDisabled ? (
+          disabled ? (
+            <>
+              <svg
+                className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 15v2m-6 0h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+              <p className="text-lg font-medium text-gray-400 dark:text-gray-500">
+                Upload in progress...
+              </p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                Please wait while your current roadmap is being saved
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                Processing your roadmap...
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Validating and preparing your roadmap
+              </p>
+            </>
+          )
         ) : (
           <>
             <svg
