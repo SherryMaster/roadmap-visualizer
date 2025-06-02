@@ -56,11 +56,7 @@ const AssemblerResults = ({
       console.log("Transformed roadmap data:", transformedData); // Debug log
 
       // Save to localStorage using RoadmapPersistence
-      // Pass original merged roadmap as originalData, transformed as main data
-      const roadmapId = RoadmapPersistence.saveRoadmap(
-        transformedData,
-        mergedRoadmap
-      );
+      const roadmapId = RoadmapPersistence.saveRoadmap(transformedData);
 
       console.log("Generated roadmap ID:", roadmapId); // Debug log
 

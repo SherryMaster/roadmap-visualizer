@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import RoadmapUploader from "../roadmap/RoadmapUploader";
 import RoadmapHistory from "../roadmap/RoadmapHistory";
+import PublicRoadmapsList from "../roadmap/PublicRoadmapsList";
 import ValidationErrorModal from "../modals/ValidationErrorModal";
+
 import PageLayout from "../layout/PageLayout";
 import Tooltip from "../tooltips/Tooltip";
+import { useAuth } from "../../context/AuthContext";
+import { useFirestore } from "../../context/FirestoreContext";
 import RoadmapPersistence from "../../utils/RoadmapPersistence";
 import SchemaValidator from "../../utils/SchemaValidator";
 import DataTransformer from "../../utils/DataTransformer";
@@ -14,25 +18,28 @@ import schema from "../../data/schema.json";
 const HomePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [roadmaps, setRoadmaps] = useState([]);
+  usePageTitle("Home");
+
+  const { currentUser } = useAuth();
+  const {
+    userRoadmaps,
+    publicRoadmaps,
+    loading,
+    error,
+    migrationStatus,
+    saveRoadmap,
+    clearError,
+  } = useFirestore();
+
   const [showUploader, setShowUploader] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
   const [showValidationModal, setShowValidationModal] = useState(false);
-  const [stats, setStats] = useState({
-    totalRoadmaps: 0,
-    totalTasks: 0,
-    averageProgress: 0,
-  });
+
+  const [activeTab, setActiveTab] = useState("my-roadmaps");
   const [routeError, setRouteError] = useState(null);
 
-  // Set page title
-  usePageTitle("Home");
-
+  // Handle route error state
   useEffect(() => {
-    loadRoadmaps();
-    loadStats();
-
-    // Check for route error state
     if (location.state?.error) {
       setRouteError(location.state);
       // Clear the error from location state
@@ -40,20 +47,31 @@ const HomePage = () => {
     }
   }, [location.state, navigate, location.pathname]);
 
-  const loadRoadmaps = () => {
-    // Recalculate metadata to fix any incorrect phase/task counts
-    RoadmapPersistence.recalculateAllMetadata();
-
-    const roadmapMetadata = RoadmapPersistence.getAllRoadmapMetadata();
-    setRoadmaps(roadmapMetadata);
-  };
-
-  const loadStats = () => {
-    const roadmapStats = RoadmapPersistence.getRoadmapStats();
-    setStats(roadmapStats);
+  // Calculate stats from user roadmaps
+  const stats = {
+    totalRoadmaps: userRoadmaps.length,
+    totalTasks: userRoadmaps.reduce(
+      (total, roadmap) => total + (roadmap.totalTasks || 0),
+      0
+    ),
+    averageProgress:
+      userRoadmaps.length > 0
+        ? Math.round(
+            userRoadmaps.reduce(
+              (total, roadmap) => total + (roadmap.progressPercentage || 0),
+              0
+            ) / userRoadmaps.length
+          )
+        : 0,
   };
 
   const handleRoadmapUpload = async (rawData) => {
+    if (!currentUser) {
+      setValidationErrors(["You must be signed in to upload roadmaps"]);
+      setShowValidationModal(true);
+      return;
+    }
+
     try {
       // Validate the data against schema
       const validator = new SchemaValidator(schema);
@@ -72,18 +90,11 @@ const HomePage = () => {
         throw new Error("Failed to transform roadmap data");
       }
 
-      // Save the roadmap
-      const roadmapId = RoadmapPersistence.saveRoadmap(
-        transformedData,
-        rawData
-      );
+      // Save the roadmap to Firestore
+      const roadmapId = await saveRoadmap(transformedData);
 
       // Navigate to the roadmap visualizer
       navigate(`/roadmap/${roadmapId}`);
-
-      // Refresh the roadmap list
-      loadRoadmaps();
-      loadStats();
       setShowUploader(false);
     } catch (error) {
       console.error("Error processing roadmap:", error);
@@ -95,14 +106,16 @@ const HomePage = () => {
   const handleSelectRoadmap = (roadmapId) => {
     // Navigate to the roadmap visualizer
     navigate(`/roadmap/${roadmapId}`);
-    loadRoadmaps(); // Refresh to update last accessed time
   };
 
-  const handleDeleteRoadmap = (roadmapId) => {
-    const success = RoadmapPersistence.deleteRoadmap(roadmapId);
-    if (success) {
-      loadRoadmaps();
-      loadStats();
+  const handleDeleteRoadmap = async (roadmapId) => {
+    if (!currentUser) return;
+
+    try {
+      // Note: deleteRoadmap function will be called from RoadmapHistory component
+      // which will use the Firestore context
+    } catch (error) {
+      console.error("Error deleting roadmap:", error);
     }
   };
 
@@ -142,9 +155,13 @@ const HomePage = () => {
     <div className="flex flex-col space-y-3 sm:space-y-4">
       <div className="text-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          {roadmaps.length === 0 ? "Get Started" : "Quick Actions"}
+          {currentUser
+            ? stats.totalRoadmaps === 0
+              ? "Get Started"
+              : "Quick Actions"
+            : "Welcome"}
         </h2>
-        {stats.totalRoadmaps > 0 && (
+        {currentUser && stats.totalRoadmaps > 0 && (
           <p className="text-sm text-gray-600 dark:text-gray-400">
             <span className="hidden sm:inline">
               {Math.floor((stats.totalTasks * stats.averageProgress) / 100)} of{" "}
@@ -156,17 +173,28 @@ const HomePage = () => {
             </span>
           </p>
         )}
+        {!currentUser && (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Sign in to create and manage your personal roadmaps
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
         <Tooltip
-          content="Upload a roadmap JSON file"
+          content={
+            currentUser
+              ? "Upload a roadmap JSON file"
+              : "Sign in to upload roadmaps"
+          }
           position="top"
           maxWidth="200px"
         >
           <button
-            onClick={() => setShowUploader(true)}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
+            onClick={() =>
+              currentUser ? setShowUploader(true) : navigate("/login")
+            }
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md disabled:opacity-50"
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -181,17 +209,23 @@ const HomePage = () => {
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
-            <span>Upload Roadmap</span>
+            <span>{currentUser ? "Upload Roadmap" : "Sign In"}</span>
           </button>
         </Tooltip>
         <Tooltip
-          content="Build roadmaps from components"
+          content={
+            currentUser
+              ? "Build roadmaps from components"
+              : "Sign in to use the assembler"
+          }
           position="top"
           maxWidth="200px"
         >
           <button
-            onClick={() => navigate("/assembler")}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
+            onClick={() =>
+              currentUser ? navigate("/assembler") : navigate("/login")
+            }
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md disabled:opacity-50"
           >
             <svg
               className="w-5 h-5 flex-shrink-0"
@@ -206,7 +240,7 @@ const HomePage = () => {
                 d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
               />
             </svg>
-            <span>Assembler</span>
+            <span>{currentUser ? "Assembler" : "Sign In"}</span>
           </button>
         </Tooltip>
       </div>
@@ -316,49 +350,134 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* Roadmap Collection */}
-      {roadmaps.length > 0 && (
-        <div className="mb-6">
-          <RoadmapHistory
-            roadmaps={roadmaps}
-            onSelectRoadmap={handleSelectRoadmap}
-            onDeleteRoadmap={handleDeleteRoadmap}
-          />
-        </div>
-      )}
+      {/* Roadmap Sections */}
+      {currentUser ? (
+        <div className="space-y-6">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("my-roadmaps")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "my-roadmaps"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                My Roadmaps ({userRoadmaps.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("public-roadmaps")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "public-roadmaps"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                Community ({publicRoadmaps.length})
+              </button>
+            </nav>
+          </div>
 
-      {/* Getting Started Guide */}
-      {roadmaps.length === 0 && !showUploader && (
-        <div className="mb-6">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-blue-600 dark:text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+          {/* Tab Content */}
+          {activeTab === "my-roadmaps" && (
+            <div>
+              {userRoadmaps.length > 0 ? (
+                <RoadmapHistory
+                  roadmaps={userRoadmaps}
+                  onSelectRoadmap={handleSelectRoadmap}
+                  onDeleteRoadmap={handleDeleteRoadmap}
+                  showPrivacyControls={true}
+                />
+              ) : (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      No Roadmaps Yet
+                    </h3>
+                    <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
+                      Upload a JSON roadmap file or use the Assembler to create
+                      your first roadmap.
+                    </p>
+                    <button
+                      onClick={() => setShowUploader(true)}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      Upload Roadmap
+                    </button>
+                  </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "public-roadmaps" && <PublicRoadmapsList />}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Public Roadmaps for Non-Authenticated Users */}
+          <PublicRoadmapsList />
+
+          {/* Getting Started Guide */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
               </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  Getting Started
-                </h3>
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  Upload a JSON roadmap file or use the Assembler to build from
-                  components. Files should follow our structured schema for
-                  optimal compatibility.
-                </p>
-              </div>
+              <h3 className="text-lg font-medium text-blue-900 dark:text-blue-100 mb-2">
+                Welcome to Roadmap Visualizer
+              </h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
+                Sign in to create, manage, and track your personal learning
+                roadmaps. Upload JSON files or use our Assembler to build custom
+                roadmaps.
+              </p>
+              <button
+                onClick={() => navigate("/login")}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Get Started
+              </button>
             </div>
           </div>
         </div>

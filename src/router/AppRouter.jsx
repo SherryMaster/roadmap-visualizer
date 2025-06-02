@@ -17,6 +17,8 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import ProfilePage from "../components/pages/ProfilePage";
 import SettingsPage from "../components/pages/SettingsPage";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
+import FirestorePersistence from "../utils/FirestorePersistence";
+import { auth } from "../config/firebase";
 
 // Route loader for roadmap data
 const roadmapLoader = async ({ params }) => {
@@ -26,8 +28,53 @@ const roadmapLoader = async ({ params }) => {
     throw new Response("Roadmap ID is required", { status: 400 });
   }
 
-  const allMetadata = RoadmapPersistence.getAllRoadmapMetadata();
-  let roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
+  let roadmapInfo = null;
+  let allMetadata = [];
+
+  // Check if user is authenticated and try Firestore first
+  const currentUser = auth.currentUser;
+
+  if (currentUser) {
+    try {
+      console.log(
+        "🔍 Loading roadmap from Firestore:",
+        roadmapId,
+        "User:",
+        currentUser.uid
+      );
+      roadmapInfo = await FirestorePersistence.loadRoadmap(
+        roadmapId,
+        currentUser.uid
+      );
+
+      if (roadmapInfo) {
+        console.log("✅ Roadmap loaded from Firestore");
+        return {
+          roadmapData: roadmapInfo.data,
+          roadmapId: roadmapId,
+          metadata: {
+            id: roadmapInfo.id,
+            title: roadmapInfo.data.title,
+            description: roadmapInfo.data.description,
+            project_level: roadmapInfo.data.project_level,
+            tags: roadmapInfo.data.tags,
+          },
+        };
+      }
+    } catch (error) {
+      console.log(
+        "⚠️ Firestore load failed, trying localStorage:",
+        error.message
+      );
+    }
+  } else {
+    console.log("👤 No authenticated user, using localStorage only");
+  }
+
+  // Fallback to localStorage
+  console.log("🔍 Loading roadmap from localStorage:", roadmapId);
+  allMetadata = RoadmapPersistence.getAllRoadmapMetadata();
+  roadmapInfo = RoadmapPersistence.loadRoadmap(roadmapId);
 
   // If roadmap not found, try to find it by title or other means
   if (!roadmapInfo) {
@@ -46,6 +93,7 @@ const roadmapLoader = async ({ params }) => {
   }
 
   if (!roadmapInfo) {
+    console.log("❌ Roadmap not found in either Firestore or localStorage");
     throw new Response("Roadmap not found", { status: 404 });
   }
 

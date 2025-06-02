@@ -30,6 +30,11 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
   };
 
   const getProjectLevelBadge = (level) => {
+    // Handle undefined or null level
+    if (!level) {
+      level = "beginner"; // Default fallback
+    }
+
     const colors = {
       beginner:
         "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",

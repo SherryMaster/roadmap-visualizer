@@ -1,0 +1,79 @@
+{
+  "title": "Test Split Document Roadmap",
+  "description": "A test roadmap to verify split document functionality",
+  "tags": ["test", "split-document"],
+  "project_level": "beginner",
+  "roadmap": {
+    "phases": [
+      {
+        "phase_id": "phase_1",
+        "phase_title": "Phase 1: Setup",
+        "phase_summary": "Initial setup phase",
+        "phase_details": ["Set up development environment"],
+        "phase_number": 1,
+        "phase_dependencies": [],
+        "key_milestones": ["Environment ready"],
+        "success_indicators": ["All tools installed"],
+        "phase_tasks": [
+          {
+            "task_id": "task_1_1",
+            "task_title": "Install Node.js",
+            "task_description": "Install Node.js runtime",
+            "task_number": 1,
+            "difficulty": "beginner",
+            "estimated_time": "30 minutes",
+            "resources": ["https://nodejs.org"],
+            "dependencies": [],
+            "tags": ["setup", "nodejs"],
+            "outcomes": ["Node.js installed"],
+            "subtasks": ["Download installer", "Run installer"],
+            "priority": "high",
+            "notes": "Use LTS version"
+          },
+          {
+            "task_id": "task_1_2",
+            "task_title": "Setup Git",
+            "task_description": "Configure Git for version control",
+            "task_number": 2,
+            "difficulty": "beginner",
+            "estimated_time": "15 minutes",
+            "resources": ["https://git-scm.com"],
+            "dependencies": [],
+            "tags": ["setup", "git"],
+            "outcomes": ["Git configured"],
+            "subtasks": ["Install Git", "Configure username", "Configure email"],
+            "priority": "high",
+            "notes": "Set global config"
+          }
+        ]
+      },
+      {
+        "phase_id": "phase_2",
+        "phase_title": "Phase 2: Development",
+        "phase_summary": "Main development phase",
+        "phase_details": ["Build the application"],
+        "phase_number": 2,
+        "phase_dependencies": ["phase_1"],
+        "key_milestones": ["First feature complete"],
+        "success_indicators": ["Tests passing"],
+        "phase_tasks": [
+          {
+            "task_id": "task_2_1",
+            "task_title": "Create React App",
+            "task_description": "Initialize React application",
+            "task_number": 1,
+            "difficulty": "intermediate",
+            "estimated_time": "1 hour",
+            "resources": ["https://reactjs.org"],
+            "dependencies": ["task_1_1"],
+            "tags": ["react", "frontend"],
+            "outcomes": ["React app created"],
+            "subtasks": ["Run create-react-app", "Clean up boilerplate"],
+            "priority": "high",
+            "notes": "Use TypeScript template"
+          }
+        ]
+      }
+    ]
+  }
+}
