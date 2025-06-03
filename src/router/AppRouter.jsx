@@ -25,40 +25,67 @@ import { onAuthStateChanged } from "firebase/auth";
 // Helper function to wait for auth state in router loader
 const waitForAuthInLoader = () => {
   return new Promise((resolve) => {
+    console.log(
+      "🔍 waitForAuthInLoader: Starting auth wait, current user:",
+      auth.currentUser?.uid || "null"
+    );
+
     // Check if we already have a definitive auth state
     // Note: auth.currentUser can be null (not authenticated) or User object (authenticated)
     // We need to distinguish between "not determined yet" vs "determined as null"
 
     // Try to resolve immediately if auth state seems determined
     if (auth.currentUser) {
+      console.log(
+        "✅ waitForAuthInLoader: Immediate resolve with user:",
+        auth.currentUser.uid
+      );
       resolve(auth.currentUser);
       return;
     }
-    let resolved = false;
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (resolved) return; // Prevent multiple resolutions
+    let resolved = false;
+    let unsubscribe = null;
+    let timeoutId = null;
+
+    const resolveOnce = (user, reason) => {
+      if (resolved) return;
+
+      console.log(
+        `✅ waitForAuthInLoader: Resolving with user ${
+          user?.uid || "null"
+        } (${reason})`
+      );
 
       resolved = true;
-      unsubscribe();
+
+      // Clean up
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
       resolve(user);
+    };
+
+    unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log(
+        "🔍 waitForAuthInLoader: Auth state changed to:",
+        user?.uid || "null"
+      );
+      resolveOnce(user, "auth state change");
     });
 
     // Timeout to prevent infinite waiting
-    const timeoutId = setTimeout(() => {
-      if (resolved) return; // Already resolved
-
-      resolved = true;
-      unsubscribe();
-      resolve(auth.currentUser);
-    }, 2000); // Reduced timeout for better UX
-
-    // Clean up timeout if auth resolves first
-    const originalUnsubscribe = unsubscribe;
-    unsubscribe = () => {
-      clearTimeout(timeoutId);
-      originalUnsubscribe();
-    };
+    timeoutId = setTimeout(() => {
+      console.log(
+        "⏰ waitForAuthInLoader: Timeout reached, current user:",
+        auth.currentUser?.uid || "null"
+      );
+      resolveOnce(auth.currentUser, "timeout");
+    }, 1000); // Reduced timeout for better UX
   });
 };
 
@@ -78,6 +105,7 @@ const roadmapLoader = async ({ params }) => {
 
   // Always try Firestore first (for both authenticated and unauthenticated users)
   // This allows access to public roadmaps even without authentication
+
   try {
     roadmapInfo = await FirestorePersistence.loadRoadmap(
       roadmapId,

@@ -8,10 +8,20 @@ import { useEffect, useState } from "react";
 import RoadmapVisualizer from "./RoadmapVisualizer";
 
 const RoadmapLoader = () => {
-  const { roadmapData, roadmapId, metadata } = useLoaderData();
+  const loaderData = useLoaderData();
+  const { roadmapData, roadmapId, metadata } = loaderData;
   const { phaseId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+
+  console.log("🔍 RoadmapLoader: Component loaded with data:", {
+    hasLoaderData: !!loaderData,
+    hasRoadmapData: !!roadmapData,
+    hasMetadata: !!metadata,
+    roadmapId,
+    metadataTitle: metadata?.title,
+    loaderDataKeys: loaderData ? Object.keys(loaderData) : null,
+  });
 
   // Update page title based on roadmap
   useEffect(() => {

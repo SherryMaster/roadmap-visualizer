@@ -214,7 +214,14 @@ class FirestorePersistence {
 
       return fullRoadmapData;
     } catch (error) {
-      console.error("❌ Error loading roadmap from Firestore:", error);
+      console.error("❌ Error loading roadmap from Firestore:", {
+        roadmapId,
+        userId,
+        error: error.message,
+        errorCode: error.code,
+        errorType: error.constructor.name,
+        stack: error.stack,
+      });
       throw error;
     }
   }
