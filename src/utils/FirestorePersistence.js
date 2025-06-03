@@ -829,7 +829,8 @@ class FirestorePersistence {
       id: roadmapData.id,
       data: fullData,
       originalData: fullData, // Use reconstructed data as originalData since we don't store it separately
-      isPublic: roadmapData.isPublic,
+      isPublic: roadmapData.isPublic ?? false, // Default to private for existing roadmaps
+      allowDownload: roadmapData.allowDownload ?? true, // Default to allow downloads for existing roadmaps
       userId: roadmapData.userId,
       createdAt: roadmapData.createdAt,
       updatedAt: roadmapData.updatedAt,
