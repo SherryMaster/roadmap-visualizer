@@ -48,31 +48,6 @@ class FirestorePersistence {
       // Split roadmap data into outline and tasks
       const { outline, phaseTasks } = this.splitRoadmapData(roadmapData);
 
-      console.log("💾 Saving roadmap debug:", {
-        roadmapId,
-        originalPhases: roadmapData.roadmap?.phases?.length || 0,
-        outlinePhases: outline.roadmap?.phases?.length || 0,
-        phaseTasksCount: phaseTasks.length,
-        totalTasks: phaseTasks.reduce(
-          (sum, pt) => sum + pt.phase_tasks.length,
-          0
-        ),
-        samplePhase: roadmapData.roadmap?.phases?.[0]
-          ? {
-              phase_id: roadmapData.roadmap.phases[0].phase_id,
-              phase_title: roadmapData.roadmap.phases[0].phase_title,
-              taskCount: roadmapData.roadmap.phases[0].phase_tasks?.length || 0,
-            }
-          : null,
-        sampleOutlinePhase: outline.roadmap?.phases?.[0]
-          ? {
-              phase_id: outline.roadmap.phases[0].phase_id,
-              phase_title: outline.roadmap.phases[0].phase_title,
-              task_count: outline.roadmap.phases[0].task_count,
-            }
-          : null,
-      });
-
       // Prepare roadmap outline document (without task details)
       const roadmapDoc = {
         id: roadmapId,
@@ -92,16 +67,6 @@ class FirestorePersistence {
       // Prepare metadata document for efficient querying
       const totalPhases = this.calculateTotalPhases(roadmapData);
       const totalTasks = this.calculateTotalTasks(roadmapData);
-
-      console.log("📊 Metadata calculation debug:", {
-        totalPhases,
-        totalTasks,
-        roadmapDataStructure: {
-          hasRoadmap: !!roadmapData.roadmap,
-          hasPhases: !!roadmapData.roadmap?.phases,
-          phasesLength: roadmapData.roadmap?.phases?.length || 0,
-        },
-      });
 
       const metadataDoc = {
         id: roadmapId,

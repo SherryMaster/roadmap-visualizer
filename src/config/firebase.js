@@ -11,16 +11,6 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 // Set VITE_FIREBASE_DEMO_MODE=true in your .env file to use demo mode
 const isDemoMode = import.meta.env.VITE_FIREBASE_DEMO_MODE === "true";
 
-// Debug: Log environment variables (remove in production)
-console.log("🔥 Firebase Config Debug:", {
-  isDemoMode,
-  hasApiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
-  apiKeyPreview:
-    import.meta.env.VITE_FIREBASE_API_KEY?.substring(0, 10) + "...",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-});
-
 const firebaseConfig = isDemoMode
   ? {
       // Demo configuration - uses Firebase emulators
@@ -74,7 +64,6 @@ if (import.meta.env.DEV || isDemoMode) {
   try {
     // Connect to Firebase emulators for development/demo
     if (isDemoMode) {
-      console.log("🔥 Firebase Demo Mode: Using emulated services");
       connectAuthEmulator(auth, "http://localhost:9099", {
         disableWarnings: true,
       });

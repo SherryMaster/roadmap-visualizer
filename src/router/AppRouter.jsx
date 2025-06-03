@@ -25,21 +25,12 @@ import { onAuthStateChanged } from "firebase/auth";
 // Helper function to wait for auth state in router loader
 const waitForAuthInLoader = () => {
   return new Promise((resolve) => {
-    console.log(
-      "🔍 waitForAuthInLoader: Starting auth wait, current user:",
-      auth.currentUser?.uid || "null"
-    );
-
     // Check if we already have a definitive auth state
     // Note: auth.currentUser can be null (not authenticated) or User object (authenticated)
     // We need to distinguish between "not determined yet" vs "determined as null"
 
     // Try to resolve immediately if auth state seems determined
     if (auth.currentUser) {
-      console.log(
-        "✅ waitForAuthInLoader: Immediate resolve with user:",
-        auth.currentUser.uid
-      );
       resolve(auth.currentUser);
       return;
     }
@@ -50,12 +41,6 @@ const waitForAuthInLoader = () => {
 
     const resolveOnce = (user, reason) => {
       if (resolved) return;
-
-      console.log(
-        `✅ waitForAuthInLoader: Resolving with user ${
-          user?.uid || "null"
-        } (${reason})`
-      );
 
       resolved = true;
 
@@ -71,19 +56,11 @@ const waitForAuthInLoader = () => {
     };
 
     unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log(
-        "🔍 waitForAuthInLoader: Auth state changed to:",
-        user?.uid || "null"
-      );
       resolveOnce(user, "auth state change");
     });
 
     // Timeout to prevent infinite waiting
     timeoutId = setTimeout(() => {
-      console.log(
-        "⏰ waitForAuthInLoader: Timeout reached, current user:",
-        auth.currentUser?.uid || "null"
-      );
       resolveOnce(auth.currentUser, "timeout");
     }, 1000); // Reduced timeout for better UX
   });

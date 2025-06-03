@@ -239,14 +239,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log("🔐 AuthProvider: Setting up auth state listener");
-
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("🔐 Auth state changed:", {
-        user: user ? `${user.displayName || user.email} (${user.uid})` : "null",
-        isInitialized: authInitialized,
-      });
-
       // Set user immediately (this is fast - from cache)
       setCurrentUser(user);
 
@@ -254,7 +247,6 @@ export const AuthProvider = ({ children }) => {
       if (!authInitialized) {
         setAuthInitialized(true);
         setLoading(false); // Stop loading immediately when auth state is determined
-        console.log("✅ Auth state initialized");
       }
 
       // Load user profile in background (non-blocking)
@@ -268,7 +260,6 @@ export const AuthProvider = ({ children }) => {
     // Set a timeout as fallback to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (!authInitialized) {
-        console.log("⚠️ Auth initialization timeout, proceeding without user");
         setLoading(false);
         setAuthInitialized(true);
       }

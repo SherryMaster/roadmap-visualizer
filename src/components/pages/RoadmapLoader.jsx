@@ -14,15 +14,6 @@ const RoadmapLoader = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log("🔍 RoadmapLoader: Component loaded with data:", {
-    hasLoaderData: !!loaderData,
-    hasRoadmapData: !!roadmapData,
-    hasMetadata: !!metadata,
-    roadmapId,
-    metadataTitle: metadata?.title,
-    loaderDataKeys: loaderData ? Object.keys(loaderData) : null,
-  });
-
   // Update page title based on roadmap
   useEffect(() => {
     if (metadata?.title) {
