@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFirestore } from '../../context/FirestoreContext';
 import Tooltip from '../tooltips/Tooltip';
+import PrivacyIndicator from './PrivacyIndicator';
 
 const PublicRoadmapsList = () => {
   const { publicRoadmaps, loading, error } = useFirestore();
@@ -141,9 +142,17 @@ const PublicRoadmapsList = () => {
               >
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 transition-colors duration-200">
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
-                      {roadmap.title}
-                    </h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
+                          {roadmap.title}
+                        </h3>
+                        <PrivacyIndicator
+                          isPublic={true}
+                          size="xs"
+                        />
+                      </div>
+                    </div>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(roadmap.projectLevel)}`}>
                       {roadmap.projectLevel}
                     </span>
@@ -199,6 +208,10 @@ const PublicRoadmapsList = () => {
                         <h3 className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
                           {roadmap.title}
                         </h3>
+                        <PrivacyIndicator
+                          isPublic={true}
+                          size="xs"
+                        />
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(roadmap.projectLevel)}`}>
                           {roadmap.projectLevel}
                         </span>
