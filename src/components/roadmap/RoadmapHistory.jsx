@@ -123,7 +123,7 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
                     {roadmap.title}
                   </h3>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    {formatDate(roadmap.lastAccessed)}
+                    {formatDate(roadmap.createdAt)}
                   </p>
                 </div>
 
