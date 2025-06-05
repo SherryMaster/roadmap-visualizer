@@ -3,9 +3,8 @@ import TaskList from "../task/TaskList";
 import { useTaskCompletion } from "../../context/TaskCompletionContext";
 import Tooltip from "../tooltips/Tooltip";
 import { SuccessTooltip } from "../tooltips/EnhancedTooltip";
-import { TaskSkeleton } from "../feedback/RoadmapSkeleton";
 
-const Phase = ({ phase, isExpanded, isActive, onClick, isLoading = false, isLoaded = true }) => {
+const Phase = ({ phase, isExpanded, isActive, onClick }) => {
   const { phase_number, phase_title, phase_tasks, phase_id } = phase;
   const taskListRef = useRef(null);
   const { getCompletedTasksInPhase } = useTaskCompletion();
@@ -169,32 +168,11 @@ const Phase = ({ phase, isExpanded, isActive, onClick, isLoading = false, isLoad
 
       {isExpanded && (
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700">
-          {isLoading ? (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 mb-4">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span>Loading tasks...</span>
-              </div>
-              {Array.from({ length: 2 }).map((_, index) => (
-                <TaskSkeleton key={index} />
-              ))}
-            </div>
-          ) : !isLoaded && phase_tasks.length === 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Tasks will load when you expand this phase</span>
-              </div>
-            </div>
-          ) : (
-            <TaskList
-              ref={taskListRef}
-              tasks={phase_tasks}
-              phaseNumber={phase_number}
-            />
-          )}
+          <TaskList
+            ref={taskListRef}
+            tasks={phase_tasks}
+            phaseNumber={phase_number}
+          />
         </div>
       )}
     </div>

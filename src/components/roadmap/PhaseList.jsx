@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
 import Phase from "./Phase";
 import ProgressIndicator from "../ui/ProgressIndicator";
-import { PhaseSkeleton } from "../feedback/RoadmapSkeleton";
 
-const PhaseList = ({
-  phases,
-  roadmapData,
-  loadedPhases = new Map(),
-  loadingPhases = new Set(),
-  onLoadPhase = null
-}) => {
+const PhaseList = ({ phases }) => {
   const [expandedPhases, setExpandedPhases] = useState(new Set());
 
   // Sort phases by phase_number and ensure unique keys
@@ -79,19 +72,6 @@ const PhaseList = ({
     };
   }, [sortedPhases, expandedPhases]);
 
-  // Function to trigger phase loading when expanded
-  const handlePhaseClickWithLoading = (phaseNumber) => {
-    const phase = sortedPhases.find(p => p.phase_number === phaseNumber);
-
-    // Trigger loading if phase data is not loaded and we have a loading function
-    if (phase && onLoadPhase && !loadedPhases.has(phase.phase_id) && !loadingPhases.has(phase.phase_id)) {
-      onLoadPhase(phase.phase_id, phase.phase_title);
-    }
-
-    // Handle expansion
-    handlePhaseClick(phaseNumber);
-  };
-
   return (
     <div>
       <ProgressIndicator phases={phases} />
@@ -104,31 +84,13 @@ const PhaseList = ({
             `phase-${phase.phase_number}` ||
             `phase-index-${index}`;
 
-          const isLoaded = loadedPhases.has(phase.phase_id);
-          const isLoading = loadingPhases.has(phase.phase_id);
-          const hasNoTasks = !phase.phase_tasks || phase.phase_tasks.length === 0;
-
-          // Show skeleton if phase is loading or has no tasks but should have them
-          if (isLoading || (!isLoaded && hasNoTasks && onLoadPhase)) {
-            return (
-              <div key={uniqueKey}>
-                <PhaseSkeleton
-                  showTasks={expandedPhases.has(phase.phase_number)}
-                  taskCount={2}
-                />
-              </div>
-            );
-          }
-
           return (
             <Phase
               key={uniqueKey}
               phase={phase}
               isExpanded={expandedPhases.has(phase.phase_number)}
               isActive={expandedPhases.has(phase.phase_number)}
-              onClick={() => handlePhaseClickWithLoading(phase.phase_number)}
-              isLoading={isLoading}
-              isLoaded={isLoaded}
+              onClick={() => handlePhaseClick(phase.phase_number)}
             />
           );
         })}
