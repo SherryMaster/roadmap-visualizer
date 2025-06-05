@@ -596,6 +596,75 @@ class FirestorePersistence {
   }
 
   /**
+   * Update progress percentage for a roadmap
+   */
+  static async updateRoadmapProgress(roadmapId, progressPercentage) {
+    try {
+      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
+      await updateDoc(metadataRef, {
+        progressPercentage: progressPercentage,
+        lastAccessed: serverTimestamp(),
+      });
+
+      console.log(`✅ Progress updated for roadmap ${roadmapId}: ${progressPercentage}%`);
+    } catch (error) {
+      console.error("❌ Error updating roadmap progress:", error);
+      // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
+   * Load task completion data for a roadmap
+   */
+  static async loadTaskCompletions(userId, roadmapId) {
+    try {
+      const completionRef = doc(
+        db,
+        "taskCompletions",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+      const completionSnap = await getDoc(completionRef);
+
+      if (completionSnap.exists()) {
+        const data = completionSnap.data();
+        return data.completedTasks || {};
+      }
+
+      return {};
+    } catch (error) {
+      console.error("❌ Error loading task completions:", error);
+      return {};
+    }
+  }
+
+  /**
+   * Save task completion data for a roadmap
+   */
+  static async saveTaskCompletions(userId, roadmapId, completedTasks) {
+    try {
+      const completionRef = doc(
+        db,
+        "taskCompletions",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      await setDoc(completionRef, {
+        completedTasks: completedTasks,
+        lastUpdated: serverTimestamp(),
+      }, { merge: true });
+
+      console.log(`✅ Task completions saved for roadmap ${roadmapId}`);
+    } catch (error) {
+      console.error("❌ Error saving task completions:", error);
+      // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
    * Calculate total phases in roadmap
    */
   static calculateTotalPhases(roadmapData) {
