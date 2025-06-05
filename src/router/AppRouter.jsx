@@ -8,6 +8,8 @@ import HomePage from "../components/pages/HomePage";
 import RoadmapVisualizer from "../components/pages/RoadmapVisualizer";
 import NotFoundPage from "../components/pages/NotFoundPage";
 import RoadmapLoader from "../components/pages/RoadmapLoader";
+import EnhancedProgressiveRoadmapLoader from "../components/pages/EnhancedProgressiveRoadmapLoader";
+import EnhancedProgressiveRoadmapVisualizer from "../components/pages/EnhancedProgressiveRoadmapVisualizer";
 import RoadmapAssembler from "../components/assembler/RoadmapAssembler";
 import RoadmapEditor from "../components/editor/RoadmapEditor";
 import Login from "../components/auth/Login";
@@ -64,6 +66,75 @@ const waitForAuthInLoader = () => {
       resolveOnce(auth.currentUser, "timeout");
     }, 1000); // Reduced timeout for better UX
   });
+};
+
+// Enhanced progressive route loader for instant navigation
+const enhancedProgressiveRoadmapLoader = async ({ params }) => {
+  const { roadmapId } = params;
+
+  if (!roadmapId) {
+    throw new Response("Roadmap ID is required", { status: 400 });
+  }
+
+  // Wait for auth state to be determined
+  const currentUser = await waitForAuthInLoader();
+
+  try {
+    const roadmapMetadata = await FirestorePersistence.loadRoadmapMetadata(
+      roadmapId,
+      currentUser?.uid || null
+    );
+
+    if (roadmapMetadata) {
+      return {
+        roadmapMetadata: roadmapMetadata,
+        roadmapId: roadmapId,
+      };
+    }
+  } catch (error) {
+    console.error("❌ Error in enhanced progressive roadmap loader:", error);
+
+    if (error.message.includes("Access denied") && !currentUser) {
+      const response = new Response(
+        `This roadmap is private. Please sign in to access it.`,
+        { status: 403, statusText: "Access Denied" }
+      );
+      response.debugInfo = {
+        roadmapId,
+        error: error.message,
+        userAuthenticated: false,
+        suggestion: "Sign in to access private roadmaps",
+      };
+      throw response;
+    }
+
+    if (error.message.includes("Access denied")) {
+      throw new Response("Access denied: This roadmap is private", {
+        status: 403
+      });
+    }
+
+    throw new Response("Failed to load roadmap", { status: 500 });
+  }
+
+  // If no roadmap found, throw 404
+  const errorMessage = `Roadmap not found: ${roadmapId}. ${
+    currentUser
+      ? "This roadmap may not exist, may be private, or you may not have access to it."
+      : "This roadmap may not exist, or it may be private. Please sign in if you have access to this roadmap."
+  }`;
+
+  const response = new Response(errorMessage, {
+    status: 404,
+    statusText: "Roadmap Not Found",
+  });
+  response.debugInfo = {
+    roadmapId,
+    userAuthenticated: !!currentUser,
+    userId: currentUser?.uid,
+    source: "Enhanced progressive loader - metadata only",
+  };
+  throw response;
 };
 
 // Route loader for roadmap data
@@ -175,17 +246,17 @@ const router = createBrowserRouter([
   },
   {
     path: "/roadmap/:roadmapId",
-    element: <RoadmapLoader />,
-    loader: roadmapLoader,
+    element: <EnhancedProgressiveRoadmapLoader />,
+    loader: enhancedProgressiveRoadmapLoader,
     errorElement: <NotFoundPage />,
     children: [
       {
         index: true,
-        element: <RoadmapVisualizer />,
+        element: <EnhancedProgressiveRoadmapVisualizer />,
       },
       {
         path: "phase/:phaseId",
-        element: <RoadmapVisualizer />,
+        element: <EnhancedProgressiveRoadmapVisualizer />,
       },
     ],
   },

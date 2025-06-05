@@ -141,6 +141,93 @@ class FirestorePersistence {
   }
 
   /**
+   * Load roadmap metadata only (for instant display)
+   */
+  static async loadRoadmapMetadata(roadmapId, userId = null) {
+    try {
+      const roadmapRef = doc(db, "roadmaps", roadmapId);
+      const roadmapSnap = await getDoc(roadmapRef);
+
+      if (!roadmapSnap.exists()) {
+        return null;
+      }
+
+      const roadmapData = roadmapSnap.data();
+
+      // Check access permissions
+      if (!roadmapData.isPublic && (!userId || roadmapData.userId !== userId)) {
+        throw new Error("Access denied: This roadmap is private");
+      }
+
+      // Update last accessed time if user owns the roadmap
+      if (userId && roadmapData.userId === userId) {
+        await this.updateLastAccessed(roadmapId);
+      }
+
+      // Return metadata and outline without phase tasks
+      return {
+        id: roadmapId,
+        data: roadmapData.outline,
+        isPublic: roadmapData.isPublic ?? false,
+        allowDownload: roadmapData.allowDownload ?? true,
+        userId: roadmapData.userId,
+        createdAt: roadmapData.createdAt,
+        updatedAt: roadmapData.updatedAt,
+        lastAccessed: roadmapData.lastAccessed,
+      };
+    } catch (error) {
+      console.error("❌ Error loading roadmap metadata from Firestore:", {
+        roadmapId,
+        userId,
+        error: error.message,
+        errorCode: error.code,
+        errorType: error.constructor.name,
+        stack: error.stack,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Load phase tasks for specific phases (progressive loading)
+   */
+  static async loadPhaseTasks(roadmapId, phaseIds = null) {
+    try {
+      let phaseTasksQuery = query(
+        collection(db, "phaseTasks"),
+        where("roadmapId", "==", roadmapId)
+      );
+
+      // If specific phase IDs are requested, filter by them
+      if (phaseIds && phaseIds.length > 0) {
+        phaseTasksQuery = query(
+          collection(db, "phaseTasks"),
+          where("roadmapId", "==", roadmapId),
+          where("phaseId", "in", phaseIds)
+        );
+      }
+
+      const phaseTasksSnap = await getDocs(phaseTasksQuery);
+
+      // Return phase tasks as a map
+      const phaseTasksMap = new Map();
+      phaseTasksSnap.forEach((doc) => {
+        const data = doc.data();
+        phaseTasksMap.set(data.phaseId, data.tasks || []);
+      });
+
+      return phaseTasksMap;
+    } catch (error) {
+      console.error("❌ Error loading phase tasks from Firestore:", {
+        roadmapId,
+        phaseIds,
+        error: error.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Load a specific roadmap - Reconstruct from split documents
    */
   static async loadRoadmap(roadmapId, userId = null) {
