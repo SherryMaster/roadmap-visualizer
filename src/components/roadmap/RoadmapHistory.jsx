@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Tooltip from "../tooltips/Tooltip";
 import { ErrorTooltip } from "../tooltips/EnhancedTooltip";
+import PrivacyIndicator from "./PrivacyIndicator";
 
 const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -128,10 +129,16 @@ const RoadmapHistory = ({ roadmaps, onSelectRoadmap, onDeleteRoadmap }) => {
               {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {roadmap.title}
-                  </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {roadmap.title}
+                    </h3>
+                    <PrivacyIndicator
+                      isPublic={roadmap.isPublic}
+                      size="xs"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {formatDate(roadmap.createdAt)}
                   </p>
                 </div>
