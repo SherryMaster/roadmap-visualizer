@@ -172,12 +172,20 @@ class FirestorePersistence {
         phaseTasksSnap
       );
 
+      // Get creator information (display name and email)
+      const creatorInfo = await this.getUserInfo(roadmapData.userId);
+
       // Update last accessed time if user owns the roadmap
       if (userId && roadmapData.userId === userId) {
         await this.updateLastAccessed(roadmapId);
       }
 
-      return fullRoadmapData;
+      // Return roadmap data with creator information
+      return {
+        ...fullRoadmapData,
+        creatorDisplayName: creatorInfo.displayName,
+        creatorEmail: creatorInfo.email
+      };
     } catch (error) {
       console.error("❌ Error loading roadmap from Firestore:", {
         roadmapId,
@@ -225,7 +233,83 @@ class FirestorePersistence {
   }
 
   /**
-   * Get public roadmaps for community section
+   * Get user display name from user ID
+   */
+  static async getUserDisplayName(userId) {
+    if (!userId) return "Unknown User";
+
+    try {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return userData.displayName || userData.email || "Unknown User";
+      }
+
+      return "Unknown User";
+    } catch (error) {
+      console.error("❌ Error fetching user display name:", error);
+      return "Unknown User";
+    }
+  }
+
+  /**
+   * Get complete user information from user ID
+   */
+  static async getUserInfo(userId) {
+    if (!userId) return { displayName: "Unknown User", email: null };
+
+    try {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return {
+          displayName: userData.displayName || userData.email || "Unknown User",
+          email: userData.email || null
+        };
+      }
+
+      return { displayName: "Unknown User", email: null };
+    } catch (error) {
+      console.error("❌ Error fetching user info:", error);
+      return { displayName: "Unknown User", email: null };
+    }
+  }
+
+  /**
+   * Batch fetch user display names for multiple user IDs
+   */
+  static async batchGetUserDisplayNames(userIds) {
+    if (!userIds || userIds.length === 0) return {};
+
+    const uniqueUserIds = [...new Set(userIds)];
+    const userDisplayNames = {};
+
+    try {
+      // Batch fetch user profiles
+      const userPromises = uniqueUserIds.map(async (userId) => {
+        const displayName = await this.getUserDisplayName(userId);
+        return { userId, displayName };
+      });
+
+      const userResults = await Promise.all(userPromises);
+
+      userResults.forEach(({ userId, displayName }) => {
+        userDisplayNames[userId] = displayName;
+      });
+
+      return userDisplayNames;
+    } catch (error) {
+      console.error("❌ Error batch fetching user display names:", error);
+      return {};
+    }
+  }
+
+  /**
+   * Get public roadmaps for community section with creator information
    */
   static async getPublicRoadmaps(limitCount = 20) {
     try {
@@ -268,7 +352,17 @@ class FirestorePersistence {
         });
       }
 
-      return roadmaps;
+      // Batch fetch creator display names
+      const userIds = roadmaps.map(roadmap => roadmap.userId).filter(Boolean);
+      const userDisplayNames = await this.batchGetUserDisplayNames(userIds);
+
+      // Add creator information to roadmaps
+      const roadmapsWithCreators = roadmaps.map(roadmap => ({
+        ...roadmap,
+        creatorDisplayName: userDisplayNames[roadmap.userId] || "Unknown User"
+      }));
+
+      return roadmapsWithCreators;
     } catch (error) {
       console.error("❌ Error getting public roadmaps:", error);
       throw new Error("Failed to load public roadmaps: " + error.message);
@@ -935,7 +1029,7 @@ class FirestorePersistence {
 
     return onSnapshot(
       q,
-      (querySnapshot) => {
+      async (querySnapshot) => {
         const roadmaps = [];
         querySnapshot.forEach((doc) => {
           roadmaps.push({
@@ -953,7 +1047,17 @@ class FirestorePersistence {
           });
         }
 
-        callback(roadmaps);
+        // Batch fetch creator display names
+        const userIds = roadmaps.map(roadmap => roadmap.userId).filter(Boolean);
+        const userDisplayNames = await this.batchGetUserDisplayNames(userIds);
+
+        // Add creator information to roadmaps
+        const roadmapsWithCreators = roadmaps.map(roadmap => ({
+          ...roadmap,
+          creatorDisplayName: userDisplayNames[roadmap.userId] || "Unknown User"
+        }));
+
+        callback(roadmapsWithCreators);
       },
       (error) => {
         console.error("❌ Error in public roadmaps subscription:", error);

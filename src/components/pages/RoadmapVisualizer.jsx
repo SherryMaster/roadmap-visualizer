@@ -480,6 +480,9 @@ const RoadmapVisualizer = ({
           description={filteredRoadmapData.description}
           projectLevel={filteredRoadmapData.project_level}
           tags={filteredRoadmapData.tags}
+          creatorDisplayName={metadata?.creatorDisplayName}
+          creatorEmail={metadata?.creatorEmail}
+          isPublic={currentPrivacy}
         />
 
         {/* Roadmap Settings - Only show for Firestore roadmaps with metadata */}
