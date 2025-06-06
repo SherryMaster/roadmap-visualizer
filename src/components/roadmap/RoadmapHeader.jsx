@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Tooltip from "../tooltips/Tooltip";
 
-const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
+const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayName, isPublic }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [areTagsExpanded, setAreTagsExpanded] = useState(false);
 
@@ -113,6 +113,19 @@ const RoadmapHeader = ({ title, description, projectLevel, tags }) => {
               </Tooltip>
             )}
           </div>
+
+          {/* Creator Information - Only show for public roadmaps */}
+          {isPublic && creatorDisplayName && (
+            <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="font-medium">Created by:</span>
+                <span className="ml-1 text-gray-900 dark:text-white font-medium">{creatorDisplayName}</span>
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           {description && (

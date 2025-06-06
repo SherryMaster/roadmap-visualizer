@@ -102,6 +102,7 @@ const roadmapLoader = async ({ params }) => {
           isPublic: roadmapInfo.isPublic, // Use from roadmapInfo root, not data
           allowDownload: roadmapInfo.allowDownload, // Use from roadmapInfo root, not data
           userId: roadmapInfo.userId, // Use userId from the roadmap object, not data
+          creatorDisplayName: roadmapInfo.creatorDisplayName, // Include creator information
         },
       };
     }
