@@ -481,6 +481,7 @@ const RoadmapVisualizer = ({
           projectLevel={filteredRoadmapData.project_level}
           tags={filteredRoadmapData.tags}
           creatorDisplayName={metadata?.creatorDisplayName}
+          creatorEmail={metadata?.creatorEmail}
           isPublic={currentPrivacy}
         />
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Tooltip from "../tooltips/Tooltip";
 
-const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayName, isPublic }) => {
+const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayName, creatorEmail, isPublic }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [areTagsExpanded, setAreTagsExpanded] = useState(false);
 
@@ -117,12 +117,25 @@ const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayN
           {/* Creator Information - Only show for public roadmaps */}
           {isPublic && creatorDisplayName && (
             <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span className="font-medium">Created by:</span>
-                <span className="ml-1 text-gray-900 dark:text-white font-medium">{creatorDisplayName}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                {/* Creator Name */}
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="font-medium">Created by:</span>
+                  <span className="ml-1 text-gray-900 dark:text-white font-medium">{creatorDisplayName}</span>
+                </div>
+
+                {/* Creator Email */}
+                {creatorEmail && (
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 ml-6 sm:ml-0">
+                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                    <span className="text-gray-700 dark:text-gray-300 font-mono text-xs sm:text-sm">{creatorEmail}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

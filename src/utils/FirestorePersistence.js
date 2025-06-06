@@ -172,8 +172,8 @@ class FirestorePersistence {
         phaseTasksSnap
       );
 
-      // Get creator display name
-      const creatorDisplayName = await this.getUserDisplayName(roadmapData.userId);
+      // Get creator information (display name and email)
+      const creatorInfo = await this.getUserInfo(roadmapData.userId);
 
       // Update last accessed time if user owns the roadmap
       if (userId && roadmapData.userId === userId) {
@@ -183,7 +183,8 @@ class FirestorePersistence {
       // Return roadmap data with creator information
       return {
         ...fullRoadmapData,
-        creatorDisplayName
+        creatorDisplayName: creatorInfo.displayName,
+        creatorEmail: creatorInfo.email
       };
     } catch (error) {
       console.error("❌ Error loading roadmap from Firestore:", {
@@ -250,6 +251,31 @@ class FirestorePersistence {
     } catch (error) {
       console.error("❌ Error fetching user display name:", error);
       return "Unknown User";
+    }
+  }
+
+  /**
+   * Get complete user information from user ID
+   */
+  static async getUserInfo(userId) {
+    if (!userId) return { displayName: "Unknown User", email: null };
+
+    try {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        return {
+          displayName: userData.displayName || userData.email || "Unknown User",
+          email: userData.email || null
+        };
+      }
+
+      return { displayName: "Unknown User", email: null };
+    } catch (error) {
+      console.error("❌ Error fetching user info:", error);
+      return { displayName: "Unknown User", email: null };
     }
   }
 
