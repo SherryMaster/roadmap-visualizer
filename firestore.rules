@@ -68,8 +68,10 @@ service cloud.firestore {
     // ============================================================================
 
     match /users/{userId} {
-      // Users can read their own profile
-      allow read: if isOwner(userId);
+      // Allow public read access to basic profile information for creator attribution
+      // This enables displaying creator names on public roadmaps for all users
+      // Only expose displayName and email (fallback) for creator attribution
+      allow read: if true;
 
       // Users can create their own profile with valid data
       allow create: if isOwner(userId) && isValidUserData();

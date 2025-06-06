@@ -290,7 +290,7 @@ export const FirestoreProvider = ({ children }) => {
           await checkAndRunMigration();
         }
 
-        // Step 2: Set up real-time subscriptions (these will handle data loading)
+        // Step 2: Set up real-time subscriptions for user-specific data only
         const userRoadmapsUnsubscribe =
           FirestorePersistence.subscribeToUserRoadmaps(
             currentUser.uid,
@@ -299,17 +299,14 @@ export const FirestoreProvider = ({ children }) => {
             }
           );
 
-        const publicRoadmapsUnsubscribe =
-          FirestorePersistence.subscribeToPublicRoadmaps((roadmaps) => {
-            setPublicRoadmaps(roadmaps);
-          });
+        // Note: Public roadmaps are handled by the independent effect below
+        // to ensure consistent behavior for both authenticated and anonymous users
 
-        setSubscriptions([userRoadmapsUnsubscribe, publicRoadmapsUnsubscribe]);
+        setSubscriptions([userRoadmapsUnsubscribe]);
 
         // Cleanup function
         return () => {
           userRoadmapsUnsubscribe();
-          publicRoadmapsUnsubscribe();
         };
       } catch (error) {
         console.error("❌ Error initializing user data:", error);
@@ -326,9 +323,10 @@ export const FirestoreProvider = ({ children }) => {
   }, [currentUser?.uid]); // Only depend on user ID to prevent multiple triggers
 
   // Load public roadmaps independently (doesn't require authentication)
+  // Also reload when authentication state changes to ensure consistent creator display
   useEffect(() => {
     loadPublicRoadmaps();
-  }, [loadPublicRoadmaps]);
+  }, [loadPublicRoadmaps, currentUser?.uid]);
 
   const value = {
     // Data
