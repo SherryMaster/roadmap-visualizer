@@ -14,7 +14,34 @@ const TaskCompletionContext = createContext();
 
 // Custom hook to use the context
 export const useTaskCompletion = () => {
-  return useContext(TaskCompletionContext);
+  const context = useContext(TaskCompletionContext);
+
+  // If context is not available (no provider), return default values
+  if (!context) {
+    return {
+      toggleTaskCompletion: () => {},
+      toggleTaskCompletionWithValidation: () => false,
+      isTaskCompleted: () => false,
+      isTaskCompletedById: () => false,
+      getCompletedTasksInPhase: () => 0,
+      calculateOverallProgress: () => 0,
+      areRequiredDependenciesCompleted: () => true,
+      getDependencyStatus: () => ({
+        canComplete: true,
+        requiredCompleted: 0,
+        requiredTotal: 0,
+        recommendedCompleted: 0,
+        recommendedTotal: 0,
+        optionalCompleted: 0,
+        optionalTotal: 0,
+        dependencyStatuses: [],
+      }),
+      resetAllProgress: () => {},
+      completedTasks: {},
+    };
+  }
+
+  return context;
 };
 
 // Provider component
@@ -49,7 +76,10 @@ export const TaskCompletionProvider = ({
             roadmapId
           );
         } catch (error) {
-          console.error("Error loading task completions from Firestore:", error);
+          console.error(
+            "Error loading task completions from Firestore:",
+            error
+          );
         }
       }
 
@@ -110,7 +140,10 @@ export const TaskCompletionProvider = ({
 
       // Update Firestore metadata (for real-time sync)
       if (roadmapId) {
-        FirestorePersistence.updateRoadmapProgress(roadmapId, progressPercentage);
+        FirestorePersistence.updateRoadmapProgress(
+          roadmapId,
+          progressPercentage
+        );
       }
     };
 

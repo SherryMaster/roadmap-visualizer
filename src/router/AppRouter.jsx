@@ -17,6 +17,8 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 import OwnerProtectedRoute from "../components/auth/OwnerProtectedRoute";
 import ProfilePage from "../components/pages/ProfilePage";
 import SettingsPage from "../components/pages/SettingsPage";
+import AccessControlDemo from "../components/test/AccessControlDemo";
+import TaskDetailTest from "../components/test/TaskDetailTest";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 import FirestorePersistence from "../utils/FirestorePersistence";
 import { auth } from "../config/firebase";
@@ -275,6 +277,26 @@ const router = createBrowserRouter([
   {
     path: "/roadmaps",
     element: <Navigate to="/" replace />,
+  },
+  {
+    path: "/demo/access-control",
+    element: (
+      <>
+        <PageTitleUpdater title="Access Control Demo" />
+        <AccessControlDemo />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/demo/task-detail-test",
+    element: (
+      <>
+        <PageTitleUpdater title="Task Detail Test" />
+        <TaskDetailTest />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
   },
   {
     path: "*",

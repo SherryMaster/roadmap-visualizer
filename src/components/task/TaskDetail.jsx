@@ -12,7 +12,14 @@ import TaskNotes from "./TaskNotes";
 import configManager from "../../utils/ConfigManager";
 import schemaMapper from "../../utils/SchemaMapper";
 
-const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
+const TaskDetail = ({
+  detail,
+  task,
+  taskId,
+  phaseNumber,
+  allPhases,
+  isPublicView = false,
+}) => {
   // Get component configurations
   const difficultyConfig = configManager.getComponentConfig("difficulty");
   const timeConfig = configManager.getComponentConfig("estimatedTime");
@@ -203,15 +210,18 @@ const TaskDetail = ({ detail, task, taskId, phaseNumber, allPhases }) => {
           subtasks={subtasks}
           taskId={taskId}
           phaseNumber={phaseNumber}
+          isPublicView={isPublicView}
         />
       )}
 
-      {/* Notes */}
-      <TaskNotes
-        taskId={taskId}
-        phaseNumber={phaseNumber}
-        initialNotes={notes}
-      />
+      {/* Notes - Only show for owners */}
+      {!isPublicView && (
+        <TaskNotes
+          taskId={taskId}
+          phaseNumber={phaseNumber}
+          initialNotes={notes}
+        />
+      )}
     </div>
   );
 };

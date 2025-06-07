@@ -1,8 +1,14 @@
 import { useState } from "react";
 
-const SubtasksList = ({ subtasks, taskId, phaseNumber }) => {
+const SubtasksList = ({
+  subtasks,
+  taskId,
+  phaseNumber,
+  isPublicView = false,
+}) => {
   const [completedSubtasks, setCompletedSubtasks] = useState(() => {
-    // Load from localStorage if available
+    // Only load from localStorage if not in public view
+    if (isPublicView) return {};
     const savedData = localStorage.getItem(`subtasks-${phaseNumber}-${taskId}`);
     return savedData ? JSON.parse(savedData) : {};
   });
@@ -12,6 +18,9 @@ const SubtasksList = ({ subtasks, taskId, phaseNumber }) => {
   }
 
   const handleSubtaskToggle = (index) => {
+    // Don't allow toggling in public view
+    if (isPublicView) return;
+
     const newCompletedSubtasks = {
       ...completedSubtasks,
       [index]: !completedSubtasks[index],
@@ -49,25 +58,40 @@ const SubtasksList = ({ subtasks, taskId, phaseNumber }) => {
 
           return (
             <li key={uniqueKey} className="flex items-start space-x-3">
-              <div className="flex items-center h-5 mt-0.5">
-                <input
-                  id={`subtask-${phaseNumber}-${taskId}-${index}`}
-                  type="checkbox"
-                  checked={!!completedSubtasks[index]}
-                  onChange={() => handleSubtaskToggle(index)}
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer transition-colors duration-200"
-                />
-              </div>
-              <label
-                htmlFor={`subtask-${phaseNumber}-${taskId}-${index}`}
-                className={`text-sm leading-relaxed cursor-pointer transition-colors duration-200 ${
-                  completedSubtasks[index]
-                    ? "text-gray-500 dark:text-gray-500 line-through"
-                    : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                }`}
-              >
-                {subtask.description}
-              </label>
+              {!isPublicView ? (
+                // Interactive checkbox for owners
+                <>
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id={`subtask-${phaseNumber}-${taskId}-${index}`}
+                      type="checkbox"
+                      checked={!!completedSubtasks[index]}
+                      onChange={() => handleSubtaskToggle(index)}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer transition-colors duration-200"
+                    />
+                  </div>
+                  <label
+                    htmlFor={`subtask-${phaseNumber}-${taskId}-${index}`}
+                    className={`text-sm leading-relaxed cursor-pointer transition-colors duration-200 ${
+                      completedSubtasks[index]
+                        ? "text-gray-500 dark:text-gray-500 line-through"
+                        : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {subtask.description}
+                  </label>
+                </>
+              ) : (
+                // Static display for public view
+                <>
+                  <div className="flex items-center h-5 mt-0.5">
+                    <div className="h-4 w-4 rounded border-2 border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-600"></div>
+                  </div>
+                  <span className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                    {subtask.description}
+                  </span>
+                </>
+              )}
             </li>
           );
         })}

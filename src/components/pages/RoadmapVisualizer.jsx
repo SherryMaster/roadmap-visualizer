@@ -11,6 +11,7 @@ import DownloadToggle from "../roadmap/DownloadToggle";
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
 import { useAuth } from "../../context/AuthContext";
 import usePageTitle from "../../hooks/usePageTitle";
+import useRoadmapAccess from "../../hooks/useRoadmapAccess";
 import configManager from "../../utils/ConfigManager";
 import DataTransformer from "../../utils/DataTransformer";
 import Tooltip from "../tooltips/Tooltip";
@@ -25,6 +26,10 @@ const RoadmapVisualizer = ({
   const params = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { isOwner, canTrackProgress, canEdit, canDownload } = useRoadmapAccess(
+    metadata,
+    initialRoadmapData
+  );
   const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
   const [filteredRoadmapData, setFilteredRoadmapData] =
     useState(initialRoadmapData);
@@ -189,8 +194,8 @@ const RoadmapVisualizer = ({
 
   // Download functionality
   const handleDownloadRoadmap = async () => {
-    // Check download permissions
-    if (!isOwner && !currentDownloadPermission) {
+    // Check download permissions using access control
+    if (!canDownload) {
       console.warn("Download not allowed for this roadmap");
       return;
     }
@@ -252,18 +257,7 @@ const RoadmapVisualizer = ({
     );
   };
 
-  // Check if current user is the owner of the roadmap
-  // Try multiple sources for userId: metadata, roadmap data, or localStorage assumption
-  const isOwner =
-    currentUser &&
-    // Check metadata userId (Firestore roadmaps)
-    ((metadata && currentUser.uid === metadata.userId) ||
-      // Check roadmap data userId (alternative source)
-      (initialRoadmapData?.userId &&
-        currentUser.uid === initialRoadmapData.userId) ||
-      // For localStorage roadmaps without userId, assume ownership if user is authenticated
-      // and metadata exists but has no userId (localStorage case)
-      (metadata && !metadata.userId && !initialRoadmapData?.userId));
+  // Access control is now handled by useRoadmapAccess hook
 
   if (loading) {
     return (
@@ -366,7 +360,7 @@ const RoadmapVisualizer = ({
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {isOwner
             ? "Edit, download, or share this roadmap"
-            : currentDownloadPermission
+            : canDownload
             ? "Download or share this roadmap"
             : "Share this roadmap"}
         </p>
@@ -376,7 +370,7 @@ const RoadmapVisualizer = ({
         className={`grid grid-cols-1 ${
           isOwner
             ? "sm:grid-cols-3"
-            : currentDownloadPermission
+            : canDownload
             ? "sm:grid-cols-2"
             : "sm:grid-cols-1"
         } gap-3 max-w-2xl mx-auto`}
@@ -411,8 +405,8 @@ const RoadmapVisualizer = ({
           </InfoTooltip>
         )}
 
-        {/* Download Button - Show to owners or if downloads are allowed */}
-        {(isOwner || currentDownloadPermission) && (
+        {/* Download Button - Show if downloads are allowed */}
+        {canDownload && (
           <SuccessTooltip
             content={
               isOwner
@@ -424,9 +418,7 @@ const RoadmapVisualizer = ({
           >
             <button
               onClick={handleDownloadRoadmap}
-              disabled={
-                isDownloading || (!isOwner && !currentDownloadPermission)
-              }
+              disabled={isDownloading || !canDownload}
               className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
               aria-label={`Download ${filteredRoadmapData?.title} roadmap as JSON`}
             >
@@ -464,104 +456,110 @@ const RoadmapVisualizer = ({
     </div>
   );
 
-  return (
+  // Create the main content
+  const mainContent = (
+    <PageLayout
+      title={filteredRoadmapData?.title}
+      showBreadcrumb={true}
+      breadcrumbProps={{
+        roadmapTitle: filteredRoadmapData?.title,
+        currentPhase: currentPhase,
+      }}
+      actions={actionButtons}
+    >
+      <RoadmapHeader
+        title={filteredRoadmapData.title}
+        description={filteredRoadmapData.description}
+        projectLevel={filteredRoadmapData.project_level}
+        tags={filteredRoadmapData.tags}
+        creatorDisplayName={metadata?.creatorDisplayName}
+        creatorEmail={metadata?.creatorEmail}
+        isPublic={currentPrivacy}
+      />
+
+      {/* Roadmap Settings - Only show for owners with metadata */}
+      {metadata && isOwner && (
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <svg
+                className="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.50 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Roadmap Settings
+              </span>
+            </div>
+
+            <PrivacyToggle
+              roadmapId={roadmapId}
+              isPublic={currentPrivacy}
+              userId={metadata.userId}
+              onPrivacyChange={handlePrivacyChange}
+            />
+          </div>
+
+          {/* Download Permission Toggle */}
+          <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+            <DownloadToggle
+              roadmapId={roadmapId}
+              allowDownload={currentDownloadPermission}
+              userId={metadata.userId}
+              onDownloadPermissionChange={handleDownloadPermissionChange}
+            />
+          </div>
+        </div>
+      )}
+
+      <SearchBar onSearch={handleSearch} />
+
+      {searchTerm &&
+      (filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap)
+        .length === 0 ? (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
+          No results found for "{searchTerm}". Try a different search term.
+        </div>
+      ) : searchTerm ? (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-md mb-6">
+          Showing results for "{searchTerm}".{" "}
+          {
+            (filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap)
+              .length
+          }{" "}
+          phases match your search.
+        </div>
+      ) : null}
+
+      <PhaseList
+        phases={
+          filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap
+        }
+      />
+    </PageLayout>
+  );
+
+  // Conditionally wrap with TaskCompletionProvider only for owners
+  return canTrackProgress ? (
     <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
-      <PageLayout
-        title={filteredRoadmapData?.title}
-        showBreadcrumb={true}
-        breadcrumbProps={{
-          roadmapTitle: filteredRoadmapData?.title,
-          currentPhase: currentPhase,
-        }}
-        actions={actionButtons}
-      >
-        <RoadmapHeader
-          title={filteredRoadmapData.title}
-          description={filteredRoadmapData.description}
-          projectLevel={filteredRoadmapData.project_level}
-          tags={filteredRoadmapData.tags}
-          creatorDisplayName={metadata?.creatorDisplayName}
-          creatorEmail={metadata?.creatorEmail}
-          isPublic={currentPrivacy}
-        />
-
-        {/* Roadmap Settings - Only show for Firestore roadmaps with metadata */}
-        {metadata && (
-          <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="w-5 h-5 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.50 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Roadmap Settings
-                </span>
-              </div>
-
-              <PrivacyToggle
-                roadmapId={roadmapId}
-                isPublic={currentPrivacy}
-                userId={metadata.userId}
-                onPrivacyChange={handlePrivacyChange}
-              />
-            </div>
-
-            {/* Download Permission Toggle */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-              <DownloadToggle
-                roadmapId={roadmapId}
-                allowDownload={currentDownloadPermission}
-                userId={metadata.userId}
-                onDownloadPermissionChange={handleDownloadPermissionChange}
-              />
-            </div>
-          </div>
-        )}
-
-        <SearchBar onSearch={handleSearch} />
-
-        {searchTerm &&
-        (filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap)
-          .length === 0 ? (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 p-4 rounded-md mb-6">
-            No results found for "{searchTerm}". Try a different search term.
-          </div>
-        ) : searchTerm ? (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 p-4 rounded-md mb-6">
-            Showing results for "{searchTerm}".{" "}
-            {
-              (
-                filteredRoadmapData.roadmap.phases ||
-                filteredRoadmapData.roadmap
-              ).length
-            }{" "}
-            phases match your search.
-          </div>
-        ) : null}
-
-        <PhaseList
-          phases={
-            filteredRoadmapData.roadmap.phases || filteredRoadmapData.roadmap
-          }
-        />
-      </PageLayout>
+      {mainContent}
     </TaskCompletionProvider>
+  ) : (
+    mainContent
   );
 };
 

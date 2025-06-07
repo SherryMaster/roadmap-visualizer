@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import Phase from "./Phase";
-import ProgressIndicator from "../ui/ProgressIndicator";
+import OwnerPhase from "./OwnerPhase";
+import PublicPhase from "./PublicPhase";
+import OwnerProgressIndicator from "../ui/OwnerProgressIndicator";
+import useRoadmapAccess from "../../hooks/useRoadmapAccess";
+import { useLoaderData } from "react-router-dom";
 
 const PhaseList = ({ phases }) => {
+  const { metadata, initialRoadmapData } = useLoaderData() || {};
+  const { canTrackProgress } = useRoadmapAccess(metadata, initialRoadmapData);
   const [expandedPhases, setExpandedPhases] = useState(new Set());
 
   // Sort phases by phase_number and ensure unique keys
@@ -72,9 +77,13 @@ const PhaseList = ({ phases }) => {
     };
   }, [sortedPhases, expandedPhases]);
 
+  // Choose the appropriate phase component based on access level
+  const PhaseComponent = canTrackProgress ? OwnerPhase : PublicPhase;
+
   return (
     <div>
-      <ProgressIndicator phases={phases} />
+      {/* Only show progress indicator to owners */}
+      {canTrackProgress && <OwnerProgressIndicator phases={phases} />}
 
       <div className="space-y-6">
         {sortedPhases.map((phase, index) => {
@@ -85,7 +94,7 @@ const PhaseList = ({ phases }) => {
             `phase-index-${index}`;
 
           return (
-            <Phase
+            <PhaseComponent
               key={uniqueKey}
               phase={phase}
               isExpanded={expandedPhases.has(phase.phase_number)}
