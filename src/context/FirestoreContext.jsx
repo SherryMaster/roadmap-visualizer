@@ -257,8 +257,8 @@ export const FirestoreProvider = ({ children }) => {
           currentUser.uid
         );
 
-        // Refresh both user and public roadmaps
-        await Promise.all([loadUserRoadmaps(), loadPublicRoadmaps()]);
+        // Refresh user roadmaps (public roadmaps will update automatically via real-time listener)
+        await loadUserRoadmaps();
 
         return true;
       } catch (error) {
@@ -269,7 +269,7 @@ export const FirestoreProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [currentUser, loadUserRoadmaps, loadPublicRoadmaps]
+    [currentUser, loadUserRoadmaps]
   );
 
   // Update roadmap download permission
@@ -289,8 +289,8 @@ export const FirestoreProvider = ({ children }) => {
           currentUser.uid
         );
 
-        // Refresh both user and public roadmaps
-        await Promise.all([loadUserRoadmaps(), loadPublicRoadmaps()]);
+        // Refresh user roadmaps (public roadmaps will update automatically via real-time listener)
+        await loadUserRoadmaps();
 
         return true;
       } catch (error) {
@@ -303,7 +303,7 @@ export const FirestoreProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [currentUser, loadUserRoadmaps, loadPublicRoadmaps]
+    [currentUser, loadUserRoadmaps]
   );
 
   // Save roadmap to collection
@@ -316,7 +316,6 @@ export const FirestoreProvider = ({ children }) => {
       }
 
       try {
-        setLoading(true);
         setError(null);
 
         await FirestorePersistence.saveRoadmapToCollection(
@@ -324,19 +323,16 @@ export const FirestoreProvider = ({ children }) => {
           roadmapId
         );
 
-        // Refresh collection roadmaps
-        await loadCollectionRoadmaps();
+        // Collection roadmaps will update automatically via real-time listener
 
         return true;
       } catch (error) {
         console.error("❌ Error saving roadmap to collection:", error);
         setError("Failed to save roadmap to collection: " + error.message);
         throw error;
-      } finally {
-        setLoading(false);
       }
     },
-    [currentUser, loadCollectionRoadmaps]
+    [currentUser]
   );
 
   // Remove roadmap from collection
@@ -347,7 +343,6 @@ export const FirestoreProvider = ({ children }) => {
       }
 
       try {
-        setLoading(true);
         setError(null);
 
         await FirestorePersistence.removeRoadmapFromCollection(
@@ -355,19 +350,16 @@ export const FirestoreProvider = ({ children }) => {
           roadmapId
         );
 
-        // Refresh collection roadmaps
-        await loadCollectionRoadmaps();
+        // Collection roadmaps will update automatically via real-time listener
 
         return true;
       } catch (error) {
         console.error("❌ Error removing roadmap from collection:", error);
         setError("Failed to remove roadmap from collection: " + error.message);
         throw error;
-      } finally {
-        setLoading(false);
       }
     },
-    [currentUser, loadCollectionRoadmaps]
+    [currentUser]
   );
 
   // Check if roadmap is in collection
@@ -419,29 +411,78 @@ export const FirestoreProvider = ({ children }) => {
             }
           );
 
-        // Step 3: Load collection roadmaps (no real-time subscription needed for now)
-        // Only load if Firestore rules are properly configured
+        // Step 3: Set up real-time subscription for collection roadmaps
+        let collectionUnsubscribe = null;
         try {
-          await loadCollectionRoadmaps();
+          console.log(
+            "🔄 Setting up real-time listener for collection roadmaps..."
+          );
+
+          collectionUnsubscribe =
+            await FirestorePersistence.subscribeToUserCollection(
+              currentUser.uid,
+              (roadmaps) => {
+                console.log(
+                  `📡 Real-time collection update: ${roadmaps.length} roadmaps received`
+                );
+                setCollectionRoadmaps(roadmaps);
+              },
+              (error) => {
+                console.error(
+                  "❌ Error in collection roadmaps listener:",
+                  error
+                );
+                if (
+                  error.message.includes("Missing or insufficient permissions")
+                ) {
+                  console.warn(
+                    "⚠️ Collection feature requires Firestore security rules update. See firestore-security-rules-update.txt"
+                  );
+                  setCollectionRoadmaps([]); // Set empty array to prevent loading errors
+                } else {
+                  setError(
+                    "Failed to load collection roadmaps: " + error.message
+                  );
+                  setCollectionRoadmaps([]);
+                }
+              }
+            );
         } catch (error) {
+          console.error("❌ Error setting up collection listener:", error);
           if (error.message.includes("Missing or insufficient permissions")) {
             console.warn(
               "⚠️ Collection feature requires Firestore security rules update. See firestore-security-rules-update.txt"
             );
             setCollectionRoadmaps([]); // Set empty array to prevent loading errors
           } else {
-            throw error; // Re-throw other errors
+            // Fallback to manual loading
+            try {
+              await loadCollectionRoadmaps();
+            } catch (fallbackError) {
+              console.error(
+                "❌ Fallback collection loading also failed:",
+                fallbackError
+              );
+              setCollectionRoadmaps([]);
+            }
           }
         }
 
         // Note: Public roadmaps are handled by the independent effect below
         // to ensure consistent behavior for both authenticated and anonymous users
 
-        setSubscriptions([userRoadmapsUnsubscribe]);
+        // Store all subscriptions for cleanup
+        const allSubscriptions = [userRoadmapsUnsubscribe];
+        if (collectionUnsubscribe) {
+          allSubscriptions.push(collectionUnsubscribe);
+        }
+        setSubscriptions(allSubscriptions);
 
         // Cleanup function
         return () => {
-          userRoadmapsUnsubscribe();
+          allSubscriptions.forEach((unsubscribe) => {
+            if (unsubscribe) unsubscribe();
+          });
         };
       } catch (error) {
         console.error("❌ Error initializing user data:", error);
@@ -457,11 +498,47 @@ export const FirestoreProvider = ({ children }) => {
     };
   }, [currentUser?.uid]); // Only depend on user ID to prevent multiple triggers
 
-  // Load public roadmaps independently (doesn't require authentication)
-  // Also reload when authentication state changes to ensure consistent creator display
+  // Set up real-time listener for public roadmaps
   useEffect(() => {
-    loadPublicRoadmaps();
-  }, [loadPublicRoadmaps, currentUser?.uid]);
+    let unsubscribe = null;
+
+    const setupPublicRoadmapsListener = async () => {
+      try {
+        console.log("🔄 Setting up real-time listener for public roadmaps...");
+
+        // Set up real-time listener using FirestorePersistence
+        unsubscribe = await FirestorePersistence.subscribeToPublicRoadmaps(
+          (roadmaps) => {
+            console.log(
+              `📡 Real-time update: ${roadmaps.length} public roadmaps received`
+            );
+            setPublicRoadmaps(roadmaps);
+            setError(null);
+          },
+          (error) => {
+            console.error("❌ Error in public roadmaps listener:", error);
+            setError("Failed to load public roadmaps: " + error.message);
+            setPublicRoadmaps([]);
+          }
+        );
+      } catch (error) {
+        console.error("❌ Error setting up public roadmaps listener:", error);
+        setError("Failed to set up real-time updates: " + error.message);
+        // Fallback to manual loading
+        loadPublicRoadmaps();
+      }
+    };
+
+    setupPublicRoadmapsListener();
+
+    // Cleanup listener on unmount or dependency change
+    return () => {
+      if (unsubscribe) {
+        console.log("🔄 Cleaning up public roadmaps listener");
+        unsubscribe();
+      }
+    };
+  }, [currentUser?.uid]); // Re-setup when user changes for creator display
 
   const value = {
     // Data

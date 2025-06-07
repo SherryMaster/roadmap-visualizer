@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useFirestore } from "../../context/FirestoreContext";
 import Tooltip from "../tooltips/Tooltip";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../../config/firebase";
 
 const SaveToCollectionButton = ({
   roadmapId,
@@ -21,34 +23,54 @@ const SaveToCollectionButton = ({
     isRoadmapInCollection,
   } = useFirestore();
 
-  const [isSaving, setIsSaving] = useState(false);
   const [isInCollection, setIsInCollection] = useState(false);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
   const [hasPermissionError, setHasPermissionError] = useState(false);
 
-  // Check if roadmap is already in collection
+  // Set up real-time listener for collection status
   useEffect(() => {
-    const checkCollectionStatus = async () => {
-      if (!currentUser || !roadmapId) {
-        setIsCheckingStatus(false);
-        return;
-      }
+    if (!currentUser || !roadmapId) {
+      return;
+    }
 
-      try {
-        const inCollection = await isRoadmapInCollection(roadmapId);
-        setIsInCollection(inCollection);
-      } catch (error) {
-        console.error("Error checking collection status:", error);
-        if (error.message.includes("Missing or insufficient permissions")) {
-          setHasPermissionError(true);
+    let unsubscribe = null;
+
+    try {
+      // Set up real-time listener for this specific roadmap in user's collection
+      const collectionRef = doc(
+        db,
+        "userCollections",
+        currentUser.uid,
+        "savedRoadmaps",
+        roadmapId
+      );
+
+      unsubscribe = onSnapshot(
+        collectionRef,
+        (docSnap) => {
+          setIsInCollection(docSnap.exists());
+          setHasPermissionError(false);
+        },
+        (error) => {
+          console.error("Error in collection status listener:", error);
+          if (error.message.includes("Missing or insufficient permissions")) {
+            setHasPermissionError(true);
+          }
         }
-      } finally {
-        setIsCheckingStatus(false);
+      );
+    } catch (error) {
+      console.error("Error setting up collection status listener:", error);
+      if (error.message.includes("Missing or insufficient permissions")) {
+        setHasPermissionError(true);
+      }
+    }
+
+    // Cleanup listener on unmount or dependency change
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-
-    checkCollectionStatus();
-  }, [currentUser, roadmapId, isRoadmapInCollection]);
+  }, [currentUser, roadmapId]);
 
   // Only show for authenticated users on public roadmaps that allow downloads
   // Hide if there are permission errors (rules not deployed)
@@ -57,15 +79,14 @@ const SaveToCollectionButton = ({
   }
 
   const handleSaveToCollection = async () => {
-    setIsSaving(true);
     try {
       if (isInCollection) {
         await removeRoadmapFromCollection(roadmapId);
-        setIsInCollection(false);
+        // Real-time listener will update the button state automatically
         console.log(`✅ Removed "${roadmapTitle}" from collection`);
       } else {
         await saveRoadmapToCollection(roadmapId);
-        setIsInCollection(true);
+        // Real-time listener will update the button state automatically
         console.log(`✅ Saved "${roadmapTitle}" to collection`);
       }
     } catch (error) {
@@ -83,19 +104,8 @@ const SaveToCollectionButton = ({
           } collection: ${error.message}`
         );
       }
-    } finally {
-      setIsSaving(false);
     }
   };
-
-  if (isCheckingStatus) {
-    return (
-      <div className="w-full flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg min-h-[48px]">
-        <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-        <span className="ml-2">Checking...</span>
-      </div>
-    );
-  }
 
   const buttonText = isInCollection
     ? "Remove from Collection"
@@ -144,21 +154,11 @@ const SaveToCollectionButton = ({
     <Tooltip content={tooltipContent} position="top" maxWidth="300px">
       <button
         onClick={handleSaveToCollection}
-        disabled={isSaving}
-        className={`w-full flex items-center justify-center space-x-2 px-4 py-3 ${buttonColor} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md`}
+        className={`w-full flex items-center justify-center space-x-2 px-4 py-3 ${buttonColor} rounded-lg transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md`}
         aria-label={`${buttonText} for ${roadmapTitle}`}
       >
-        {isSaving ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
-            <span>{isInCollection ? "Removing..." : "Saving..."}</span>
-          </>
-        ) : (
-          <>
-            {buttonIcon}
-            <span>{buttonText}</span>
-          </>
-        )}
+        {buttonIcon}
+        <span>{buttonText}</span>
       </button>
     </Tooltip>
   );

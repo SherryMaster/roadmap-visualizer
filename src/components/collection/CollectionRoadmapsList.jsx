@@ -10,11 +10,9 @@ import Tooltip from "../tooltips/Tooltip";
 import RoadmapCard from "../roadmap/RoadmapCard";
 
 const CollectionRoadmapsList = () => {
-  const { collectionRoadmaps, loading, error, removeRoadmapFromCollection } =
+  const { collectionRoadmaps, error, removeRoadmapFromCollection } =
     useFirestore();
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-  const [removingRoadmaps, setRemovingRoadmaps] = useState(new Set());
-
   const handleRemoveFromCollection = async (roadmapId, roadmapTitle) => {
     if (
       !confirm(
@@ -24,38 +22,14 @@ const CollectionRoadmapsList = () => {
       return;
     }
 
-    setRemovingRoadmaps((prev) => new Set(prev).add(roadmapId));
     try {
       await removeRoadmapFromCollection(roadmapId);
+      // Real-time listener will update the collection automatically
       console.log(`✅ Removed "${roadmapTitle}" from collection`);
     } catch (error) {
       console.error("❌ Failed to remove from collection:", error);
-    } finally {
-      setRemovingRoadmaps((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(roadmapId);
-        return newSet;
-      });
     }
   };
-
-  if (loading && collectionRoadmaps.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-32 bg-gray-200 dark:bg-gray-700 rounded"
-              ></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -166,7 +140,6 @@ const CollectionRoadmapsList = () => {
                 section="my-collection"
                 viewMode="grid"
                 onRemoveFromCollection={handleRemoveFromCollection}
-                isRemoving={removingRoadmaps.has(roadmap.id)}
               />
             ))}
           </div>
@@ -179,7 +152,6 @@ const CollectionRoadmapsList = () => {
                 section="my-collection"
                 viewMode="list"
                 onRemoveFromCollection={handleRemoveFromCollection}
-                isRemoving={removingRoadmaps.has(roadmap.id)}
               />
             ))}
           </div>

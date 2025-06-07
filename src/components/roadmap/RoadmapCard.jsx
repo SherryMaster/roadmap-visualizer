@@ -18,7 +18,6 @@ const RoadmapCard = ({
   onDelete,
   onRemoveFromCollection,
   isDeleting = false,
-  isRemoving = false,
 }) => {
   // Helper functions
   const formatDate = (timestamp) => {
@@ -89,6 +88,9 @@ const RoadmapCard = ({
           {children}
         </div>
       );
+    } else if (isDeleted) {
+      // Disabled navigation for deleted roadmaps
+      return <div className={className}>{children}</div>;
     } else {
       return (
         <Link to={`/roadmap/${roadmap.id}`} className="block group">
@@ -98,17 +100,34 @@ const RoadmapCard = ({
     }
   };
 
+  // Determine if roadmap is deleted (for collection roadmaps)
+  const isDeleted = roadmap.isDeleted;
+
   // Grid view card
   if (viewMode === "grid") {
     return (
       <div className="group relative">
-        <CardWrapper className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200">
+        <CardWrapper
+          className={`group relative ${
+            isDeleted
+              ? "bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600"
+              : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600"
+          } rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+            isDeleted ? "opacity-75" : ""
+          }`}
+        >
           <div className="relative z-10">
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                  <h3
+                    className={`text-sm font-semibold transition-colors truncate ${
+                      isDeleted
+                        ? "text-gray-500 dark:text-gray-400"
+                        : "text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                    }`}
+                  >
                     {roadmap.title}
                   </h3>
 
@@ -116,9 +135,14 @@ const RoadmapCard = ({
                   {section === "my-roadmaps" && (
                     <PrivacyIndicator isPublic={roadmap.isPublic} size="xs" />
                   )}
-                  {section === "my-collection" && (
+                  {section === "my-collection" && !isDeleted && (
                     <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                       Collection
+                    </span>
+                  )}
+                  {section === "my-collection" && isDeleted && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                      Deleted
                     </span>
                   )}
                 </div>
@@ -174,7 +198,13 @@ const RoadmapCard = ({
 
             {/* Description */}
             {roadmap.description && (
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+              <p
+                className={`text-xs mb-3 line-clamp-2 ${
+                  isDeleted
+                    ? "text-gray-500 dark:text-gray-500"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
                 {roadmap.description}
               </p>
             )}
@@ -203,18 +233,38 @@ const RoadmapCard = ({
             {(section === "my-roadmaps" || section === "my-collection") && (
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <span
+                    className={`text-xs font-medium ${
+                      isDeleted
+                        ? "text-gray-500 dark:text-gray-500"
+                        : "text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
                     {section === "my-collection" ? "Your Progress" : "Progress"}
                   </span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <span
+                    className={`text-sm font-semibold ${
+                      isDeleted
+                        ? "text-gray-500 dark:text-gray-500"
+                        : "text-gray-900 dark:text-gray-100"
+                    }`}
+                  >
                     {Math.round(roadmap.progressPercentage || 0)}%
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className={`w-full rounded-full h-2 ${
+                    isDeleted
+                      ? "bg-gray-300 dark:bg-gray-600"
+                      : "bg-gray-200 dark:bg-gray-700"
+                  }`}
+                >
                   <div
-                    className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
-                      roadmap.progressPercentage || 0
-                    )}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      isDeleted
+                        ? "bg-gray-400 dark:bg-gray-500"
+                        : getProgressColor(roadmap.progressPercentage || 0)
+                    }`}
                     style={{ width: `${roadmap.progressPercentage || 0}%` }}
                   ></div>
                 </div>
@@ -223,48 +273,64 @@ const RoadmapCard = ({
 
             {/* Stats and Actions */}
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400">
+              <div
+                className={`flex items-center space-x-4 text-xs ${
+                  isDeleted
+                    ? "text-gray-500 dark:text-gray-500"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
                 <span>{roadmap.totalPhases} phases</span>
                 <span>•</span>
                 <span>{roadmap.totalTasks} tasks</span>
               </div>
 
               <div className="flex items-center space-x-2">
-                {/* Upvote Button (Community and Collection) */}
-                {(section === "community" || section === "my-collection") && (
-                  <StandaloneRoadmapUpvoteButton
-                    roadmapId={roadmap.id}
-                    size="xs"
-                    variant="minimal"
-                    showCount={true}
-                  />
+                {/* Upvote Button (Community and Collection) - disabled for deleted */}
+                {(section === "community" || section === "my-collection") &&
+                  !isDeleted && (
+                    <StandaloneRoadmapUpvoteButton
+                      roadmapId={roadmap.id}
+                      size="xs"
+                      variant="minimal"
+                      showCount={true}
+                    />
+                  )}
+
+                {/* Continue/Explore Button - disabled for deleted */}
+                {!isDeleted && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="flex items-center text-blue-600 dark:text-blue-400 text-xs font-medium">
+                      <span>
+                        {section === "my-roadmaps"
+                          ? "Continue"
+                          : section === "my-collection"
+                          ? "Continue"
+                          : "Explore"}
+                      </span>
+                      <svg
+                        className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-200"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </div>
+                  </div>
                 )}
 
-                {/* Continue/Explore Button */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <div className="flex items-center text-blue-600 dark:text-blue-400 text-xs font-medium">
-                    <span>
-                      {section === "my-roadmaps"
-                        ? "Continue"
-                        : section === "my-collection"
-                        ? "Continue"
-                        : "Explore"}
-                    </span>
-                    <svg
-                      className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-200"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                      />
-                    </svg>
+                {/* Deleted roadmap message */}
+                {isDeleted && (
+                  <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+                    No longer available
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -294,28 +360,28 @@ const RoadmapCard = ({
 
         {/* Remove from Collection Button (positioned absolutely) */}
         {section === "my-collection" && (
-          <Tooltip content="Remove from collection" position="top">
+          <Tooltip
+            content={
+              isDeleted
+                ? "Remove deleted roadmap from collection"
+                : "Remove from collection"
+            }
+            position="top"
+          >
             <button
               onClick={handleRemove}
-              disabled={isRemoving}
-              className="absolute top-2 right-2 p-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 disabled:opacity-50"
+              className={`absolute top-2 right-2 p-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded-md transition-opacity duration-200 ${
+                isDeleted ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
               aria-label={`Remove ${roadmap.title} from collection`}
             >
-              {isRemoving ? (
-                <div className="w-3 h-3 border border-red-600 border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </button>
           </Tooltip>
         )}
@@ -323,17 +389,41 @@ const RoadmapCard = ({
     );
   }
 
-  // List view card (simplified for now, can be expanded later)
+  // List view card
   return (
-    <CardWrapper className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200">
+    <CardWrapper
+      className={`group relative ${
+        isDeleted
+          ? "bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600"
+          : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600"
+      } rounded-lg p-4 cursor-pointer transition-all duration-200 ${
+        isDeleted ? "opacity-75" : ""
+      }`}
+    >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-3">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+            <h3
+              className={`text-sm font-semibold transition-colors truncate ${
+                isDeleted
+                  ? "text-gray-500 dark:text-gray-400"
+                  : "text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+              }`}
+            >
               {roadmap.title}
             </h3>
             {section === "my-roadmaps" && (
               <PrivacyIndicator isPublic={roadmap.isPublic} size="xs" />
+            )}
+            {section === "my-collection" && !isDeleted && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                Collection
+              </span>
+            )}
+            {section === "my-collection" && isDeleted && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                Deleted
+              </span>
             )}
             {getProjectLevelBadge(
               roadmap.projectLevel || roadmap.project_level
@@ -341,12 +431,24 @@ const RoadmapCard = ({
           </div>
 
           {roadmap.description && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
+            <p
+              className={`text-xs mt-1 truncate ${
+                isDeleted
+                  ? "text-gray-500 dark:text-gray-500"
+                  : "text-gray-600 dark:text-gray-400"
+              }`}
+            >
               {roadmap.description}
             </p>
           )}
 
-          <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
+          <div
+            className={`flex items-center space-x-4 text-xs mt-2 ${
+              isDeleted
+                ? "text-gray-500 dark:text-gray-500"
+                : "text-gray-600 dark:text-gray-400"
+            }`}
+          >
             <span>{roadmap.totalPhases} phases</span>
             <span>•</span>
             <span>{roadmap.totalTasks} tasks</span>
@@ -359,8 +461,22 @@ const RoadmapCard = ({
             {(section === "my-roadmaps" || section === "my-collection") && (
               <>
                 <span>•</span>
-                <span className="text-gray-900 dark:text-gray-100 font-medium">
+                <span
+                  className={`font-medium ${
+                    isDeleted
+                      ? "text-gray-500 dark:text-gray-500"
+                      : "text-gray-900 dark:text-gray-100"
+                  }`}
+                >
                   {Math.round(roadmap.progressPercentage || 0)}% complete
+                </span>
+              </>
+            )}
+            {isDeleted && (
+              <>
+                <span>•</span>
+                <span className="text-red-600 dark:text-red-400 font-medium">
+                  No longer available
                 </span>
               </>
             )}
@@ -368,14 +484,15 @@ const RoadmapCard = ({
         </div>
 
         <div className="flex items-center space-x-2 ml-4">
-          {(section === "community" || section === "my-collection") && (
-            <StandaloneRoadmapUpvoteButton
-              roadmapId={roadmap.id}
-              size="xs"
-              variant="minimal"
-              showCount={true}
-            />
-          )}
+          {(section === "community" || section === "my-collection") &&
+            !isDeleted && (
+              <StandaloneRoadmapUpvoteButton
+                roadmapId={roadmap.id}
+                size="xs"
+                variant="minimal"
+                showCount={true}
+              />
+            )}
 
           {section === "my-roadmaps" && (
             <ErrorTooltip
@@ -407,6 +524,39 @@ const RoadmapCard = ({
                 )}
               </button>
             </ErrorTooltip>
+          )}
+
+          {section === "my-collection" && (
+            <Tooltip
+              content={
+                isDeleted
+                  ? "Remove deleted roadmap from collection"
+                  : "Remove from collection"
+              }
+              position="top"
+            >
+              <button
+                onClick={handleRemove}
+                className={`p-1.5 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-600 dark:text-red-400 rounded-md transition-opacity duration-200 ${
+                  isDeleted
+                    ? "opacity-100"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+                aria-label={`Remove ${roadmap.title} from collection`}
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

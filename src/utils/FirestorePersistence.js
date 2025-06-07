@@ -370,6 +370,95 @@ class FirestorePersistence {
   }
 
   /**
+   * Subscribe to real-time updates for public roadmaps
+   */
+  static async subscribeToPublicRoadmaps(onUpdate, onError) {
+    try {
+      const metadataRef = collection(db, "roadmapMetadata");
+
+      // Set up query for public roadmaps
+      let q;
+      try {
+        q = query(
+          metadataRef,
+          where("isPublic", "==", true),
+          orderBy("updatedAt", "desc"),
+          limit(20)
+        );
+      } catch (indexError) {
+        console.log(
+          "📊 Using fallback query for real-time listener (index not ready)"
+        );
+        q = query(metadataRef, where("isPublic", "==", true), limit(20));
+      }
+
+      // Set up real-time listener
+      const unsubscribe = onSnapshot(
+        q,
+        async (querySnapshot) => {
+          try {
+            const roadmaps = [];
+
+            querySnapshot.forEach((doc) => {
+              roadmaps.push({
+                id: doc.id,
+                ...doc.data(),
+              });
+            });
+
+            // Sort in memory if we used the fallback query
+            if (!q._query.orderBy || q._query.orderBy.length === 0) {
+              roadmaps.sort((a, b) => {
+                const aTime =
+                  a.updatedAt?.toDate?.() || new Date(a.updatedAt || 0);
+                const bTime =
+                  b.updatedAt?.toDate?.() || new Date(b.updatedAt || 0);
+                return bTime - aTime;
+              });
+            }
+
+            // Batch fetch creator display names
+            const userIds = roadmaps
+              .map((roadmap) => roadmap.userId)
+              .filter(Boolean);
+            const userDisplayNames = await this.batchGetUserDisplayNames(
+              userIds
+            );
+
+            // Add creator information to roadmaps
+            const roadmapsWithCreators = roadmaps.map((roadmap) => ({
+              ...roadmap,
+              creatorDisplayName:
+                userDisplayNames[roadmap.userId] || "Unknown User",
+            }));
+
+            // Call the update callback
+            onUpdate(roadmapsWithCreators);
+          } catch (error) {
+            console.error(
+              "❌ Error processing real-time public roadmaps update:",
+              error
+            );
+            onError(error);
+          }
+        },
+        (error) => {
+          console.error(
+            "❌ Real-time listener error for public roadmaps:",
+            error
+          );
+          onError(error);
+        }
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error("❌ Error setting up public roadmaps listener:", error);
+      throw new Error("Failed to set up real-time listener: " + error.message);
+    }
+  }
+
+  /**
    * Update roadmap privacy setting
    */
   static async updateRoadmapPrivacy(roadmapId, isPublic, userId) {
@@ -864,9 +953,51 @@ class FirestorePersistence {
               lastAccessed: collectionData.lastAccessed,
               progressPercentage: progressData.progressPercentage || 0,
               isCollection: true, // Flag to identify collection roadmaps
+              isDeleted: false, // Roadmap still exists
               // Keep original metadata for credibility
               createdAt: metadata.createdAt,
               updatedAt: metadata.updatedAt,
+            });
+          } else {
+            // Roadmap has been deleted by owner - include it with deleted flag
+            console.warn(
+              `⚠️ Roadmap ${collectionData.roadmapId} no longer exists (deleted by owner)`
+            );
+
+            // Get user's progress for this collection roadmap (if any)
+            const progressRef = doc(
+              db,
+              "collectionProgress",
+              userId,
+              "roadmaps",
+              collectionData.roadmapId
+            );
+            const progressSnap = await getDoc(progressRef);
+            const progressData = progressSnap.exists()
+              ? progressSnap.data()
+              : { progressPercentage: 0 };
+
+            collectionRoadmaps.push({
+              id: collectionData.roadmapId,
+              title: collectionData.title || "Deleted Roadmap",
+              description:
+                collectionData.description ||
+                "This roadmap has been deleted by its owner.",
+              projectLevel: collectionData.projectLevel || "beginner",
+              tags: collectionData.tags || [],
+              totalPhases: 0,
+              totalTasks: 0,
+              likeCount: 0,
+              viewCount: 0,
+              originalOwnerId: collectionData.originalOwnerId,
+              savedAt: collectionData.savedAt,
+              lastAccessed: collectionData.lastAccessed,
+              progressPercentage: progressData.progressPercentage || 0,
+              isCollection: true,
+              isDeleted: true, // Flag to indicate roadmap was deleted
+              // Use saved timestamps if available
+              createdAt: collectionData.createdAt || collectionData.savedAt,
+              updatedAt: collectionData.savedAt,
             });
           }
         } catch (metadataError) {
@@ -874,22 +1005,27 @@ class FirestorePersistence {
             `⚠️ Could not load metadata for roadmap ${collectionData.roadmapId}:`,
             metadataError
           );
-          // Include basic info even if metadata fails
+          // Include basic info even if metadata fails - treat as potentially deleted
           collectionRoadmaps.push({
             id: collectionData.roadmapId,
-            title: collectionData.title,
-            description: collectionData.description,
-            projectLevel: collectionData.projectLevel,
-            tags: collectionData.tags,
+            title: collectionData.title || "Deleted Roadmap",
+            description:
+              collectionData.description ||
+              "This roadmap may have been deleted by its owner.",
+            projectLevel: collectionData.projectLevel || "beginner",
+            tags: collectionData.tags || [],
             originalOwnerId: collectionData.originalOwnerId,
             savedAt: collectionData.savedAt,
             lastAccessed: collectionData.lastAccessed,
             progressPercentage: 0,
             isCollection: true,
+            isDeleted: true, // Treat metadata errors as potentially deleted
             totalPhases: 0,
             totalTasks: 0,
             likeCount: 0,
             viewCount: 0,
+            createdAt: collectionData.createdAt || collectionData.savedAt,
+            updatedAt: collectionData.savedAt,
           });
         }
       }
@@ -1059,6 +1195,178 @@ class FirestorePersistence {
     } catch (error) {
       console.error("❌ Error updating collection roadmap progress:", error);
       // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
+   * Subscribe to real-time updates for user's collection roadmaps
+   */
+  static async subscribeToUserCollection(userId, onUpdate, onError) {
+    if (!userId) {
+      throw new Error("User ID is required for collection subscription");
+    }
+
+    try {
+      const collectionQuery = query(
+        collection(db, "userCollections", userId, "savedRoadmaps"),
+        orderBy("savedAt", "desc")
+      );
+
+      // Set up real-time listener
+      const unsubscribe = onSnapshot(
+        collectionQuery,
+        async (querySnapshot) => {
+          try {
+            const collectionRoadmaps = [];
+
+            for (const docSnap of querySnapshot.docs) {
+              const collectionData = docSnap.data();
+
+              // Get the original roadmap metadata for current info
+              try {
+                const metadataRef = doc(
+                  db,
+                  "roadmapMetadata",
+                  collectionData.roadmapId
+                );
+                const metadataSnap = await getDoc(metadataRef);
+
+                if (metadataSnap.exists()) {
+                  const metadata = metadataSnap.data();
+
+                  // Get user's progress for this collection roadmap
+                  const progressRef = doc(
+                    db,
+                    "collectionProgress",
+                    userId,
+                    "roadmaps",
+                    collectionData.roadmapId
+                  );
+                  const progressSnap = await getDoc(progressRef);
+                  const progressData = progressSnap.exists()
+                    ? progressSnap.data()
+                    : { progressPercentage: 0 };
+
+                  collectionRoadmaps.push({
+                    id: collectionData.roadmapId,
+                    title: metadata.title,
+                    description: metadata.description,
+                    projectLevel: metadata.projectLevel,
+                    tags: metadata.tags,
+                    totalPhases: metadata.totalPhases,
+                    totalTasks: metadata.totalTasks,
+                    likeCount: metadata.likeCount,
+                    viewCount: metadata.viewCount,
+                    originalOwnerId: collectionData.originalOwnerId,
+                    savedAt: collectionData.savedAt,
+                    lastAccessed: collectionData.lastAccessed,
+                    progressPercentage: progressData.progressPercentage || 0,
+                    isCollection: true,
+                    isDeleted: false, // Roadmap still exists
+                    createdAt: metadata.createdAt,
+                    updatedAt: metadata.updatedAt,
+                  });
+                } else {
+                  // Roadmap has been deleted by owner - include it with deleted flag
+                  console.warn(
+                    `⚠️ Roadmap ${collectionData.roadmapId} no longer exists (deleted by owner)`
+                  );
+
+                  // Get user's progress for this collection roadmap (if any)
+                  const progressRef = doc(
+                    db,
+                    "collectionProgress",
+                    userId,
+                    "roadmaps",
+                    collectionData.roadmapId
+                  );
+                  const progressSnap = await getDoc(progressRef);
+                  const progressData = progressSnap.exists()
+                    ? progressSnap.data()
+                    : { progressPercentage: 0 };
+
+                  collectionRoadmaps.push({
+                    id: collectionData.roadmapId,
+                    title: collectionData.title || "Deleted Roadmap",
+                    description:
+                      collectionData.description ||
+                      "This roadmap has been deleted by its owner.",
+                    projectLevel: collectionData.projectLevel || "beginner",
+                    tags: collectionData.tags || [],
+                    totalPhases: 0,
+                    totalTasks: 0,
+                    likeCount: 0,
+                    viewCount: 0,
+                    originalOwnerId: collectionData.originalOwnerId,
+                    savedAt: collectionData.savedAt,
+                    lastAccessed: collectionData.lastAccessed,
+                    progressPercentage: progressData.progressPercentage || 0,
+                    isCollection: true,
+                    isDeleted: true, // Flag to indicate roadmap was deleted
+                    createdAt:
+                      collectionData.createdAt || collectionData.savedAt,
+                    updatedAt: collectionData.savedAt,
+                  });
+                }
+              } catch (metadataError) {
+                console.warn(
+                  `⚠️ Could not load metadata for roadmap ${collectionData.roadmapId}:`,
+                  metadataError
+                );
+                // Include basic info even if metadata fails - treat as potentially deleted
+                collectionRoadmaps.push({
+                  id: collectionData.roadmapId,
+                  title: collectionData.title || "Deleted Roadmap",
+                  description:
+                    collectionData.description ||
+                    "This roadmap may have been deleted by its owner.",
+                  projectLevel: collectionData.projectLevel || "beginner",
+                  tags: collectionData.tags || [],
+                  originalOwnerId: collectionData.originalOwnerId,
+                  savedAt: collectionData.savedAt,
+                  lastAccessed: collectionData.lastAccessed,
+                  progressPercentage: 0,
+                  isCollection: true,
+                  isDeleted: true, // Treat metadata errors as potentially deleted
+                  totalPhases: 0,
+                  totalTasks: 0,
+                  likeCount: 0,
+                  viewCount: 0,
+                  createdAt: collectionData.createdAt || collectionData.savedAt,
+                  updatedAt: collectionData.savedAt,
+                });
+              }
+            }
+
+            console.log(
+              `📡 Real-time collection update: ${collectionRoadmaps.length} roadmaps received for user ${userId}`
+            );
+
+            // Call the update callback
+            onUpdate(collectionRoadmaps);
+          } catch (error) {
+            console.error(
+              "❌ Error processing real-time collection update:",
+              error
+            );
+            onError(error);
+          }
+        },
+        (error) => {
+          console.error(
+            "❌ Real-time listener error for user collection:",
+            error
+          );
+          onError(error);
+        }
+      );
+
+      return unsubscribe;
+    } catch (error) {
+      console.error("❌ Error setting up collection listener:", error);
+      throw new Error(
+        "Failed to set up collection real-time listener: " + error.message
+      );
     }
   }
 
