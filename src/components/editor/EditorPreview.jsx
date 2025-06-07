@@ -82,6 +82,7 @@ const EditorPreview = ({ roadmap }) => {
                 description={roadmap.description}
                 projectLevel={roadmap.project_level}
                 tags={roadmap.tags}
+                isPublic={false}
               />
             </div>
 

@@ -153,15 +153,119 @@ const NotFoundPage = () => {
         )}
       </div>
 
-      {/* Debug Info (only in development) */}
-      {process.env.NODE_ENV === "development" && error && (
-        <div className="mt-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">
-            Debug Info:
+      {/* Enhanced Debug Info */}
+      {error && (
+        <div className="mt-8 p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg max-w-4xl mx-auto">
+          <h4 className="font-semibold text-red-900 dark:text-red-100 mb-4 text-lg flex items-center">
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Error Details
           </h4>
-          <pre className="text-sm text-red-800 dark:text-red-200 overflow-auto">
-            {JSON.stringify(error, null, 2)}
-          </pre>
+          <div className="space-y-4">
+            {/* Primary Error Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {error.status && (
+                <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-1">
+                    Status Code
+                  </div>
+                  <div className="text-red-800 dark:text-red-200 text-lg font-mono">
+                    {error.status}
+                  </div>
+                </div>
+              )}
+              {error.statusText && (
+                <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-1">
+                    Status Text
+                  </div>
+                  <div className="text-red-800 dark:text-red-200">
+                    {error.statusText}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Error Message */}
+            {error.message && (
+              <div className="bg-red-100 dark:bg-red-900/40 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-2">
+                  Error Message
+                </div>
+                <div className="text-red-800 dark:text-red-200 font-mono text-sm break-words bg-red-50 dark:bg-red-900/60 p-2 rounded">
+                  {error.message}
+                </div>
+              </div>
+            )}
+
+            {/* URL Information */}
+            <div className="bg-red-100 dark:bg-red-900/40 p-4 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-2">
+                Requested URL
+              </div>
+              <div className="text-red-800 dark:text-red-200 font-mono text-sm break-all bg-red-50 dark:bg-red-900/60 p-2 rounded">
+                {window.location.href}
+              </div>
+            </div>
+
+            {/* Additional Data */}
+            {error.data && (
+              <div className="bg-red-100 dark:bg-red-900/40 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-2">
+                  Additional Data
+                </div>
+                <div className="text-red-800 dark:text-red-200 font-mono text-sm bg-red-50 dark:bg-red-900/60 p-2 rounded overflow-auto">
+                  {typeof error.data === "string"
+                    ? error.data
+                    : JSON.stringify(error.data, null, 2)}
+                </div>
+              </div>
+            )}
+
+            {/* Timestamp */}
+            <div className="bg-red-100 dark:bg-red-900/40 p-3 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="text-red-900 dark:text-red-100 font-medium text-sm mb-1">
+                Timestamp
+              </div>
+              <div className="text-red-800 dark:text-red-200 text-sm">
+                {new Date().toLocaleString()}
+              </div>
+            </div>
+
+            {/* Development Details */}
+            {process.env.NODE_ENV === "development" && (
+              <details className="mt-6">
+                <summary className="cursor-pointer text-red-900 dark:text-red-100 font-medium text-base hover:text-red-700 dark:hover:text-red-300 transition-colors flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Technical Details (Development Mode)
+                </summary>
+                <div className="mt-4 bg-red-100 dark:bg-red-900/40 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                  <pre className="text-xs text-red-800 dark:text-red-200 overflow-auto whitespace-pre-wrap break-words max-h-96">
+                    {JSON.stringify(error, null, 2)}
+                  </pre>
+                </div>
+              </details>
+            )}
+          </div>
         </div>
       )}
     </PageLayout>

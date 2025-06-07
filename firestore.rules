@@ -203,6 +203,28 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // ROADMAP VOTES
+    // ============================================================================
+
+    match /roadmapVotes/{roadmapId} {
+      // Read access: Anyone can read vote counts (public data)
+      // This allows displaying vote counts to all users, including anonymous
+      allow read: if true;
+
+      // Write access: Only authenticated users can vote
+      // Users can create/update vote documents for any roadmap
+      allow create, update: if isAuthenticated() &&
+                            request.resource.data.keys().hasAll(['roadmapId', 'votes', 'totalVotes', 'lastUpdated']) &&
+                            request.resource.data.roadmapId is string &&
+                            request.resource.data.totalVotes is int &&
+                            request.resource.data.votes is map &&
+                            request.resource.data.lastUpdated is timestamp;
+
+      // Delete: Only allow if authenticated (for cleanup purposes)
+      allow delete: if isAuthenticated();
+    }
+
+    // ============================================================================
     // ADMIN COLLECTIONS (Future Use)
     // ============================================================================
 

@@ -1,7 +1,16 @@
 import { useState } from "react";
 import Tooltip from "../tooltips/Tooltip";
+import RoadmapUpvoteButton from "../voting/RoadmapUpvoteButton";
 
-const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayName, creatorEmail, isPublic }) => {
+const RoadmapHeader = ({
+  title,
+  description,
+  projectLevel,
+  tags,
+  creatorDisplayName,
+  creatorEmail,
+  isPublic,
+}) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [areTagsExpanded, setAreTagsExpanded] = useState(false);
 
@@ -73,45 +82,58 @@ const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayN
               </div>
             </div>
 
-            {/* Expand/Collapse Button */}
-            {shouldTruncate && (
-              <Tooltip
-                content={
-                  isDescriptionExpanded
-                    ? "Collapse description to show summary"
-                    : "Expand to read full description"
-                }
-                position="left"
-                maxWidth="200px"
-              >
-                <button
-                  onClick={toggleDescription}
-                  className="flex-shrink-0 inline-flex items-center px-3 py-2 sm:py-1.5 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800 min-h-[44px] sm:min-h-auto"
-                  aria-label={
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Upvote Button - Only show for public roadmaps */}
+              {isPublic && (
+                <RoadmapUpvoteButton
+                  size="md"
+                  variant="default"
+                  iconType="heart"
+                  showCount={true}
+                />
+              )}
+
+              {/* Expand/Collapse Button */}
+              {shouldTruncate && (
+                <Tooltip
+                  content={
                     isDescriptionExpanded
-                      ? "Collapse description"
-                      : "Expand description"
+                      ? "Collapse description to show summary"
+                      : "Expand to read full description"
                   }
+                  position="left"
+                  maxWidth="200px"
                 >
-                  <svg
-                    className={`w-4 h-4 mr-1.5 transition-transform duration-150 ${
-                      isDescriptionExpanded ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <button
+                    onClick={toggleDescription}
+                    className="flex-shrink-0 inline-flex items-center px-3 py-2 sm:py-1.5 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors duration-150 border border-blue-200 dark:border-blue-800 min-h-[44px] sm:min-h-auto"
+                    aria-label={
+                      isDescriptionExpanded
+                        ? "Collapse description"
+                        : "Expand description"
+                    }
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                  {isDescriptionExpanded ? "Less" : "More"}
-                </button>
-              </Tooltip>
-            )}
+                    <svg
+                      className={`w-4 h-4 mr-1.5 transition-transform duration-150 ${
+                        isDescriptionExpanded ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                    {isDescriptionExpanded ? "Less" : "More"}
+                  </button>
+                </Tooltip>
+              )}
+            </div>
           </div>
 
           {/* Creator Information - Only show for public roadmaps */}
@@ -120,20 +142,44 @@ const RoadmapHeader = ({ title, description, projectLevel, tags, creatorDisplayN
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 {/* Creator Name */}
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-4 h-4 mr-2 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                   <span className="font-medium">Created by:</span>
-                  <span className="ml-1 text-gray-900 dark:text-white font-medium">{creatorDisplayName}</span>
+                  <span className="ml-1 text-gray-900 dark:text-white font-medium">
+                    {creatorDisplayName}
+                  </span>
                 </div>
 
                 {/* Creator Email */}
                 {creatorEmail && (
                   <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 ml-6 sm:ml-0">
-                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    <svg
+                      className="w-4 h-4 mr-2 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      />
                     </svg>
-                    <span className="text-gray-700 dark:text-gray-300 font-mono text-xs sm:text-sm">{creatorEmail}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-mono text-xs sm:text-sm">
+                      {creatorEmail}
+                    </span>
                   </div>
                 )}
               </div>

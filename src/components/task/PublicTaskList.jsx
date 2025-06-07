@@ -35,7 +35,9 @@ const PublicTaskList = forwardRef(({ tasks, phaseNumber }, ref) => {
       const { taskId } = event.detail;
 
       // Find the task by ID
-      const taskIndex = sortedTasks.findIndex((task) => task.task_id === taskId);
+      const taskIndex = sortedTasks.findIndex(
+        (task) => task.task_id === taskId
+      );
 
       if (taskIndex !== -1) {
         setExpandedTasks((prev) => {

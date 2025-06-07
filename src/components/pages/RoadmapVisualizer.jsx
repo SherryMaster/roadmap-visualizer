@@ -9,6 +9,7 @@ import PrivacyToggle from "../roadmap/PrivacyToggle";
 import DownloadToggle from "../roadmap/DownloadToggle";
 
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
+import { RoadmapVoteProvider } from "../../context/RoadmapVoteContext";
 import { useAuth } from "../../context/AuthContext";
 import usePageTitle from "../../hooks/usePageTitle";
 import useRoadmapAccess from "../../hooks/useRoadmapAccess";
@@ -553,13 +554,19 @@ const RoadmapVisualizer = ({
     </PageLayout>
   );
 
-  // Conditionally wrap with TaskCompletionProvider only for owners
+  // Wrap with RoadmapVoteProvider for all users, and conditionally with TaskCompletionProvider for owners
+  const contentWithVoting = (
+    <RoadmapVoteProvider roadmapId={roadmapId}>
+      {mainContent}
+    </RoadmapVoteProvider>
+  );
+
   return canTrackProgress ? (
     <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
-      {mainContent}
+      {contentWithVoting}
     </TaskCompletionProvider>
   ) : (
-    mainContent
+    contentWithVoting
   );
 };
 

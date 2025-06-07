@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useFirestore } from "../../context/FirestoreContext";
 import Tooltip from "../tooltips/Tooltip";
+import StandaloneRoadmapUpvoteButton from "../voting/StandaloneRoadmapUpvoteButton";
 
 const PublicRoadmapsList = () => {
   const { publicRoadmaps, loading, error } = useFirestore();
@@ -243,7 +244,7 @@ const PublicRoadmapsList = () => {
                       </p>
                     )}
 
-                    {/* Compact Stats */}
+                    {/* Compact Stats and Actions */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400">
                         <span>{roadmap.totalPhases} phases</span>
@@ -251,23 +252,33 @@ const PublicRoadmapsList = () => {
                         <span>{roadmap.totalTasks} tasks</span>
                       </div>
 
-                      {/* Explore Button */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <div className="flex items-center text-blue-600 dark:text-blue-400 text-xs font-medium">
-                          <span>Explore</span>
-                          <svg
-                            className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-200"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M17 8l4 4m0 0l-4 4m4-4H3"
-                            />
-                          </svg>
+                      <div className="flex items-center space-x-2">
+                        {/* Upvote Button */}
+                        <StandaloneRoadmapUpvoteButton
+                          roadmapId={roadmap.id}
+                          size="xs"
+                          variant="minimal"
+                          showCount={true}
+                        />
+
+                        {/* Explore Button */}
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="flex items-center text-blue-600 dark:text-blue-400 text-xs font-medium">
+                            <span>Explore</span>
+                            <svg
+                              className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-200"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                              />
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -351,6 +362,13 @@ const PublicRoadmapsList = () => {
                       <span>{roadmap.totalTasks} tasks</span>
                       <span>•</span>
                       <span>{formatDate(roadmap.updatedAt)}</span>
+                      <span>•</span>
+                      <StandaloneRoadmapUpvoteButton
+                        roadmapId={roadmap.id}
+                        size="xs"
+                        variant="minimal"
+                        showCount={true}
+                      />
                     </div>
                   </div>
                 </div>

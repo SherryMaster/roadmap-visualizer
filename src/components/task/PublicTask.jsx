@@ -22,8 +22,7 @@ const PublicTask = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
           <div className="flex items-center flex-1 min-w-0" onClick={onClick}>
             <div className="flex items-center space-x-3">
               {/* Task status icon - static for public view */}
-              <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-600 border-2 border-gray-300 dark:border-gray-500">
-              </div>
+              <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-600 border-2 border-gray-300 dark:border-gray-500"></div>
 
               <div className="flex items-center space-x-2 min-w-0 flex-1">
                 {/* Task number badge - conditionally shown based on configuration */}

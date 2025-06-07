@@ -19,6 +19,8 @@ import ProfilePage from "../components/pages/ProfilePage";
 import SettingsPage from "../components/pages/SettingsPage";
 import AccessControlDemo from "../components/test/AccessControlDemo";
 import TaskDetailTest from "../components/test/TaskDetailTest";
+import RoadmapVotingDemo from "../components/voting/RoadmapVotingDemo";
+import ErrorTest from "../components/test/ErrorTest";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 import FirestorePersistence from "../utils/FirestorePersistence";
 import { auth } from "../config/firebase";
@@ -299,13 +301,45 @@ const router = createBrowserRouter([
     errorElement: <NotFoundPage />,
   },
   {
+    path: "/demo/voting",
+    element: (
+      <>
+        <PageTitleUpdater title="Roadmap Voting Demo" />
+        <RoadmapVotingDemo />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/test/error",
+    element: (
+      <>
+        <PageTitleUpdater title="Error Boundary Test" />
+        <ErrorTest />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
     path: "*",
     element: <NotFoundPage />,
   },
 ]);
 
 const AppRouter = () => {
-  return <RouterProvider router={router} />;
+  return (
+    <RouterProvider
+      router={router}
+      fallbackElement={
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
+        </div>
+      }
+    />
+  );
 };
 
 export default AppRouter;

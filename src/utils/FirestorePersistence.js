@@ -184,7 +184,7 @@ class FirestorePersistence {
       return {
         ...fullRoadmapData,
         creatorDisplayName: creatorInfo.displayName,
-        creatorEmail: creatorInfo.email
+        creatorEmail: creatorInfo.email,
       };
     } catch (error) {
       console.error("❌ Error loading roadmap from Firestore:", {
@@ -268,7 +268,7 @@ class FirestorePersistence {
         const userData = userSnap.data();
         return {
           displayName: userData.displayName || userData.email || "Unknown User",
-          email: userData.email || null
+          email: userData.email || null,
         };
       }
 
@@ -353,13 +353,13 @@ class FirestorePersistence {
       }
 
       // Batch fetch creator display names
-      const userIds = roadmaps.map(roadmap => roadmap.userId).filter(Boolean);
+      const userIds = roadmaps.map((roadmap) => roadmap.userId).filter(Boolean);
       const userDisplayNames = await this.batchGetUserDisplayNames(userIds);
 
       // Add creator information to roadmaps
-      const roadmapsWithCreators = roadmaps.map(roadmap => ({
+      const roadmapsWithCreators = roadmaps.map((roadmap) => ({
         ...roadmap,
-        creatorDisplayName: userDisplayNames[roadmap.userId] || "Unknown User"
+        creatorDisplayName: userDisplayNames[roadmap.userId] || "Unknown User",
       }));
 
       return roadmapsWithCreators;
@@ -700,7 +700,9 @@ class FirestorePersistence {
         lastAccessed: serverTimestamp(),
       });
 
-      console.log(`✅ Progress updated for roadmap ${roadmapId}: ${progressPercentage}%`);
+      console.log(
+        `✅ Progress updated for roadmap ${roadmapId}: ${progressPercentage}%`
+      );
     } catch (error) {
       console.error("❌ Error updating roadmap progress:", error);
       // Don't throw error for this non-critical operation
@@ -746,10 +748,14 @@ class FirestorePersistence {
         roadmapId
       );
 
-      await setDoc(completionRef, {
-        completedTasks: completedTasks,
-        lastUpdated: serverTimestamp(),
-      }, { merge: true });
+      await setDoc(
+        completionRef,
+        {
+          completedTasks: completedTasks,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
       console.log(`✅ Task completions saved for roadmap ${roadmapId}`);
     } catch (error) {
@@ -1048,13 +1054,16 @@ class FirestorePersistence {
         }
 
         // Batch fetch creator display names
-        const userIds = roadmaps.map(roadmap => roadmap.userId).filter(Boolean);
+        const userIds = roadmaps
+          .map((roadmap) => roadmap.userId)
+          .filter(Boolean);
         const userDisplayNames = await this.batchGetUserDisplayNames(userIds);
 
         // Add creator information to roadmaps
-        const roadmapsWithCreators = roadmaps.map(roadmap => ({
+        const roadmapsWithCreators = roadmaps.map((roadmap) => ({
           ...roadmap,
-          creatorDisplayName: userDisplayNames[roadmap.userId] || "Unknown User"
+          creatorDisplayName:
+            userDisplayNames[roadmap.userId] || "Unknown User",
         }));
 
         callback(roadmapsWithCreators);
@@ -1064,6 +1073,140 @@ class FirestorePersistence {
         callback([]);
       }
     );
+  }
+
+  /**
+   * Save roadmap votes
+   */
+  static async saveRoadmapVotes(roadmapId, votes) {
+    try {
+      const votesRef = doc(db, "roadmapVotes", roadmapId);
+      await setDoc(
+        votesRef,
+        {
+          roadmapId: roadmapId,
+          votes: votes.votes || {},
+          totalVotes: votes.totalVotes || 0,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log("✅ Roadmap votes saved to Firestore:", roadmapId);
+      return true;
+    } catch (error) {
+      console.error("❌ Error saving roadmap votes to Firestore:", error);
+      throw new Error("Failed to save roadmap votes: " + error.message);
+    }
+  }
+
+  /**
+   * Get roadmap votes
+   */
+  static async getRoadmapVotes(roadmapId) {
+    try {
+      const votesRef = doc(db, "roadmapVotes", roadmapId);
+      const votesSnap = await getDoc(votesRef);
+
+      if (!votesSnap.exists()) {
+        return null;
+      }
+
+      const votesData = votesSnap.data();
+      return {
+        votes: votesData.votes || {},
+        totalVotes: votesData.totalVotes || 0,
+        lastUpdated: votesData.lastUpdated,
+      };
+    } catch (error) {
+      console.error("❌ Error getting roadmap votes from Firestore:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Toggle a user's vote for a roadmap
+   */
+  static async toggleRoadmapVote(roadmapId, userId) {
+    try {
+      const votesRef = doc(db, "roadmapVotes", roadmapId);
+      const votesSnap = await getDoc(votesRef);
+
+      let votesData = {
+        votes: {},
+        totalVotes: 0,
+      };
+
+      if (votesSnap.exists()) {
+        const data = votesSnap.data();
+        votesData = {
+          votes: data.votes || {},
+          totalVotes: data.totalVotes || 0,
+        };
+      }
+
+      const hasVoted = !!votesData.votes[userId];
+
+      if (hasVoted) {
+        // Remove vote
+        delete votesData.votes[userId];
+      } else {
+        // Add vote
+        votesData.votes[userId] = new Date().toISOString();
+      }
+
+      // Update total count
+      votesData.totalVotes = Object.keys(votesData.votes).length;
+
+      // Save back to Firestore (use setDoc without merge to ensure clean write)
+      await setDoc(votesRef, {
+        roadmapId: roadmapId,
+        votes: votesData.votes,
+        totalVotes: votesData.totalVotes,
+        lastUpdated: serverTimestamp(),
+      });
+
+      console.log(`✅ Vote toggled for roadmap ${roadmapId}:`, !hasVoted);
+      return !hasVoted; // Return new vote state
+    } catch (error) {
+      console.error("❌ Error toggling roadmap vote in Firestore:", error);
+      throw new Error("Failed to toggle roadmap vote: " + error.message);
+    }
+  }
+
+  /**
+   * Get vote count for a roadmap
+   */
+  static async getRoadmapVoteCount(roadmapId) {
+    try {
+      const votes = await this.getRoadmapVotes(roadmapId);
+
+      if (!votes) return 0;
+
+      return votes.totalVotes || 0;
+    } catch (error) {
+      console.error(
+        "❌ Error getting roadmap vote count from Firestore:",
+        error
+      );
+      return 0;
+    }
+  }
+
+  /**
+   * Check if a user has voted for a roadmap
+   */
+  static async hasUserVotedForRoadmap(roadmapId, userId) {
+    try {
+      const votes = await this.getRoadmapVotes(roadmapId);
+
+      if (!votes || !votes.votes) return false;
+
+      return !!votes.votes[userId];
+    } catch (error) {
+      console.error("❌ Error checking user vote in Firestore:", error);
+      return false;
+    }
   }
 }
 
