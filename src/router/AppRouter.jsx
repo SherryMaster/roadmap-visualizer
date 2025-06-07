@@ -94,6 +94,19 @@ const roadmapLoader = async ({ params }) => {
     );
 
     if (roadmapInfo) {
+      // Check if this roadmap is in the user's collection (if authenticated)
+      let isCollection = false;
+      if (currentUser) {
+        try {
+          isCollection = await FirestorePersistence.isRoadmapInCollection(
+            currentUser.uid,
+            roadmapId
+          );
+        } catch (error) {
+          console.warn("Could not check collection status:", error);
+        }
+      }
+
       return {
         roadmapData: roadmapInfo.data,
         roadmapId: roadmapId,
@@ -108,6 +121,7 @@ const roadmapLoader = async ({ params }) => {
           userId: roadmapInfo.userId, // Use userId from the roadmap object, not data
           creatorDisplayName: roadmapInfo.creatorDisplayName, // Include creator information
           creatorEmail: roadmapInfo.creatorEmail, // Include creator email
+          isCollection: isCollection, // Flag to indicate if this is a collection roadmap
         },
       };
     }
@@ -335,6 +349,14 @@ const AppRouter = () => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
+        </div>
+      }
+      hydrateFallback={
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Initializing...</p>
           </div>
         </div>
       }

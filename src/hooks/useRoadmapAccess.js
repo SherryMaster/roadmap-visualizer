@@ -3,23 +3,24 @@
  * Determines user permissions for roadmap viewing and progress tracking
  */
 
-import { useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export const useRoadmapAccess = (metadata, initialRoadmapData) => {
   const { currentUser } = useAuth();
 
   const accessInfo = useMemo(() => {
     // Check if current user is the owner of the roadmap
-    const isOwner = currentUser && (
+    const isOwner =
+      currentUser &&
       // Check metadata userId (Firestore roadmaps)
-      (metadata && currentUser.uid === metadata.userId) ||
-      // Check roadmap data userId (alternative source)
-      (initialRoadmapData?.userId && currentUser.uid === initialRoadmapData.userId) ||
-      // For localStorage roadmaps without userId, assume ownership if user is authenticated
-      // and metadata exists but has no userId (localStorage case)
-      (metadata && !metadata.userId && !initialRoadmapData?.userId)
-    );
+      ((metadata && currentUser.uid === metadata.userId) ||
+        // Check roadmap data userId (alternative source)
+        (initialRoadmapData?.userId &&
+          currentUser.uid === initialRoadmapData.userId) ||
+        // For localStorage roadmaps without userId, assume ownership if user is authenticated
+        // and metadata exists but has no userId (localStorage case)
+        (metadata && !metadata.userId && !initialRoadmapData?.userId));
 
     // Determine if roadmap is public
     let isPublic = false;
@@ -37,21 +38,31 @@ export const useRoadmapAccess = (metadata, initialRoadmapData) => {
       allowDownload = initialRoadmapData.allowDownload;
     }
 
+    // Check if this is a collection roadmap
+    const isCollection = metadata?.isCollection || false;
+
     // Determine access level
-    const accessLevel = isOwner ? 'owner' : (isPublic ? 'public' : 'restricted');
-    
-    // Can track progress only if owner
-    const canTrackProgress = isOwner;
-    
+    const accessLevel = isOwner
+      ? "owner"
+      : isCollection
+      ? "collection"
+      : isPublic
+      ? "public"
+      : "restricted";
+
+    // Can track progress if owner OR if it's a collection roadmap (user's saved copy)
+    const canTrackProgress = isOwner || isCollection;
+
     // Can edit only if owner
     const canEdit = isOwner;
-    
+
     // Can download if owner or downloads are allowed
     const canDownload = isOwner || allowDownload;
 
     return {
       isOwner,
       isPublic,
+      isCollection,
       allowDownload,
       accessLevel,
       canTrackProgress,

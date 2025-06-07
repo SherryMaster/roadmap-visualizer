@@ -225,6 +225,50 @@ service cloud.firestore {
     }
 
     // ============================================================================
+    // USER COLLECTIONS (Gallery System)
+    // ============================================================================
+
+    match /userCollections/{userId} {
+      // Users can only access their own collections
+      allow read: if isOwner(userId);
+
+      // Nested saved roadmaps
+      match /savedRoadmaps/{roadmapId} {
+        // Users can read, write, and delete their own saved roadmaps
+        allow read, write, delete: if isOwner(userId);
+
+        // Validate saved roadmap data structure
+        allow create, update: if isOwner(userId) &&
+                              request.resource.data.keys().hasAll(['roadmapId', 'originalOwnerId', 'savedAt']) &&
+                              request.resource.data.roadmapId is string &&
+                              request.resource.data.originalOwnerId is string &&
+                              request.resource.data.savedAt is timestamp;
+      }
+    }
+
+    // ============================================================================
+    // COLLECTION PROGRESS (Gallery System)
+    // ============================================================================
+
+    match /collectionProgress/{userId} {
+      // Users can only access their own collection progress
+      allow read: if isOwner(userId);
+
+      // Nested roadmap progress
+      match /roadmaps/{roadmapId} {
+        // Users can read, write, and delete their own collection progress
+        allow read, write, delete: if isOwner(userId);
+
+        // Validate collection progress data structure
+        allow create, update: if isOwner(userId) &&
+                              (request.resource.data.keys().hasAny(['completedTasks', 'progressPercentage', 'lastUpdated']) &&
+                               (!request.resource.data.keys().hasAny(['completedTasks']) || request.resource.data.completedTasks is map) &&
+                               (!request.resource.data.keys().hasAny(['progressPercentage']) || request.resource.data.progressPercentage is number) &&
+                               (!request.resource.data.keys().hasAny(['lastUpdated']) || request.resource.data.lastUpdated is timestamp));
+      }
+    }
+
+    // ============================================================================
     // ADMIN COLLECTIONS (Future Use)
     // ============================================================================
 

@@ -7,10 +7,12 @@ import PageLayout from "../layout/PageLayout";
 import ShareButton from "../layout/ShareButton";
 import PrivacyToggle from "../roadmap/PrivacyToggle";
 import DownloadToggle from "../roadmap/DownloadToggle";
+import SaveToCollectionButton from "../collection/SaveToCollectionButton";
 
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
 import { RoadmapVoteProvider } from "../../context/RoadmapVoteContext";
 import { useAuth } from "../../context/AuthContext";
+import { useFirestore } from "../../context/FirestoreContext";
 import usePageTitle from "../../hooks/usePageTitle";
 import useRoadmapAccess from "../../hooks/useRoadmapAccess";
 import configManager from "../../utils/ConfigManager";
@@ -27,10 +29,9 @@ const RoadmapVisualizer = ({
   const params = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { isOwner, canTrackProgress, canEdit, canDownload } = useRoadmapAccess(
-    metadata,
-    initialRoadmapData
-  );
+  const { removeRoadmapFromCollection } = useFirestore();
+  const { isOwner, isCollection, canTrackProgress, canEdit, canDownload } =
+    useRoadmapAccess(metadata, initialRoadmapData);
   const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
   const [filteredRoadmapData, setFilteredRoadmapData] =
     useState(initialRoadmapData);
@@ -258,6 +259,38 @@ const RoadmapVisualizer = ({
     );
   };
 
+  const handleRemoveFromCollection = async () => {
+    if (!currentUser || !roadmapId) {
+      console.error(
+        "Cannot remove from collection: missing user or roadmap ID"
+      );
+      return;
+    }
+
+    const roadmapTitle = filteredRoadmapData?.title || "this roadmap";
+
+    if (
+      !confirm(
+        `Remove "${roadmapTitle}" from your collection? Your progress will be lost.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await removeRoadmapFromCollection(roadmapId);
+      console.log(`✅ Removed "${roadmapTitle}" from collection`);
+
+      // Navigate back to home page after removal
+      navigate("/");
+    } catch (error) {
+      console.error("❌ Failed to remove from collection:", error);
+      alert(
+        `Failed to remove "${roadmapTitle}" from collection: ${error.message}`
+      );
+    }
+  };
+
   // Access control is now handled by useRoadmapAccess hook
 
   if (loading) {
@@ -361,8 +394,10 @@ const RoadmapVisualizer = ({
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {isOwner
             ? "Edit, download, or share this roadmap"
+            : isCollection
+            ? "Track your progress on this saved roadmap"
             : canDownload
-            ? "Download or share this roadmap"
+            ? "Save to collection or share this roadmap"
             : "Share this roadmap"}
         </p>
       </div>
@@ -371,10 +406,12 @@ const RoadmapVisualizer = ({
         className={`grid grid-cols-1 ${
           isOwner
             ? "sm:grid-cols-3"
+            : isCollection
+            ? "sm:grid-cols-2"
             : canDownload
             ? "sm:grid-cols-2"
             : "sm:grid-cols-1"
-        } gap-3 max-w-2xl mx-auto`}
+        } gap-3 max-w-3xl mx-auto`}
       >
         {/* Edit Button - Only show to roadmap owners */}
         {isOwner && (
@@ -406,8 +443,21 @@ const RoadmapVisualizer = ({
           </InfoTooltip>
         )}
 
-        {/* Download Button - Show if downloads are allowed */}
-        {canDownload && (
+        {/* Save to Collection Button - Show for non-owners on public roadmaps (replaces download) */}
+        {!isOwner &&
+          !isCollection &&
+          currentPrivacy &&
+          currentDownloadPermission && (
+            <SaveToCollectionButton
+              roadmapId={roadmapId}
+              roadmapTitle={filteredRoadmapData?.title}
+              isPublic={currentPrivacy}
+              allowDownload={currentDownloadPermission}
+            />
+          )}
+
+        {/* Download Button - Show only for owners */}
+        {isOwner && canDownload && (
           <SuccessTooltip
             content={
               isOwner
@@ -448,6 +498,30 @@ const RoadmapVisualizer = ({
               )}
             </button>
           </SuccessTooltip>
+        )}
+
+        {/* Remove from Collection Button - Show only for collection roadmaps */}
+        {isCollection && (
+          <button
+            onClick={() => handleRemoveFromCollection()}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 min-h-[48px] font-medium shadow-sm hover:shadow-md"
+            aria-label={`Remove ${filteredRoadmapData?.title} from collection`}
+          >
+            <svg
+              className="w-5 h-5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            <span>Remove from Collection</span>
+          </button>
         )}
 
         <div className="flex justify-center">
@@ -561,8 +635,15 @@ const RoadmapVisualizer = ({
     </RoadmapVoteProvider>
   );
 
+  // Check if this is a collection roadmap by looking at metadata
+  const isCollectionRoadmap = metadata?.isCollection || false;
+
   return canTrackProgress ? (
-    <TaskCompletionProvider roadmapData={roadmapData} roadmapId={roadmapId}>
+    <TaskCompletionProvider
+      roadmapData={roadmapData}
+      roadmapId={roadmapId}
+      isCollectionRoadmap={isCollectionRoadmap}
+    >
       {contentWithVoting}
     </TaskCompletionProvider>
   ) : (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Tooltip from "../tooltips/Tooltip";
 import { ErrorTooltip } from "../tooltips/EnhancedTooltip";
-import PrivacyIndicator from "./PrivacyIndicator";
+import RoadmapCard from "./RoadmapCard";
 
 const RoadmapHistory = ({
   roadmaps,
@@ -11,66 +11,6 @@ const RoadmapHistory = ({
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "Unknown";
-
-    // Handle Firestore timestamp objects
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return "Invalid Date";
-    }
-
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) {
-      return "Today";
-    } else if (diffDays === 2) {
-      return "Yesterday";
-    } else if (diffDays <= 7) {
-      return `${diffDays - 1} days ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
-  const getProgressColor = (percentage) => {
-    if (percentage >= 80) return "bg-green-500";
-    if (percentage >= 50) return "bg-blue-500";
-    if (percentage >= 25) return "bg-yellow-500";
-    return "bg-gray-400";
-  };
-
-  const getProjectLevelBadge = (level) => {
-    // Handle undefined or null level
-    if (!level) {
-      level = "beginner"; // Default fallback
-    }
-
-    const colors = {
-      beginner:
-        "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-      intermediate:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-      advanced:
-        "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-      expert: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
-    };
-
-    return (
-      <span
-        className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-          colors[level] || colors.beginner
-        }`}
-      >
-        {level.charAt(0).toUpperCase()}
-      </span>
-    );
-  };
 
   const handleDelete = (roadmapId, event) => {
     event.stopPropagation();
@@ -208,208 +148,29 @@ const RoadmapHistory = ({
         {viewMode === "grid" ? (
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {roadmaps.map((roadmap) => (
-              <div
+              <RoadmapCard
                 key={roadmap.id}
-                onClick={() => onSelectRoadmap(roadmap.id)}
-                className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
-              >
-                <div className="relative z-10">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {roadmap.title}
-                        </h3>
-                        <PrivacyIndicator
-                          isPublic={roadmap.isPublic}
-                          size="xs"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {formatDate(roadmap.createdAt)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center space-x-1 ml-2">
-                      {getProjectLevelBadge(roadmap.project_level)}
-                      <ErrorTooltip
-                        content="Delete this roadmap permanently (cannot be undone)"
-                        position="top"
-                        maxWidth="250px"
-                      >
-                        <button
-                          onClick={(e) => handleDelete(roadmap.id, e)}
-                          className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all duration-200 p-1"
-                        >
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </ErrorTooltip>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  {roadmap.description && (
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
-                      {roadmap.description}
-                    </p>
-                  )}
-
-                  {/* Compact Progress Section */}
-                  <div className="mb-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                        Progress
-                      </span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {roadmap.progressPercentage}%
-                      </span>
-                    </div>
-
-                    {/* Compact Progress Bar */}
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
-                          roadmap.progressPercentage
-                        )}`}
-                        style={{ width: `${roadmap.progressPercentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Compact Stats */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400">
-                      <span>{roadmap.totalPhases} phases</span>
-                      <span>•</span>
-                      <span>{roadmap.totalTasks} tasks</span>
-                    </div>
-
-                    {/* Continue Learning Button */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <div className="flex items-center text-blue-600 dark:text-blue-400 text-xs font-medium">
-                        <span>Continue</span>
-                        <svg
-                          className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform duration-200"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Compact Tags */}
-                  {roadmap.tags && roadmap.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {roadmap.tags.slice(0, 2).map((tag, index) => {
-                        // Create unique key for tag
-                        const uniqueKey = `roadmap-${roadmap.id}-tag-${index}-${tag}`;
-
-                        return (
-                          <span
-                            key={uniqueKey}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                          >
-                            {tag}
-                          </span>
-                        );
-                      })}
-                      {roadmap.tags.length > 2 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                          +{roadmap.tags.length - 2}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+                roadmap={roadmap}
+                section="my-roadmaps"
+                viewMode="grid"
+                onSelect={onSelectRoadmap}
+                onDelete={handleDelete}
+                isDeleting={showDeleteConfirm === roadmap.id}
+              />
             ))}
           </div>
         ) : (
           <div className="space-y-3">
             {roadmaps.map((roadmap) => (
-              <div
+              <RoadmapCard
                 key={roadmap.id}
-                onClick={() => onSelectRoadmap(roadmap.id)}
-                className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                        {roadmap.title}
-                      </h3>
-                      <PrivacyIndicator isPublic={roadmap.isPublic} size="xs" />
-                      {getProjectLevelBadge(roadmap.project_level)}
-                    </div>
-
-                    {roadmap.description && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
-                        {roadmap.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      <span>{roadmap.totalPhases} phases</span>
-                      <span>•</span>
-                      <span>{roadmap.totalTasks} tasks</span>
-                      <span>•</span>
-                      <span>{formatDate(roadmap.createdAt)}</span>
-                      <span>•</span>
-                      <span className="text-gray-900 dark:text-gray-100 font-medium">
-                        {roadmap.progressPercentage}% complete
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
-                    <ErrorTooltip
-                      content="Delete this roadmap permanently (cannot be undone)"
-                      position="top"
-                      maxWidth="250px"
-                    >
-                      <button
-                        onClick={(e) => handleDelete(roadmap.id, e)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all duration-200 p-1"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </ErrorTooltip>
-                  </div>
-                </div>
-              </div>
+                roadmap={roadmap}
+                section="my-roadmaps"
+                viewMode="list"
+                onSelect={onSelectRoadmap}
+                onDelete={handleDelete}
+                isDeleting={showDeleteConfirm === roadmap.id}
+              />
             ))}
           </div>
         )}

@@ -30,6 +30,7 @@ export const FirestoreProvider = ({ children }) => {
   // State management
   const [userRoadmaps, setUserRoadmaps] = useState([]);
   const [publicRoadmaps, setPublicRoadmaps] = useState([]);
+  const [collectionRoadmaps, setCollectionRoadmaps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [migrationStatus, setMigrationStatus] = useState(null);
@@ -92,6 +93,40 @@ export const FirestoreProvider = ({ children }) => {
       setPublicRoadmaps([]);
     }
   }, []);
+
+  // Load user collection roadmaps
+  const loadCollectionRoadmaps = useCallback(async () => {
+    if (!currentUser) {
+      setCollectionRoadmaps([]);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const roadmaps = await FirestorePersistence.getUserCollection(
+        currentUser.uid
+      );
+      setCollectionRoadmaps(roadmaps);
+    } catch (error) {
+      console.error("❌ Error loading collection roadmaps:", error);
+
+      // Handle permissions error gracefully
+      if (error.message.includes("Missing or insufficient permissions")) {
+        console.warn(
+          "⚠️ Collection feature requires Firestore security rules update"
+        );
+        setCollectionRoadmaps([]);
+        // Don't set error state for permissions issue - just log warning
+      } else {
+        setError("Failed to load your collection: " + error.message);
+        setCollectionRoadmaps([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser]);
 
   // Save roadmap
   const saveRoadmap = useCallback(
@@ -271,6 +306,90 @@ export const FirestoreProvider = ({ children }) => {
     [currentUser, loadUserRoadmaps, loadPublicRoadmaps]
   );
 
+  // Save roadmap to collection
+  const saveRoadmapToCollection = useCallback(
+    async (roadmapId) => {
+      if (!currentUser) {
+        throw new Error(
+          "User must be authenticated to save roadmaps to collection"
+        );
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        await FirestorePersistence.saveRoadmapToCollection(
+          currentUser.uid,
+          roadmapId
+        );
+
+        // Refresh collection roadmaps
+        await loadCollectionRoadmaps();
+
+        return true;
+      } catch (error) {
+        console.error("❌ Error saving roadmap to collection:", error);
+        setError("Failed to save roadmap to collection: " + error.message);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUser, loadCollectionRoadmaps]
+  );
+
+  // Remove roadmap from collection
+  const removeRoadmapFromCollection = useCallback(
+    async (roadmapId) => {
+      if (!currentUser) {
+        throw new Error("User must be authenticated");
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        await FirestorePersistence.removeRoadmapFromCollection(
+          currentUser.uid,
+          roadmapId
+        );
+
+        // Refresh collection roadmaps
+        await loadCollectionRoadmaps();
+
+        return true;
+      } catch (error) {
+        console.error("❌ Error removing roadmap from collection:", error);
+        setError("Failed to remove roadmap from collection: " + error.message);
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentUser, loadCollectionRoadmaps]
+  );
+
+  // Check if roadmap is in collection
+  const isRoadmapInCollection = useCallback(
+    async (roadmapId) => {
+      if (!currentUser) {
+        return false;
+      }
+
+      try {
+        return await FirestorePersistence.isRoadmapInCollection(
+          currentUser.uid,
+          roadmapId
+        );
+      } catch (error) {
+        console.error("❌ Error checking collection status:", error);
+        return false;
+      }
+    },
+    [currentUser]
+  );
+
   // Combined effect for authentication, migration, and subscriptions
   useEffect(() => {
     if (!currentUser) {
@@ -278,6 +397,7 @@ export const FirestoreProvider = ({ children }) => {
       subscriptions.forEach((unsubscribe) => unsubscribe());
       setSubscriptions([]);
       setUserRoadmaps([]);
+      setCollectionRoadmaps([]);
       setMigrationStatus(null);
       return;
     }
@@ -298,6 +418,21 @@ export const FirestoreProvider = ({ children }) => {
               setUserRoadmaps(roadmaps);
             }
           );
+
+        // Step 3: Load collection roadmaps (no real-time subscription needed for now)
+        // Only load if Firestore rules are properly configured
+        try {
+          await loadCollectionRoadmaps();
+        } catch (error) {
+          if (error.message.includes("Missing or insufficient permissions")) {
+            console.warn(
+              "⚠️ Collection feature requires Firestore security rules update. See firestore-security-rules-update.txt"
+            );
+            setCollectionRoadmaps([]); // Set empty array to prevent loading errors
+          } else {
+            throw error; // Re-throw other errors
+          }
+        }
 
         // Note: Public roadmaps are handled by the independent effect below
         // to ensure consistent behavior for both authenticated and anonymous users
@@ -332,6 +467,7 @@ export const FirestoreProvider = ({ children }) => {
     // Data
     userRoadmaps,
     publicRoadmaps,
+    collectionRoadmaps,
     loading,
     error,
     migrationStatus,
@@ -345,6 +481,10 @@ export const FirestoreProvider = ({ children }) => {
     updateRoadmapDownloadPermission,
     loadUserRoadmaps,
     loadPublicRoadmaps,
+    loadCollectionRoadmaps,
+    saveRoadmapToCollection,
+    removeRoadmapFromCollection,
+    isRoadmapInCollection,
     clearError,
 
     // Migration

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import RoadmapUploader from "../roadmap/RoadmapUploader";
 import RoadmapHistory from "../roadmap/RoadmapHistory";
 import PublicRoadmapsList from "../roadmap/PublicRoadmapsList";
+import CollectionRoadmapsList from "../collection/CollectionRoadmapsList";
 import ValidationErrorModal from "../modals/ValidationErrorModal";
 
 import PageLayout from "../layout/PageLayout";
@@ -22,8 +23,14 @@ const HomePage = () => {
   usePageTitle("Home");
 
   const { currentUser } = useAuth();
-  const { userRoadmaps, publicRoadmaps, saveRoadmap, deleteRoadmap } =
-    useFirestore();
+  const {
+    userRoadmaps,
+    publicRoadmaps,
+    collectionRoadmaps,
+    saveRoadmap,
+    deleteRoadmap,
+    loadCollectionRoadmaps,
+  } = useFirestore();
 
   const [showUploader, setShowUploader] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
@@ -429,6 +436,20 @@ const HomePage = () => {
                 My Roadmaps ({userRoadmaps.length})
               </button>
               <button
+                onClick={() => {
+                  setActiveTab("my-collection");
+                  // Refresh collection roadmaps when tab is clicked
+                  loadCollectionRoadmaps();
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "my-collection"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                My Collection ({collectionRoadmaps.length})
+              </button>
+              <button
                 onClick={() => setActiveTab("public-roadmaps")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "public-roadmaps"
@@ -451,6 +472,8 @@ const HomePage = () => {
               showPrivacyControls={true}
             />
           )}
+
+          {activeTab === "my-collection" && <CollectionRoadmapsList />}
 
           {activeTab === "public-roadmaps" && <PublicRoadmapsList />}
         </div>

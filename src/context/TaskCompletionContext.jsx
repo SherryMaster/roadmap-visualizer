@@ -49,6 +49,7 @@ export const TaskCompletionProvider = ({
   children,
   roadmapData,
   roadmapId,
+  isCollectionRoadmap = false, // Flag to indicate if this is a collection roadmap
 }) => {
   const { currentUser } = useAuth();
   const [completedTasks, setCompletedTasks] = useState({});
@@ -71,10 +72,20 @@ export const TaskCompletionProvider = ({
       // Try to load from Firestore first (if user is authenticated and roadmapId exists)
       if (currentUser && roadmapId) {
         try {
-          loadedTasks = await FirestorePersistence.loadTaskCompletions(
-            currentUser.uid,
-            roadmapId
-          );
+          if (isCollectionRoadmap) {
+            // Load collection-specific progress
+            loadedTasks =
+              await FirestorePersistence.loadCollectionTaskCompletions(
+                currentUser.uid,
+                roadmapId
+              );
+          } else {
+            // Load regular roadmap progress
+            loadedTasks = await FirestorePersistence.loadTaskCompletions(
+              currentUser.uid,
+              roadmapId
+            );
+          }
         } catch (error) {
           console.error(
             "Error loading task completions from Firestore:",
@@ -84,7 +95,8 @@ export const TaskCompletionProvider = ({
       }
 
       // Fallback to localStorage if no Firestore data or not authenticated
-      if (Object.keys(loadedTasks).length === 0) {
+      // Note: Collection roadmaps don't use localStorage fallback to maintain separation
+      if (Object.keys(loadedTasks).length === 0 && !isCollectionRoadmap) {
         const localRoadmapId = getRoadmapId();
         const savedCompletedTasks = localStorage.getItem(
           `completed-tasks-${localRoadmapId}`
@@ -105,7 +117,7 @@ export const TaskCompletionProvider = ({
     };
 
     loadCompletedTasks();
-  }, [roadmapData, currentUser, roadmapId]);
+  }, [roadmapData, currentUser, roadmapId, isCollectionRoadmap]);
 
   // Save completed tasks to localStorage and Firestore, and update progress whenever they change
   useEffect(() => {
@@ -114,41 +126,71 @@ export const TaskCompletionProvider = ({
     const saveCompletedTasks = async () => {
       const currentRoadmapId = getRoadmapId();
 
-      // Save to localStorage (for backward compatibility)
-      localStorage.setItem(
-        `completed-tasks-${currentRoadmapId}`,
-        JSON.stringify(completedTasks)
-      );
-
-      // Save to Firestore (if user is authenticated and roadmapId exists)
-      if (currentUser && roadmapId) {
-        await FirestorePersistence.saveTaskCompletions(
-          currentUser.uid,
-          roadmapId,
-          completedTasks
+      // Save to localStorage (for backward compatibility, but not for collection roadmaps)
+      if (!isCollectionRoadmap) {
+        localStorage.setItem(
+          `completed-tasks-${currentRoadmapId}`,
+          JSON.stringify(completedTasks)
         );
       }
 
-      // Update progress in roadmap metadata (both localStorage and Firestore)
+      // Save to Firestore (if user is authenticated and roadmapId exists)
+      if (currentUser && roadmapId) {
+        if (isCollectionRoadmap) {
+          // Save collection-specific progress
+          await FirestorePersistence.saveCollectionTaskCompletions(
+            currentUser.uid,
+            roadmapId,
+            completedTasks
+          );
+        } else {
+          // Save regular roadmap progress
+          await FirestorePersistence.saveTaskCompletions(
+            currentUser.uid,
+            roadmapId,
+            completedTasks
+          );
+        }
+      }
+
+      // Update progress in roadmap metadata
       const progressPercentage = calculateOverallProgress();
 
-      // Update localStorage metadata (for backward compatibility)
-      RoadmapPersistence.updateRoadmapProgress(
-        currentRoadmapId,
-        progressPercentage
-      );
-
-      // Update Firestore metadata (for real-time sync)
-      if (roadmapId) {
-        FirestorePersistence.updateRoadmapProgress(
-          roadmapId,
+      if (isCollectionRoadmap) {
+        // Update collection progress only
+        if (currentUser && roadmapId) {
+          await FirestorePersistence.updateCollectionRoadmapProgress(
+            currentUser.uid,
+            roadmapId,
+            progressPercentage
+          );
+        }
+      } else {
+        // Update localStorage metadata (for backward compatibility)
+        RoadmapPersistence.updateRoadmapProgress(
+          currentRoadmapId,
           progressPercentage
         );
+
+        // Update Firestore metadata (for real-time sync)
+        if (roadmapId) {
+          FirestorePersistence.updateRoadmapProgress(
+            roadmapId,
+            progressPercentage
+          );
+        }
       }
     };
 
     saveCompletedTasks();
-  }, [completedTasks, isInitialized, roadmapData, roadmapId, currentUser]);
+  }, [
+    completedTasks,
+    isInitialized,
+    roadmapData,
+    roadmapId,
+    currentUser,
+    isCollectionRoadmap,
+  ]);
 
   // Toggle task completion status
   const toggleTaskCompletion = (phaseNumber, taskIndex) => {

@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useFirestore } from "../../context/FirestoreContext";
 
-const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermissionChange }) => {
+const DownloadToggle = ({
+  roadmapId,
+  allowDownload,
+  userId,
+  onDownloadPermissionChange,
+}) => {
   const { currentUser } = useAuth();
   const { updateRoadmapDownloadPermission } = useFirestore();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -38,7 +43,11 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
       }
 
       // Show success notification
-      console.log(`✅ Download permission updated: ${newAllowDownload ? "Enabled" : "Disabled"}`);
+      console.log(
+        `✅ Download permission updated: ${
+          newAllowDownload ? "Enabled" : "Disabled"
+        }`
+      );
     } catch (error) {
       console.error("❌ Failed to update download permission:", error);
       // Could add user-facing error notification here
@@ -59,11 +68,11 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
     <>
       <div className="flex items-center space-x-3">
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Download Permission
+          Collection Saving
         </span>
-        
+
         <div className="flex items-center space-x-2">
-          {/* Disable Downloads Button */}
+          {/* Disable Collection Saving Button */}
           <button
             onClick={() => handleToggleDownload(false)}
             disabled={isUpdating || !allowDownload}
@@ -72,7 +81,7 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 ring-1 ring-red-300 dark:ring-red-700"
                 : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300"
             } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-            aria-label="Disable downloads"
+            aria-label="Disable collection saving"
           >
             {isUpdating && !allowDownload ? (
               <div className="w-3 h-3 border border-red-600 border-t-transparent rounded-full animate-spin"></div>
@@ -81,7 +90,7 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
             )}
           </button>
 
-          {/* Enable Downloads Button */}
+          {/* Enable Collection Saving Button */}
           <button
             onClick={() => handleToggleDownload(true)}
             disabled={isUpdating || allowDownload}
@@ -90,7 +99,7 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 ring-1 ring-green-300 dark:ring-green-700"
                 : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300"
             } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
-            aria-label="Enable downloads"
+            aria-label="Enable collection saving"
           >
             {isUpdating && allowDownload ? (
               <div className="w-3 h-3 border border-green-600 border-t-transparent rounded-full animate-spin"></div>
@@ -108,7 +117,9 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
             }`}
           ></div>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {allowDownload ? "Downloads allowed" : "Downloads disabled"}
+            {allowDownload
+              ? "Collection saving enabled"
+              : "Collection saving disabled"}
           </span>
         </div>
       </div>
@@ -134,20 +145,21 @@ const DownloadToggle = ({ roadmapId, allowDownload, userId, onDownloadPermission
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Disable Downloads?
+                Disable Collection Saving?
               </h3>
             </div>
-            
+
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              This will prevent other users from downloading your roadmap. You can re-enable downloads at any time.
+              This will prevent other users from saving your roadmap to their
+              collections. You can re-enable collection saving at any time.
             </p>
-            
+
             <div className="flex space-x-3">
               <button
                 onClick={confirmDisableDownload}
                 className="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors duration-200"
               >
-                Disable Downloads
+                Disable Collection Saving
               </button>
               <button
                 onClick={cancelDisableDownload}

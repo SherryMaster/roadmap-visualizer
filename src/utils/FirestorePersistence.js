@@ -710,6 +710,201 @@ class FirestorePersistence {
   }
 
   /**
+   * Save a roadmap to user's collection (reference-based, not content duplication)
+   */
+  static async saveRoadmapToCollection(userId, roadmapId) {
+    try {
+      // First verify the roadmap exists and is public
+      const roadmapRef = doc(db, "roadmaps", roadmapId);
+      const roadmapSnap = await getDoc(roadmapRef);
+
+      if (!roadmapSnap.exists()) {
+        throw new Error("Roadmap not found");
+      }
+
+      const roadmapData = roadmapSnap.data();
+      if (!roadmapData.isPublic) {
+        throw new Error("Cannot save private roadmaps to collection");
+      }
+
+      // Check if already in collection
+      const collectionRef = doc(
+        db,
+        "userCollections",
+        userId,
+        "savedRoadmaps",
+        roadmapId
+      );
+      const existingSnap = await getDoc(collectionRef);
+
+      if (existingSnap.exists()) {
+        throw new Error("Roadmap already in your collection");
+      }
+
+      // Save reference to user's collection
+      const timestamp = serverTimestamp();
+      await setDoc(collectionRef, {
+        roadmapId: roadmapId,
+        originalOwnerId: roadmapData.userId,
+        savedAt: timestamp,
+        lastAccessed: timestamp,
+        // Store minimal metadata for quick access
+        title: roadmapData.outline?.title || "Untitled Roadmap",
+        description: roadmapData.outline?.description || "",
+        projectLevel: roadmapData.outline?.project_level || "beginner",
+        tags: roadmapData.outline?.tags || [],
+      });
+
+      console.log(
+        `✅ Roadmap ${roadmapId} saved to user ${userId}'s collection`
+      );
+      return true;
+    } catch (error) {
+      console.error("❌ Error saving roadmap to collection:", error);
+      throw new Error("Failed to save roadmap to collection: " + error.message);
+    }
+  }
+
+  /**
+   * Remove a roadmap from user's collection
+   */
+  static async removeRoadmapFromCollection(userId, roadmapId) {
+    try {
+      const collectionRef = doc(
+        db,
+        "userCollections",
+        userId,
+        "savedRoadmaps",
+        roadmapId
+      );
+      await deleteDoc(collectionRef);
+
+      // Also remove any progress data for this collection roadmap
+      const progressRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+      await deleteDoc(progressRef);
+
+      console.log(
+        `✅ Roadmap ${roadmapId} removed from user ${userId}'s collection`
+      );
+      return true;
+    } catch (error) {
+      console.error("❌ Error removing roadmap from collection:", error);
+      throw new Error(
+        "Failed to remove roadmap from collection: " + error.message
+      );
+    }
+  }
+
+  /**
+   * Get user's collection roadmaps
+   */
+  static async getUserCollection(userId) {
+    try {
+      const collectionQuery = query(
+        collection(db, "userCollections", userId, "savedRoadmaps"),
+        orderBy("savedAt", "desc")
+      );
+
+      const querySnapshot = await getDocs(collectionQuery);
+      const collectionRoadmaps = [];
+
+      for (const docSnap of querySnapshot.docs) {
+        const collectionData = docSnap.data();
+
+        // Get the original roadmap metadata for current info
+        try {
+          const metadataRef = doc(
+            db,
+            "roadmapMetadata",
+            collectionData.roadmapId
+          );
+          const metadataSnap = await getDoc(metadataRef);
+
+          if (metadataSnap.exists()) {
+            const metadata = metadataSnap.data();
+
+            // Get user's progress for this collection roadmap
+            const progressRef = doc(
+              db,
+              "collectionProgress",
+              userId,
+              "roadmaps",
+              collectionData.roadmapId
+            );
+            const progressSnap = await getDoc(progressRef);
+            const progressData = progressSnap.exists()
+              ? progressSnap.data()
+              : { progressPercentage: 0 };
+
+            // Debug: Check progress data
+            if (progressData.progressPercentage > 0) {
+              console.log(
+                `📊 Collection progress for roadmap ${collectionData.roadmapId}: ${progressData.progressPercentage}%`
+              );
+            }
+
+            collectionRoadmaps.push({
+              id: collectionData.roadmapId,
+              title: metadata.title,
+              description: metadata.description,
+              projectLevel: metadata.projectLevel,
+              tags: metadata.tags,
+              totalPhases: metadata.totalPhases,
+              totalTasks: metadata.totalTasks,
+              likeCount: metadata.likeCount,
+              viewCount: metadata.viewCount,
+              originalOwnerId: collectionData.originalOwnerId,
+              savedAt: collectionData.savedAt,
+              lastAccessed: collectionData.lastAccessed,
+              progressPercentage: progressData.progressPercentage || 0,
+              isCollection: true, // Flag to identify collection roadmaps
+              // Keep original metadata for credibility
+              createdAt: metadata.createdAt,
+              updatedAt: metadata.updatedAt,
+            });
+          }
+        } catch (metadataError) {
+          console.warn(
+            `⚠️ Could not load metadata for roadmap ${collectionData.roadmapId}:`,
+            metadataError
+          );
+          // Include basic info even if metadata fails
+          collectionRoadmaps.push({
+            id: collectionData.roadmapId,
+            title: collectionData.title,
+            description: collectionData.description,
+            projectLevel: collectionData.projectLevel,
+            tags: collectionData.tags,
+            originalOwnerId: collectionData.originalOwnerId,
+            savedAt: collectionData.savedAt,
+            lastAccessed: collectionData.lastAccessed,
+            progressPercentage: 0,
+            isCollection: true,
+            totalPhases: 0,
+            totalTasks: 0,
+            likeCount: 0,
+            viewCount: 0,
+          });
+        }
+      }
+
+      console.log(
+        `✅ Loaded ${collectionRoadmaps.length} roadmaps from user ${userId}'s collection`
+      );
+      return collectionRoadmaps;
+    } catch (error) {
+      console.error("❌ Error loading user collection:", error);
+      throw new Error("Failed to load user collection: " + error.message);
+    }
+  }
+
+  /**
    * Load task completion data for a roadmap
    */
   static async loadTaskCompletions(userId, roadmapId) {
@@ -761,6 +956,129 @@ class FirestorePersistence {
     } catch (error) {
       console.error("❌ Error saving task completions:", error);
       // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
+   * Save task completion data for a collection roadmap (separate from owned roadmaps)
+   */
+  static async saveCollectionTaskCompletions(
+    userId,
+    roadmapId,
+    completedTasks
+  ) {
+    try {
+      const completionRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      await setDoc(
+        completionRef,
+        {
+          completedTasks: completedTasks,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log(
+        `✅ Collection task completions saved for roadmap ${roadmapId}`
+      );
+    } catch (error) {
+      console.error("❌ Error saving collection task completions:", error);
+      // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
+   * Load task completion data for a collection roadmap
+   */
+  static async loadCollectionTaskCompletions(userId, roadmapId) {
+    try {
+      const completionRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      const completionSnap = await getDoc(completionRef);
+
+      if (completionSnap.exists()) {
+        const data = completionSnap.data();
+        console.log(
+          `✅ Collection task completions loaded for roadmap ${roadmapId}`
+        );
+        return data.completedTasks || {};
+      }
+
+      console.log(
+        `📝 No collection task completions found for roadmap ${roadmapId}`
+      );
+      return {};
+    } catch (error) {
+      console.error("❌ Error loading collection task completions:", error);
+      return {};
+    }
+  }
+
+  /**
+   * Update progress percentage for a collection roadmap
+   */
+  static async updateCollectionRoadmapProgress(
+    userId,
+    roadmapId,
+    progressPercentage
+  ) {
+    try {
+      const progressRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      await setDoc(
+        progressRef,
+        {
+          progressPercentage: progressPercentage,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log(
+        `✅ Collection progress updated for roadmap ${roadmapId}: ${progressPercentage}%`
+      );
+    } catch (error) {
+      console.error("❌ Error updating collection roadmap progress:", error);
+      // Don't throw error for this non-critical operation
+    }
+  }
+
+  /**
+   * Check if a roadmap is in user's collection
+   */
+  static async isRoadmapInCollection(userId, roadmapId) {
+    try {
+      const collectionRef = doc(
+        db,
+        "userCollections",
+        userId,
+        "savedRoadmaps",
+        roadmapId
+      );
+      const collectionSnap = await getDoc(collectionRef);
+      return collectionSnap.exists();
+    } catch (error) {
+      console.error("❌ Error checking collection status:", error);
+      return false;
     }
   }
 
