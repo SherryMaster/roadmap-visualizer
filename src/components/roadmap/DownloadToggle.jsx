@@ -66,25 +66,54 @@ const DownloadToggle = ({
 
   return (
     <>
-      <div className="flex items-center space-x-3">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Collection Saving
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
+            <svg
+              className="w-4 h-4 text-gray-500 dark:text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Collection Saving
+            </span>
+          </div>
+
+          {/* Status indicator */}
+          <div className="flex items-center space-x-1">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                allowDownload ? "bg-green-500" : "bg-red-500"
+              }`}
+            />
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {allowDownload ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+        </div>
 
         <div className="flex items-center space-x-2">
           {/* Disable Collection Saving Button */}
           <button
             onClick={() => handleToggleDownload(false)}
-            disabled={isUpdating || !allowDownload}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 ${
+            disabled={isUpdating}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 min-w-[80px] ${
               !allowDownload
-                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 ring-1 ring-red-300 dark:ring-red-700"
-                : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300"
+                ? "bg-red-600 text-white shadow-sm"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-label="Disable collection saving"
           >
             {isUpdating && !allowDownload ? (
-              <div className="w-3 h-3 border border-red-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
             ) : (
               "Disabled"
             )}
@@ -93,34 +122,20 @@ const DownloadToggle = ({
           {/* Enable Collection Saving Button */}
           <button
             onClick={() => handleToggleDownload(true)}
-            disabled={isUpdating || allowDownload}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 ${
+            disabled={isUpdating}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-200 min-w-[80px] ${
               allowDownload
-                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 ring-1 ring-green-300 dark:ring-green-700"
-                : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300"
+                ? "bg-green-600 text-white shadow-sm"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             } ${isUpdating ? "opacity-50 cursor-not-allowed" : ""}`}
             aria-label="Enable collection saving"
           >
             {isUpdating && allowDownload ? (
-              <div className="w-3 h-3 border border-green-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
             ) : (
               "Enabled"
             )}
           </button>
-        </div>
-
-        {/* Status Indicator */}
-        <div className="flex items-center space-x-1">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              allowDownload ? "bg-green-500" : "bg-red-500"
-            }`}
-          ></div>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {allowDownload
-              ? "Collection saving enabled"
-              : "Collection saving disabled"}
-          </span>
         </div>
       </div>
 
