@@ -114,7 +114,7 @@ const DependencyToggle = ({
 
           {/* Disabled Button */}
           <Tooltip
-            content="Users can complete tasks in any order they want, regardless of dependencies. Dependencies will still be shown for guidance."
+            content="Users can complete tasks in any order they want. All dependency-related UI elements will be hidden for a cleaner interface."
             position="bottom"
             maxWidth="300px"
           >
@@ -175,9 +175,8 @@ const DependencyToggle = ({
             </div>
 
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              This will allow you to complete tasks in any order, regardless of
-              dependencies. Dependencies will still be shown for guidance, but
-              won't be enforced.{" "}
+              This will allow you to complete tasks in any order and hide all
+              dependency-related UI elements for a cleaner interface.{" "}
               {isCollectionRoadmap
                 ? "This change only affects your personal copy of this roadmap."
                 : "This change will apply to all users viewing this roadmap."}

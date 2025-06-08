@@ -9,6 +9,7 @@ import OutcomesList from "./OutcomesList";
 import SubtasksList from "./SubtasksList";
 import PriorityBadge from "./PriorityBadge";
 import TaskNotes from "./TaskNotes";
+import { useTaskCompletion } from "../../context/TaskCompletionContext";
 import configManager from "../../utils/ConfigManager";
 import schemaMapper from "../../utils/SchemaMapper";
 
@@ -20,6 +21,9 @@ const TaskDetail = ({
   allPhases,
   isPublicView = false,
 }) => {
+  // Get dependency toggle state from TaskCompletionContext
+  const { enableDependencies } = useTaskCompletion();
+
   // Get component configurations
   const difficultyConfig = configManager.getComponentConfig("difficulty");
   const timeConfig = configManager.getComponentConfig("estimatedTime");
@@ -194,8 +198,8 @@ const TaskDetail = ({
         />
       )}
 
-      {/* Task dependencies */}
-      {taskDependencies && (
+      {/* Task dependencies - Only show when dependencies are enabled */}
+      {taskDependencies && enableDependencies && (
         <TaskDependencies
           dependencies={taskDependencies}
           allPhases={allPhases}

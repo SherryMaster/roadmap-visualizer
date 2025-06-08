@@ -726,7 +726,13 @@ const RoadmapVisualizer = ({
       roadmapData={roadmapData}
       roadmapId={roadmapId}
       isCollectionRoadmap={isCollectionRoadmap}
-      enableDependencies={currentDependencyMode}
+      enableDependencies={
+        isCollection
+          ? collectionDependencyMode !== null
+            ? collectionDependencyMode
+            : currentDependencyMode
+          : currentDependencyMode
+      }
     >
       {contentWithVoting}
     </TaskCompletionProvider>

@@ -12,6 +12,7 @@ const OwnerTask = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
     isTaskCompleted,
     getDependencyStatus,
     completedTasks,
+    enableDependencies,
   } = useTaskCompletion();
   const [completed, setCompleted] = useState(false);
   const [animateCompletion, setAnimateCompletion] = useState(false);
@@ -154,7 +155,7 @@ const OwnerTask = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             {/* Completion toggle button */}
             <Tooltip
               content={
-                !completed && !canComplete
+                !completed && !canComplete && enableDependencies
                   ? `Complete required dependencies first (${
                       dependencyStatus?.requiredCompleted || 0
                     }/${dependencyStatus?.requiredTotal || 0})`
@@ -167,9 +168,9 @@ const OwnerTask = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             >
               <button
                 onClick={handleCheckboxClick}
-                disabled={!completed && !canComplete}
+                disabled={!completed && !canComplete && enableDependencies}
                 className={`relative flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-lg transition-all duration-200 ${
-                  !completed && !canComplete
+                  !completed && !canComplete && enableDependencies
                     ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700"
                     : completed
                     ? "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400"
@@ -256,8 +257,9 @@ const OwnerTask = ({ task, isExpanded, onClick, phaseNumber, taskIndex }) => {
             {task_summary}
           </p>
 
-          {/* Dependency status indicator */}
+          {/* Dependency status indicator - Only show when dependencies are enabled */}
           {!completed &&
+            enableDependencies &&
             dependencyStatus &&
             dependencyStatus.requiredTotal > 0 && (
               <div

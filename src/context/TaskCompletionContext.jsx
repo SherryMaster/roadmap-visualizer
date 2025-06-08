@@ -38,6 +38,7 @@ export const useTaskCompletion = () => {
       }),
       resetAllProgress: () => {},
       completedTasks: {},
+      enableDependencies: false, // Default to false for public views
     };
   }
 
