@@ -545,46 +545,42 @@ class FirestorePersistence {
   }
 
   /**
-   * Update roadmap dependency mode setting
+   * Update user's personal dependency mode setting for any roadmap
+   * This is now unified for both owner and collection roadmaps
    */
-  static async updateRoadmapDependencyMode(
-    roadmapId,
-    enableDependencies,
-    userId
-  ) {
+  static async updateUserDependencyMode(userId, roadmapId, enableDependencies) {
     if (!userId) {
       throw new Error("User must be authenticated");
     }
 
     try {
-      const batch = writeBatch(db);
+      const progressRef = doc(
+        db,
+        "userPreferences",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
 
-      // Update roadmap document
-      const roadmapRef = doc(db, "roadmaps", roadmapId);
-      batch.update(roadmapRef, {
-        enableDependencies: enableDependencies,
-        updatedAt: serverTimestamp(),
-      });
-
-      // Update metadata document
-      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
-      batch.update(metadataRef, {
-        enableDependencies: enableDependencies,
-        updatedAt: serverTimestamp(),
-      });
-
-      await batch.commit();
+      await setDoc(
+        progressRef,
+        {
+          enableDependencies: enableDependencies,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
       console.log(
-        `✅ Roadmap dependency mode updated: ${roadmapId} -> ${
+        `✅ User dependency mode updated: ${userId}/${roadmapId} -> ${
           enableDependencies ? "dependencies enabled" : "dependencies disabled"
         }`
       );
       return true;
     } catch (error) {
-      console.error("❌ Error updating roadmap dependency mode:", error);
+      console.error("❌ Error updating user dependency mode:", error);
       throw new Error(
-        "Failed to update roadmap dependency mode: " + error.message
+        "Failed to update user dependency mode: " + error.message
       );
     }
   }
@@ -625,7 +621,42 @@ class FirestorePersistence {
   }
 
   /**
+   * Get user's personal dependency mode setting for any roadmap
+   * This is now unified for both owner and collection roadmaps
+   */
+  static async getUserDependencyMode(userId, roadmapId) {
+    if (!userId) {
+      return null;
+    }
+
+    try {
+      const progressRef = doc(
+        db,
+        "userPreferences",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      const progressSnap = await getDoc(progressRef);
+
+      if (progressSnap.exists()) {
+        const data = progressSnap.data();
+        // Return the user's preference, or null if not set (will inherit from roadmap default)
+        return data.enableDependencies !== undefined
+          ? data.enableDependencies
+          : null;
+      }
+      return null; // No preference set, will inherit from roadmap default
+    } catch (error) {
+      console.error("❌ Error getting user dependency mode:", error);
+      return null; // Fallback to inherit from roadmap default
+    }
+  }
+
+  /**
    * Get collection roadmap dependency mode setting (user-specific)
+   * @deprecated Use getUserDependencyMode instead for unified approach
    */
   static async getCollectionRoadmapDependencyMode(userId, roadmapId) {
     try {

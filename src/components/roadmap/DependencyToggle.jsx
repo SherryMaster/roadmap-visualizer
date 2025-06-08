@@ -11,16 +11,12 @@ const DependencyToggle = ({
   isCollectionRoadmap = false,
 }) => {
   const { currentUser } = useAuth();
-  const { updateRoadmapDependencyMode, updateCollectionRoadmapDependencyMode } =
-    useFirestore();
+  const { updateUserDependencyMode } = useFirestore();
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // Show to authenticated users who own the roadmap OR for collection roadmaps (user's own copy)
-  const canToggleDependencies =
-    currentUser &&
-    (currentUser.uid === userId || // Original roadmap owner
-      isCollectionRoadmap); // Collection roadmap (user's own copy)
+  // Show to authenticated users who can track progress (personal setting for all)
+  const canToggleDependencies = currentUser && currentUser.uid === userId;
 
   if (!canToggleDependencies) {
     return null;
@@ -41,16 +37,8 @@ const DependencyToggle = ({
     setShowConfirmDialog(false);
 
     try {
-      if (isCollectionRoadmap) {
-        // Update user-specific collection setting
-        await updateCollectionRoadmapDependencyMode(
-          roadmapId,
-          newEnableDependencies
-        );
-      } else {
-        // Update original roadmap setting
-        await updateRoadmapDependencyMode(roadmapId, newEnableDependencies);
-      }
+      // Use unified approach for all roadmaps - save to user preferences
+      await updateUserDependencyMode(roadmapId, newEnableDependencies);
 
       // Notify parent component of the change
       if (onDependencyModeChange) {
@@ -182,10 +170,9 @@ const DependencyToggle = ({
 
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               This will allow you to complete tasks in any order and hide all
-              dependency-related UI elements for a cleaner interface.{" "}
-              {isCollectionRoadmap
-                ? "This change only affects your personal copy of this roadmap."
-                : "This is a personal setting that only affects your experience with this roadmap."}
+              dependency-related UI elements for a cleaner interface. This is a
+              personal setting that only affects your experience with this
+              roadmap.
             </p>
 
             <div className="flex space-x-3">

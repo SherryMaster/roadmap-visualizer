@@ -306,8 +306,8 @@ export const FirestoreProvider = ({ children }) => {
     [currentUser, loadUserRoadmaps]
   );
 
-  // Update roadmap dependency mode
-  const updateRoadmapDependencyMode = useCallback(
+  // Update user's personal dependency mode (unified for all roadmaps)
+  const updateUserDependencyMode = useCallback(
     async (roadmapId, enableDependencies) => {
       if (!currentUser) {
         throw new Error("User must be authenticated");
@@ -317,25 +317,22 @@ export const FirestoreProvider = ({ children }) => {
         setLoading(true);
         setError(null);
 
-        await FirestorePersistence.updateRoadmapDependencyMode(
+        await FirestorePersistence.updateUserDependencyMode(
+          currentUser.uid,
           roadmapId,
-          enableDependencies,
-          currentUser.uid
+          enableDependencies
         );
-
-        // Refresh user roadmaps (public roadmaps will update automatically via real-time listener)
-        await loadUserRoadmaps();
 
         return true;
       } catch (error) {
-        console.error("❌ Error updating roadmap dependency mode:", error);
-        setError("Failed to update roadmap dependency mode: " + error.message);
+        console.error("❌ Error updating user dependency mode:", error);
+        setError("Failed to update user dependency mode: " + error.message);
         throw error;
       } finally {
         setLoading(false);
       }
     },
-    [currentUser, loadUserRoadmaps]
+    [currentUser]
   );
 
   // Update collection roadmap dependency mode (user-specific)
@@ -372,7 +369,27 @@ export const FirestoreProvider = ({ children }) => {
     [currentUser, loadCollectionRoadmaps]
   );
 
-  // Get collection roadmap dependency mode (user-specific)
+  // Get user's personal dependency mode (unified for all roadmaps)
+  const getUserDependencyMode = useCallback(
+    async (roadmapId) => {
+      if (!currentUser) {
+        return null;
+      }
+
+      try {
+        return await FirestorePersistence.getUserDependencyMode(
+          currentUser.uid,
+          roadmapId
+        );
+      } catch (error) {
+        console.error("❌ Error getting user dependency mode:", error);
+        return null;
+      }
+    },
+    [currentUser]
+  );
+
+  // Get collection roadmap dependency mode (user-specific) - DEPRECATED
   const getCollectionRoadmapDependencyMode = useCallback(
     async (roadmapId) => {
       if (!currentUser) {
@@ -642,9 +659,10 @@ export const FirestoreProvider = ({ children }) => {
     deleteRoadmap,
     updateRoadmapPrivacy,
     updateRoadmapDownloadPermission,
-    updateRoadmapDependencyMode,
-    updateCollectionRoadmapDependencyMode,
-    getCollectionRoadmapDependencyMode,
+    updateUserDependencyMode, // Unified dependency mode
+    updateCollectionRoadmapDependencyMode, // Deprecated, kept for compatibility
+    getUserDependencyMode, // Unified dependency mode getter
+    getCollectionRoadmapDependencyMode, // Deprecated, kept for compatibility
     loadUserRoadmaps,
     loadPublicRoadmaps,
     loadCollectionRoadmaps,

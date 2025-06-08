@@ -30,8 +30,11 @@ const RoadmapVisualizer = ({
   const params = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { removeRoadmapFromCollection, getCollectionRoadmapDependencyMode } =
-    useFirestore();
+  const {
+    removeRoadmapFromCollection,
+    getUserDependencyMode, // Unified dependency mode getter
+    updateUserDependencyMode, // Unified dependency mode setter
+  } = useFirestore();
   const { isOwner, isCollection, canTrackProgress, canEdit, canDownload } =
     useRoadmapAccess(metadata, initialRoadmapData);
   const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
@@ -46,8 +49,7 @@ const RoadmapVisualizer = ({
   const [currentDownloadPermission, setCurrentDownloadPermission] =
     useState(true);
   const [currentDependencyMode, setCurrentDependencyMode] = useState(true);
-  const [collectionDependencyMode, setCollectionDependencyMode] =
-    useState(null);
+  const [userDependencyMode, setUserDependencyMode] = useState(null);
 
   // Set dynamic page title
   const pageTitle = currentPhase
@@ -130,30 +132,28 @@ const RoadmapVisualizer = ({
     initialRoadmapData?.enableDependencies,
   ]);
 
-  // Load collection-specific dependency mode for collection roadmaps
+  // Load user-specific dependency mode for all roadmaps (unified approach)
   useEffect(() => {
-    if (!isCollection || !currentUser || !roadmapId) {
-      setCollectionDependencyMode(null);
+    if (!currentUser || !roadmapId) {
+      setUserDependencyMode(null);
       return;
     }
 
-    const loadCollectionDependencyMode = async () => {
+    const loadUserDependencyMode = async () => {
       try {
-        const mode = await getCollectionRoadmapDependencyMode(roadmapId);
-        setCollectionDependencyMode(mode);
+        const mode = await getUserDependencyMode(roadmapId);
+        setUserDependencyMode(mode);
+        console.log(
+          `🔄 Loaded user dependency mode: ${mode} for roadmap ${roadmapId}`
+        );
       } catch (error) {
-        console.error("❌ Error loading collection dependency mode:", error);
-        setCollectionDependencyMode(null);
+        console.error("❌ Error loading user dependency mode:", error);
+        setUserDependencyMode(null);
       }
     };
 
-    loadCollectionDependencyMode();
-  }, [
-    isCollection,
-    currentUser,
-    roadmapId,
-    getCollectionRoadmapDependencyMode,
-  ]);
+    loadUserDependencyMode();
+  }, [currentUser, roadmapId, getUserDependencyMode]);
 
   const handleSearch = (term) => {
     setSearchTerm(term);
@@ -306,11 +306,22 @@ const RoadmapVisualizer = ({
     );
   };
 
-  const handleDependencyModeChange = (newEnableDependencies) => {
-    if (isCollection) {
-      setCollectionDependencyMode(newEnableDependencies);
-    } else {
-      setCurrentDependencyMode(newEnableDependencies);
+  const handleDependencyModeChange = async (newEnableDependencies) => {
+    try {
+      // Use unified approach for all roadmaps - save to user preferences
+      await updateUserDependencyMode(roadmapId, newEnableDependencies);
+
+      // Update local state immediately for UI responsiveness
+      setUserDependencyMode(newEnableDependencies);
+
+      console.log(
+        `✅ Updated user dependency mode: ${newEnableDependencies} for roadmap ${roadmapId}`
+      );
+    } catch (error) {
+      console.error("❌ Error updating user dependency mode:", error);
+      // Revert local state on error
+      const currentMode = await getUserDependencyMode(roadmapId);
+      setUserDependencyMode(currentMode);
     }
   };
 
@@ -696,13 +707,12 @@ const RoadmapVisualizer = ({
             <DependencyToggle
               roadmapId={roadmapId}
               enableDependencies={
-                isCollection
-                  ? collectionDependencyMode !== null
-                    ? collectionDependencyMode
-                    : currentDependencyMode
+                // Unified approach: use user preference if set, otherwise fall back to roadmap default
+                userDependencyMode !== null
+                  ? userDependencyMode
                   : currentDependencyMode
               }
-              userId={metadata.userId}
+              userId={currentUser?.uid} // Use current user ID for personal settings
               onDependencyModeChange={handleDependencyModeChange}
               isCollectionRoadmap={isCollection}
             />
@@ -753,11 +763,8 @@ const RoadmapVisualizer = ({
       roadmapId={roadmapId}
       isCollectionRoadmap={isCollectionRoadmap}
       enableDependencies={
-        isCollection
-          ? collectionDependencyMode !== null
-            ? collectionDependencyMode
-            : currentDependencyMode
-          : currentDependencyMode
+        // Unified approach: use user preference if set, otherwise fall back to roadmap default
+        userDependencyMode !== null ? userDependencyMode : currentDependencyMode
       }
     >
       {contentWithVoting}

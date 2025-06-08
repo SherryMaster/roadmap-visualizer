@@ -179,17 +179,30 @@ service cloud.firestore {
     }
 
     // ============================================================================
-    // USER PREFERENCES
+    // USER PREFERENCES (Unified Personal Settings)
     // ============================================================================
 
     match /userPreferences/{userId} {
       // Users can only access their own preferences
       allow read, write: if isOwner(userId);
 
-      // Validate preferences structure on create/update
+      // Validate global preferences structure on create/update
       allow create, update: if isOwner(userId) &&
-                            request.resource.data.keys().hasAll(['theme']) &&
-                            request.resource.data.theme in ['light', 'dark', 'auto'];
+                            (request.resource.data.keys().hasAny(['theme', 'lastUpdated']) &&
+                             (!request.resource.data.keys().hasAny(['theme']) || request.resource.data.theme in ['light', 'dark', 'auto']) &&
+                             (!request.resource.data.keys().hasAny(['lastUpdated']) || request.resource.data.lastUpdated is timestamp));
+
+      // Nested roadmap-specific preferences (for unified dependency system)
+      match /roadmaps/{roadmapId} {
+        // Users can read, write, and delete their own roadmap preferences
+        allow read, write, delete: if isOwner(userId);
+
+        // Validate roadmap preference data structure
+        allow create, update: if isOwner(userId) &&
+                              (request.resource.data.keys().hasAny(['enableDependencies', 'lastUpdated']) &&
+                               (!request.resource.data.keys().hasAny(['enableDependencies']) || request.resource.data.enableDependencies is bool) &&
+                               (!request.resource.data.keys().hasAny(['lastUpdated']) || request.resource.data.lastUpdated is timestamp));
+      }
     }
 
     // ============================================================================
