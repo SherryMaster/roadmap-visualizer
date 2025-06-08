@@ -19,6 +19,7 @@ import ProfilePage from "../components/pages/ProfilePage";
 import SettingsPage from "../components/pages/SettingsPage";
 import AccessControlDemo from "../components/test/AccessControlDemo";
 import TaskDetailTest from "../components/test/TaskDetailTest";
+import CollectionDependencyTest from "../components/test/CollectionDependencyTest";
 import RoadmapVotingDemo from "../components/voting/RoadmapVotingDemo";
 import ErrorTest from "../components/test/ErrorTest";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
@@ -330,6 +331,16 @@ const router = createBrowserRouter([
       <>
         <PageTitleUpdater title="Error Boundary Test" />
         <ErrorTest />
+      </>
+    ),
+    errorElement: <NotFoundPage />,
+  },
+  {
+    path: "/test/collection-dependency",
+    element: (
+      <>
+        <PageTitleUpdater title="Collection Dependency Test" />
+        <CollectionDependencyTest />
       </>
     ),
     errorElement: <NotFoundPage />,

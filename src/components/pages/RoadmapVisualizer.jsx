@@ -7,6 +7,7 @@ import PageLayout from "../layout/PageLayout";
 import ShareButton from "../layout/ShareButton";
 import PrivacyToggle from "../roadmap/PrivacyToggle";
 import DownloadToggle from "../roadmap/DownloadToggle";
+import DependencyToggle from "../roadmap/DependencyToggle";
 import SaveToCollectionButton from "../collection/SaveToCollectionButton";
 
 import { TaskCompletionProvider } from "../../context/TaskCompletionContext";
@@ -29,7 +30,8 @@ const RoadmapVisualizer = ({
   const params = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { removeRoadmapFromCollection } = useFirestore();
+  const { removeRoadmapFromCollection, getCollectionRoadmapDependencyMode } =
+    useFirestore();
   const { isOwner, isCollection, canTrackProgress, canEdit, canDownload } =
     useRoadmapAccess(metadata, initialRoadmapData);
   const [roadmapData, setRoadmapData] = useState(initialRoadmapData);
@@ -43,6 +45,9 @@ const RoadmapVisualizer = ({
   const [currentPrivacy, setCurrentPrivacy] = useState(false);
   const [currentDownloadPermission, setCurrentDownloadPermission] =
     useState(true);
+  const [currentDependencyMode, setCurrentDependencyMode] = useState(true);
+  const [collectionDependencyMode, setCollectionDependencyMode] =
+    useState(null);
 
   // Set dynamic page title
   const pageTitle = currentPhase
@@ -67,11 +72,12 @@ const RoadmapVisualizer = ({
     }
   }, [initialRoadmapData, params.phaseId]);
 
-  // Update privacy and download permission state when metadata or roadmap data changes
+  // Update privacy, download permission, and dependency mode state when metadata or roadmap data changes
   useEffect(() => {
     // Determine privacy status from multiple sources
     let isPublic = false;
     let allowDownload = true; // Default to allow downloads
+    let enableDependencies = true; // Default to enable dependencies for backward compatibility
 
     // Check metadata first (Firestore roadmaps)
     if (metadata?.isPublic !== undefined) {
@@ -99,13 +105,54 @@ const RoadmapVisualizer = ({
       allowDownload = true;
     }
 
+    // Check dependency mode from metadata first (Firestore roadmaps)
+    if (metadata?.enableDependencies !== undefined) {
+      enableDependencies = metadata.enableDependencies;
+    }
+    // Check roadmap data (fallback for localStorage roadmaps)
+    else if (initialRoadmapData?.enableDependencies !== undefined) {
+      enableDependencies = initialRoadmapData.enableDependencies;
+    }
+    // For localStorage roadmaps or missing field, default to enable dependencies
+    else {
+      enableDependencies = true;
+    }
+
     setCurrentPrivacy(isPublic);
     setCurrentDownloadPermission(allowDownload);
+    setCurrentDependencyMode(enableDependencies);
   }, [
     metadata?.isPublic,
     metadata?.allowDownload,
+    metadata?.enableDependencies,
     initialRoadmapData?.isPublic,
     initialRoadmapData?.allowDownload,
+    initialRoadmapData?.enableDependencies,
+  ]);
+
+  // Load collection-specific dependency mode for collection roadmaps
+  useEffect(() => {
+    if (!isCollection || !currentUser || !roadmapId) {
+      setCollectionDependencyMode(null);
+      return;
+    }
+
+    const loadCollectionDependencyMode = async () => {
+      try {
+        const mode = await getCollectionRoadmapDependencyMode(roadmapId);
+        setCollectionDependencyMode(mode);
+      } catch (error) {
+        console.error("❌ Error loading collection dependency mode:", error);
+        setCollectionDependencyMode(null);
+      }
+    };
+
+    loadCollectionDependencyMode();
+  }, [
+    isCollection,
+    currentUser,
+    roadmapId,
+    getCollectionRoadmapDependencyMode,
   ]);
 
   const handleSearch = (term) => {
@@ -257,6 +304,14 @@ const RoadmapVisualizer = ({
         newAllowDownload ? "Enabled" : "Disabled"
       }`
     );
+  };
+
+  const handleDependencyModeChange = (newEnableDependencies) => {
+    if (isCollection) {
+      setCollectionDependencyMode(newEnableDependencies);
+    } else {
+      setCurrentDependencyMode(newEnableDependencies);
+    }
   };
 
   const handleRemoveFromCollection = async () => {
@@ -552,8 +607,8 @@ const RoadmapVisualizer = ({
         isPublic={currentPrivacy}
       />
 
-      {/* Roadmap Settings - Only show for owners with metadata */}
-      {metadata && isOwner && (
+      {/* Roadmap Settings - Show for owners (full settings) or collection users (dependency only) */}
+      {metadata && (isOwner || isCollection) && (
         <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
@@ -577,25 +632,53 @@ const RoadmapVisualizer = ({
                 />
               </svg>
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Roadmap Settings
+                {isCollection ? "Personal Settings" : "Roadmap Settings"}
               </span>
             </div>
 
-            <PrivacyToggle
-              roadmapId={roadmapId}
-              isPublic={currentPrivacy}
-              userId={metadata.userId}
-              onPrivacyChange={handlePrivacyChange}
-            />
+            {/* Privacy Toggle - Only show for owners */}
+            {isOwner && (
+              <PrivacyToggle
+                roadmapId={roadmapId}
+                isPublic={currentPrivacy}
+                userId={metadata.userId}
+                onPrivacyChange={handlePrivacyChange}
+              />
+            )}
           </div>
 
-          {/* Download Permission Toggle */}
-          <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-            <DownloadToggle
+          {/* Download Permission Toggle - Only show for owners */}
+          {isOwner && (
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+              <DownloadToggle
+                roadmapId={roadmapId}
+                allowDownload={currentDownloadPermission}
+                userId={metadata.userId}
+                onDownloadPermissionChange={handleDownloadPermissionChange}
+              />
+            </div>
+          )}
+
+          {/* Dependency Mode Toggle - Show for both owners and collection users */}
+          <div
+            className={`${
+              isOwner
+                ? "pt-3 border-t border-gray-200 dark:border-gray-600"
+                : ""
+            }`}
+          >
+            <DependencyToggle
               roadmapId={roadmapId}
-              allowDownload={currentDownloadPermission}
+              enableDependencies={
+                isCollection
+                  ? collectionDependencyMode !== null
+                    ? collectionDependencyMode
+                    : currentDependencyMode
+                  : currentDependencyMode
+              }
               userId={metadata.userId}
-              onDownloadPermissionChange={handleDownloadPermissionChange}
+              onDependencyModeChange={handleDependencyModeChange}
+              isCollectionRoadmap={isCollection}
             />
           </div>
         </div>
@@ -643,6 +726,7 @@ const RoadmapVisualizer = ({
       roadmapData={roadmapData}
       roadmapId={roadmapId}
       isCollectionRoadmap={isCollectionRoadmap}
+      enableDependencies={currentDependencyMode}
     >
       {contentWithVoting}
     </TaskCompletionProvider>

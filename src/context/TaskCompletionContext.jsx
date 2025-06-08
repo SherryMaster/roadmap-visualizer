@@ -50,10 +50,13 @@ export const TaskCompletionProvider = ({
   roadmapData,
   roadmapId,
   isCollectionRoadmap = false, // Flag to indicate if this is a collection roadmap
+  enableDependencies = true, // Flag to control dependency enforcement (default for original roadmaps)
 }) => {
   const { currentUser } = useAuth();
   const [completedTasks, setCompletedTasks] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [actualEnableDependencies, setActualEnableDependencies] =
+    useState(enableDependencies);
 
   // Generate a unique ID for the roadmap to use in localStorage
   const getRoadmapId = () => {
@@ -118,6 +121,39 @@ export const TaskCompletionProvider = ({
 
     loadCompletedTasks();
   }, [roadmapData, currentUser, roadmapId, isCollectionRoadmap]);
+
+  // Load collection-specific dependency setting for collection roadmaps
+  useEffect(() => {
+    if (!isCollectionRoadmap || !currentUser || !roadmapId) {
+      // For original roadmaps, use the passed enableDependencies value
+      setActualEnableDependencies(enableDependencies);
+      return;
+    }
+
+    const loadCollectionDependencyMode = async () => {
+      try {
+        const collectionDependencyMode =
+          await FirestorePersistence.getCollectionRoadmapDependencyMode(
+            currentUser.uid,
+            roadmapId
+          );
+
+        if (collectionDependencyMode !== null) {
+          // User has a specific preference for this collection roadmap
+          setActualEnableDependencies(collectionDependencyMode);
+        } else {
+          // No user preference set, inherit from original roadmap
+          setActualEnableDependencies(enableDependencies);
+        }
+      } catch (error) {
+        console.error("❌ Error loading collection dependency mode:", error);
+        // Fallback to original roadmap setting
+        setActualEnableDependencies(enableDependencies);
+      }
+    };
+
+    loadCollectionDependencyMode();
+  }, [isCollectionRoadmap, currentUser, roadmapId, enableDependencies]);
 
   // Save completed tasks to localStorage and Firestore, and update progress whenever they change
   useEffect(() => {
@@ -333,7 +369,9 @@ export const TaskCompletionProvider = ({
       ).length;
 
       return {
-        canComplete: requiredCompleted === required.length,
+        canComplete: actualEnableDependencies
+          ? requiredCompleted === required.length
+          : true,
         requiredCompleted,
         requiredTotal: required.length,
         recommendedCompleted,
@@ -343,8 +381,8 @@ export const TaskCompletionProvider = ({
         dependencyStatuses,
       };
     },
-    [completedTasks, roadmapData, isTaskCompletedById]
-  ); // Include isTaskCompletedById as dependency
+    [completedTasks, roadmapData, isTaskCompletedById, actualEnableDependencies]
+  ); // Include isTaskCompletedById and actualEnableDependencies as dependencies
 
   // Enhanced toggle function that checks dependencies
   const toggleTaskCompletionWithValidation = (
@@ -352,10 +390,15 @@ export const TaskCompletionProvider = ({
     taskIndex,
     dependencies
   ) => {
-    // If trying to complete a task, check dependencies first
+    // If trying to complete a task, check dependencies first (only if dependencies are enabled)
     const currentlyCompleted = isTaskCompleted(phaseNumber, taskIndex);
 
-    if (!currentlyCompleted && dependencies && dependencies.length > 0) {
+    if (
+      !currentlyCompleted &&
+      actualEnableDependencies &&
+      dependencies &&
+      dependencies.length > 0
+    ) {
       const canComplete = areRequiredDependenciesCompleted(dependencies);
       if (!canComplete) {
         // Return false to indicate the toggle was blocked
@@ -385,6 +428,7 @@ export const TaskCompletionProvider = ({
     getDependencyStatus,
     resetAllProgress,
     completedTasks, // Expose completedTasks for dependency tracking
+    enableDependencies: actualEnableDependencies, // Expose actual dependency mode
   };
 
   return (

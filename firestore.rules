@@ -36,7 +36,8 @@ service cloud.firestore {
              request.resource.data.userId == request.auth.uid &&
              request.resource.data.isPublic is bool &&
              request.resource.data.outline is map &&
-             (!request.resource.data.keys().hasAny(['allowDownload']) || request.resource.data.allowDownload is bool);
+             (!request.resource.data.keys().hasAny(['allowDownload']) || request.resource.data.allowDownload is bool) &&
+             (!request.resource.data.keys().hasAny(['enableDependencies']) || request.resource.data.enableDependencies is bool);
     }
 
     // Validate phase tasks data structure
@@ -55,7 +56,8 @@ service cloud.firestore {
              request.resource.data.title is string &&
              request.resource.data.title.size() > 0 &&
              request.resource.data.isPublic is bool &&
-             (!request.resource.data.keys().hasAny(['allowDownload']) || request.resource.data.allowDownload is bool);
+             (!request.resource.data.keys().hasAny(['allowDownload']) || request.resource.data.allowDownload is bool) &&
+             (!request.resource.data.keys().hasAny(['enableDependencies']) || request.resource.data.enableDependencies is bool);
     }
 
     // Check if user can only update allowed fields
@@ -98,7 +100,7 @@ service cloud.firestore {
       // Update: Only owners can update their roadmaps (expanded fields for editor support)
       allow update: if isAuthenticated() &&
                     isOwner(resource.data.userId) &&
-                    isValidUpdate(['outline', 'isPublic', 'allowDownload', 'updatedAt', 'lastAccessed', 'version', 'tags', 'title', 'description', 'project_level']);
+                    isValidUpdate(['outline', 'isPublic', 'allowDownload', 'enableDependencies', 'updatedAt', 'lastAccessed', 'version', 'tags', 'title', 'description', 'project_level']);
 
       // Delete: Only owners can delete their roadmaps
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
@@ -149,7 +151,7 @@ service cloud.firestore {
       // Update: Only owners can update their metadata (restricted fields)
       allow update: if isAuthenticated() &&
                     isOwner(resource.data.userId) &&
-                    isValidUpdate(['title', 'description', 'isPublic', 'allowDownload', 'updatedAt', 'lastAccessed',
+                    isValidUpdate(['title', 'description', 'isPublic', 'allowDownload', 'enableDependencies', 'updatedAt', 'lastAccessed',
                                   'totalPhases', 'totalTasks', 'progressPercentage', 'tags', 'projectLevel']);
 
       // Delete: Only owners can delete their metadata
@@ -261,9 +263,10 @@ service cloud.firestore {
 
         // Validate collection progress data structure
         allow create, update: if isOwner(userId) &&
-                              (request.resource.data.keys().hasAny(['completedTasks', 'progressPercentage', 'lastUpdated']) &&
+                              (request.resource.data.keys().hasAny(['completedTasks', 'progressPercentage', 'enableDependencies', 'lastUpdated']) &&
                                (!request.resource.data.keys().hasAny(['completedTasks']) || request.resource.data.completedTasks is map) &&
                                (!request.resource.data.keys().hasAny(['progressPercentage']) || request.resource.data.progressPercentage is number) &&
+                               (!request.resource.data.keys().hasAny(['enableDependencies']) || request.resource.data.enableDependencies is bool) &&
                                (!request.resource.data.keys().hasAny(['lastUpdated']) || request.resource.data.lastUpdated is timestamp));
       }
     }

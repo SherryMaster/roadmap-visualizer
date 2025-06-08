@@ -12,6 +12,9 @@ import { useAuth } from "./AuthContext";
 // Create context
 const RoadmapVoteContext = createContext();
 
+// Export the context for direct access
+export { RoadmapVoteContext };
+
 // Hook to use the vote context
 export const useRoadmapVote = () => {
   const context = useContext(RoadmapVoteContext);

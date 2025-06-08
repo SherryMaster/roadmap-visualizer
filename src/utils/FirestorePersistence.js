@@ -56,6 +56,7 @@ class FirestorePersistence {
         // Note: originalData removed to avoid size limits - can be reconstructed from split documents
         isPublic: false, // Default to private
         allowDownload: true, // Default to allow downloads
+        enableDependencies: true, // Default to enable dependencies for backward compatibility
         createdAt: timestamp,
         updatedAt: timestamp,
         lastAccessed: timestamp,
@@ -77,6 +78,7 @@ class FirestorePersistence {
         tags: roadmapData.tags || [],
         isPublic: false,
         allowDownload: true, // Default to allow downloads
+        enableDependencies: true, // Default to enable dependencies for backward compatibility
         createdAt: timestamp,
         updatedAt: timestamp,
         lastAccessed: timestamp,
@@ -539,6 +541,115 @@ class FirestorePersistence {
       throw new Error(
         "Failed to update roadmap download permission: " + error.message
       );
+    }
+  }
+
+  /**
+   * Update roadmap dependency mode setting
+   */
+  static async updateRoadmapDependencyMode(
+    roadmapId,
+    enableDependencies,
+    userId
+  ) {
+    if (!userId) {
+      throw new Error("User must be authenticated");
+    }
+
+    try {
+      const batch = writeBatch(db);
+
+      // Update roadmap document
+      const roadmapRef = doc(db, "roadmaps", roadmapId);
+      batch.update(roadmapRef, {
+        enableDependencies: enableDependencies,
+        updatedAt: serverTimestamp(),
+      });
+
+      // Update metadata document
+      const metadataRef = doc(db, "roadmapMetadata", roadmapId);
+      batch.update(metadataRef, {
+        enableDependencies: enableDependencies,
+        updatedAt: serverTimestamp(),
+      });
+
+      await batch.commit();
+
+      console.log(
+        `✅ Roadmap dependency mode updated: ${roadmapId} -> ${
+          enableDependencies ? "dependencies enabled" : "dependencies disabled"
+        }`
+      );
+      return true;
+    } catch (error) {
+      console.error("❌ Error updating roadmap dependency mode:", error);
+      throw new Error(
+        "Failed to update roadmap dependency mode: " + error.message
+      );
+    }
+  }
+
+  /**
+   * Update collection roadmap dependency mode setting (user-specific)
+   */
+  static async updateCollectionRoadmapDependencyMode(
+    userId,
+    roadmapId,
+    enableDependencies
+  ) {
+    try {
+      const progressRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      await setDoc(
+        progressRef,
+        {
+          enableDependencies: enableDependencies,
+          lastUpdated: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      return true;
+    } catch (error) {
+      console.error("❌ Error updating collection dependency mode:", error);
+      throw new Error(
+        "Failed to update collection dependency mode: " + error.message
+      );
+    }
+  }
+
+  /**
+   * Get collection roadmap dependency mode setting (user-specific)
+   */
+  static async getCollectionRoadmapDependencyMode(userId, roadmapId) {
+    try {
+      const progressRef = doc(
+        db,
+        "collectionProgress",
+        userId,
+        "roadmaps",
+        roadmapId
+      );
+
+      const progressSnap = await getDoc(progressRef);
+
+      if (progressSnap.exists()) {
+        const data = progressSnap.data();
+        // Return the user's preference, or null if not set (will inherit from original)
+        return data.enableDependencies !== undefined
+          ? data.enableDependencies
+          : null;
+      }
+      return null; // No preference set, will inherit from original roadmap
+    } catch (error) {
+      console.error("❌ Error getting collection dependency mode:", error);
+      return null; // Fallback to inherit from original roadmap
     }
   }
 

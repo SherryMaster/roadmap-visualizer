@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRoadmapVote } from "../../context/RoadmapVoteContext";
+import { RoadmapVoteContext } from "../../context/RoadmapVoteContext";
 import Tooltip from "../tooltips/Tooltip";
 
 // Heart icon component (like social media)
@@ -49,6 +50,33 @@ const RoadmapUpvoteButton = ({
   variant = "default", // "default", "minimal", "compact"
   iconType = "heart", // "heart", "thumbs"
 }) => {
+  // Check if we're within the provider context
+  const context = useContext(RoadmapVoteContext);
+
+  // If no context, render a placeholder
+  if (!context) {
+    return (
+      <div
+        className={`inline-flex items-center space-x-1 px-2 py-1.5 rounded-md text-sm font-medium text-gray-500 dark:text-gray-400 ${className}`}
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+          />
+        </svg>
+        <span>-</span>
+      </div>
+    );
+  }
+
   const { voteCount, hasVoted, toggleVote, isInitialized, userId } =
     useRoadmapVote();
 
