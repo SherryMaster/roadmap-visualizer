@@ -148,14 +148,23 @@ const CodeBlock = ({
       if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         const activeElement = document.activeElement;
         if (activeElement && activeElement.closest(".code-block-container")) {
-          const blockIndex = activeElement.getAttribute("data-block-index");
-          if (blockIndex !== null) {
-            const block = codeData[parseInt(blockIndex)];
-            if (block) {
-              e.preventDefault();
-              copyToClipboard(processCode(block.code), parseInt(blockIndex));
+          // Check if there's any text selected
+          const selection = window.getSelection();
+          const hasSelection =
+            selection && selection.toString().trim().length > 0;
+
+          // Only intercept Ctrl+C if no text is selected
+          if (!hasSelection) {
+            const blockIndex = activeElement.getAttribute("data-block-index");
+            if (blockIndex !== null) {
+              const block = codeData[parseInt(blockIndex)];
+              if (block) {
+                e.preventDefault();
+                copyToClipboard(processCode(block.code), parseInt(blockIndex));
+              }
             }
           }
+          // If text is selected, let the browser handle the copy operation normally
         }
       }
     };
@@ -287,8 +296,8 @@ const CodeBlock = ({
                 <button
                   onClick={() => copyToClipboard(formattedCode, index)}
                   className="p-2 sm:p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-150 relative min-h-[44px] sm:min-h-auto"
-                  aria-label="Copy code to clipboard"
-                  title="Copy code (Ctrl+C)"
+                  aria-label="Copy entire code block to clipboard"
+                  title="Copy entire code (Ctrl+C when no text selected)"
                 >
                   {isCopied ? (
                     <svg
