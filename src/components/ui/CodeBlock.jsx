@@ -5,6 +5,7 @@ import {
   oneLight,
 } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "../../context/ThemeContext";
+import ContentRenderer from "./ContentRenderer";
 
 const CodeBlock = ({
   code,
@@ -346,9 +347,19 @@ const CodeBlock = ({
             {/* Explanation */}
             {showExplanation && block.explanation && (
               <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>💡 Explanation:</strong> {block.explanation}
-                </p>
+                <div className="text-sm">
+                  <div className="font-semibold mb-2 flex items-center text-blue-800 dark:text-blue-200">
+                    <span className="mr-2">💡</span>
+                    Explanation:
+                  </div>
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&_p]:text-blue-700 [&_p]:dark:text-blue-200 [&_li]:text-blue-700 [&_li]:dark:text-blue-200 [&_strong]:text-blue-800 [&_strong]:dark:text-blue-100 [&_em]:text-blue-700 [&_em]:dark:text-blue-200 [&_code]:bg-blue-100 [&_code]:dark:bg-blue-800/50 [&_code]:text-blue-900 [&_code]:dark:text-blue-100 [&_h1]:text-blue-900 [&_h1]:dark:text-blue-100 [&_h2]:text-blue-900 [&_h2]:dark:text-blue-100 [&_h3]:text-blue-900 [&_h3]:dark:text-blue-100">
+                    <ContentRenderer
+                      content={block.explanation}
+                      format="markdown"
+                      showFormatIndicator={false}
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
