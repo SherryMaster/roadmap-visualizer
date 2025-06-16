@@ -2,7 +2,7 @@ import "./App.css";
 import AppRouter from "./router/AppRouter";
 import { ThemeProvider } from "./context/ThemeContext";
 import { TooltipProvider } from "./context/TooltipContext";
-import GlobalTooltip from "./components/GlobalTooltip";
+import GlobalTooltip from "./components/tooltips/GlobalTooltip";
 
 function App() {
   return (

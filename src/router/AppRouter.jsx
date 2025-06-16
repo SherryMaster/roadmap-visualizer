@@ -4,12 +4,12 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useEffect } from "react";
-import HomePage from "../components/HomePage";
-import RoadmapVisualizer from "../components/RoadmapVisualizer";
-import NotFoundPage from "../components/NotFoundPage";
-import RoadmapLoader from "../components/RoadmapLoader";
-import RoadmapAssembler from "../components/RoadmapAssembler";
-import RoadmapEditor from "../components/RoadmapEditor";
+import HomePage from "../components/pages/HomePage";
+import RoadmapVisualizer from "../components/pages/RoadmapVisualizer";
+import NotFoundPage from "../components/pages/NotFoundPage";
+import RoadmapLoader from "../components/pages/RoadmapLoader";
+import RoadmapAssembler from "../components/assembler/RoadmapAssembler";
+import RoadmapEditor from "../components/editor/RoadmapEditor";
 import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 // Route loader for roadmap data
