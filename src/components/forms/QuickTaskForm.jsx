@@ -116,14 +116,20 @@ const QuickTaskForm = ({ phaseId, phaseTitle, onCancel, onSuccess }) => {
       if (result.success) {
         // Show success animation
         setShowSuccess(true);
+
+        // Determine message based on whether it was an override or new task
+        const message = result.isOverride
+          ? `Task "${taskData.task_title}" overridden successfully!`
+          : `Task "${taskData.task_title}" created successfully!`;
+
         setShowToast({
           type: "success",
-          message: `Task "${taskData.task_title}" created successfully!`,
+          message,
         });
 
         // Wait for animation then callback
         setTimeout(() => {
-          onSuccess?.(taskData);
+          onSuccess?.(taskData, result);
           // Reset form
           setFormData({
             task_title: "",

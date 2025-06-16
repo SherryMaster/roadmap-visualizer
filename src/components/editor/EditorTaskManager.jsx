@@ -108,11 +108,17 @@ const EditorTaskManager = ({ roadmap }) => {
     setShowQuickForm(null);
   };
 
-  const handleQuickFormSuccess = (taskData) => {
+  const handleQuickFormSuccess = (taskData, result) => {
     setShowQuickForm(null);
+
+    // Determine message based on whether it was an override or new task
+    const message = result?.isOverride
+      ? `Task "${taskData.task_title}" overridden successfully!`
+      : `Task "${taskData.task_title}" added successfully!`;
+
     setShowToast({
       type: "success",
-      message: `Task "${taskData.task_title}" added successfully!`,
+      message,
     });
   };
 

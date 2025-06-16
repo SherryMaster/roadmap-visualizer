@@ -244,9 +244,14 @@ const TaskFormModal = ({
       if (result.success) {
         onClose();
       } else {
+        // For add operations, check if it's an override scenario
+        const action = isEditing
+          ? "update"
+          : result.isOverride
+          ? "override"
+          : "create";
         setErrors({
-          general:
-            result.error || `Failed to ${isEditing ? "update" : "create"} task`,
+          general: result.error || `Failed to ${action} task`,
         });
       }
     } catch (error) {

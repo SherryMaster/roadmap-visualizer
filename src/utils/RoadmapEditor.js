@@ -10,12 +10,12 @@ import finalSchema from "../data/schema.json";
 
 class RoadmapEditor {
   /**
-   * Add a task to a specific phase
+   * Add a task to a specific phase (overrides existing tasks with same ID)
    * @param {Object} roadmap - Current roadmap data
    * @param {string} phaseId - Target phase ID
    * @param {Object} taskData - Task data to add
    * @param {number} position - Optional position to insert at
-   * @returns {Object} - Updated roadmap or null if failed
+   * @returns {Object} - Updated roadmap with override info or null if failed
    */
   static addTask(roadmap, phaseId, taskData, position = null) {
     try {
@@ -35,34 +35,46 @@ class RoadmapEditor {
         );
       }
 
-      // Ensure unique task ID within the phase
-      const existingTaskIds = targetPhase.phase_tasks.map(
-        (task) => task.task_id
+      // Check if task ID already exists and override if it does
+      const existingTaskIndex = targetPhase.phase_tasks.findIndex(
+        (task) => task.task_id === taskData.task_id
       );
-      if (existingTaskIds.includes(taskData.task_id)) {
-        throw new Error(
-          `Task ID ${taskData.task_id} already exists in phase ${phaseId}`
-        );
+
+      let isOverride = false;
+      if (existingTaskIndex !== -1) {
+        isOverride = true;
       }
 
       // Transform task data to UI format
       const transformedTask = this.transformTaskToUI(taskData, phaseId);
 
-      // Add task at specified position or end
-      if (
-        position !== null &&
-        position >= 0 &&
-        position <= targetPhase.phase_tasks.length
-      ) {
-        targetPhase.phase_tasks.splice(position, 0, transformedTask);
+      if (isOverride) {
+        // Override existing task, preserving its position and task_index
+        const originalTask = targetPhase.phase_tasks[existingTaskIndex];
+        transformedTask.task_index = originalTask.task_index;
+        targetPhase.phase_tasks[existingTaskIndex] = transformedTask;
       } else {
-        targetPhase.phase_tasks.push(transformedTask);
+        // Add new task at specified position or end
+        if (
+          position !== null &&
+          position >= 0 &&
+          position <= targetPhase.phase_tasks.length
+        ) {
+          targetPhase.phase_tasks.splice(position, 0, transformedTask);
+        } else {
+          targetPhase.phase_tasks.push(transformedTask);
+        }
       }
 
-      // Update task indices
-      this.updateTaskIndices(targetPhase);
+      // Update task indices only if not overriding (to maintain order)
+      if (!isOverride) {
+        this.updateTaskIndices(targetPhase);
+      }
 
-      return newRoadmap;
+      // Return roadmap with override information
+      const result = { ...newRoadmap };
+      result._operationInfo = { isOverride, taskId: taskData.task_id };
+      return result;
     } catch (error) {
       console.error("Error adding task:", error);
       return null;
@@ -154,9 +166,17 @@ class RoadmapEditor {
         );
       }
 
-      // Preserve original task index and phase_id
+      // Preserve original task index, phase_id, and detailed information
       const originalTask = targetPhase.phase_tasks[taskIndex];
-      const transformedTask = this.transformTaskToUI(newTaskData, phaseId);
+
+      // Merge new task data with existing task detail information
+      const mergedTaskData = {
+        ...newTaskData,
+        // Preserve existing task_detail if not provided in new data
+        task_detail: newTaskData.task_detail || originalTask.task_detail,
+      };
+
+      const transformedTask = this.transformTaskToUI(mergedTaskData, phaseId);
       transformedTask.task_index = originalTask.task_index;
       transformedTask.phase_id = phaseId;
 
@@ -328,6 +348,43 @@ class RoadmapEditor {
    * @returns {Object} - UI-formatted task
    */
   static transformTaskToUI(taskData, phaseId) {
+    // Handle task data that comes from editor forms (flat structure)
+    // vs task data that comes from schema (nested structure)
+
+    if (
+      taskData.task_difficulty ||
+      taskData.difficulty_reason ||
+      taskData.est_time
+    ) {
+      // This is flat task data from editor forms - transform it to schema format first
+      const schemaTask = {
+        task_id: taskData.task_id,
+        task_title: taskData.task_title,
+        task_summary: taskData.task_summary,
+        task_dependencies: taskData.task_dependencies || [],
+        task_tags: taskData.task_tags || [],
+        task_priority: taskData.task_priority || "mid",
+        task_number: taskData.task_number || 1,
+        task_detail: {
+          explanation: taskData.task_detail || {
+            content: "",
+            format: "plaintext",
+          },
+          difficulty: {
+            level: taskData.task_difficulty || "normal",
+            reason_of_difficulty: taskData.difficulty_reason || "",
+            prerequisites_needed: taskData.prerequisites_needed || [],
+          },
+          est_time: taskData.est_time || {},
+          code_blocks: taskData.code_blocks || [],
+          resource_links: taskData.resource_links || [],
+        },
+      };
+
+      return DataTransformer.transformTask(schemaTask, 0, phaseId);
+    }
+
+    // This is already schema-formatted task data
     return DataTransformer.transformTask(taskData, 0, phaseId);
   }
 

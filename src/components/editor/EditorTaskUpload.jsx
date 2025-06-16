@@ -11,12 +11,6 @@ const getDetailedErrorMessage = (error, task) => {
 
   const errorStr = error.toString().toLowerCase();
 
-  if (errorStr.includes("already exists")) {
-    return `Task ID "${
-      task?.task_id || "Unknown"
-    }" already exists in this phase. Please use a unique task ID.`;
-  }
-
   if (errorStr.includes("phase") && errorStr.includes("not found")) {
     return `Target phase "${
       task?.phase_id || "Unknown"
@@ -218,18 +212,39 @@ const EditorTaskUpload = () => {
                   const failedTasks = phaseResults_slice.filter(
                     (r) => !r.success
                   );
+                  const overrideCount = phaseResults_slice.filter(
+                    (r) => r.success && r.isOverride
+                  ).length;
+                  const addCount = successCount - overrideCount;
 
                   totalSuccessCount += successCount;
                   totalAttemptedCount += phaseResults_slice.length;
 
-                  // Create detailed phase result
+                  // Create detailed phase result with override information
+                  let message;
+                  if (successCount === phaseResults_slice.length) {
+                    if (overrideCount > 0 && addCount > 0) {
+                      message = `${addCount}/${phaseResults_slice.length} tasks added successfully, ${overrideCount} tasks overridden`;
+                    } else if (overrideCount > 0) {
+                      message = `${overrideCount}/${phaseResults_slice.length} tasks overridden successfully`;
+                    } else {
+                      message = `${successCount}/${phaseResults_slice.length} tasks added successfully`;
+                    }
+                  } else {
+                    if (overrideCount > 0) {
+                      message = `${addCount}/${phaseResults_slice.length} tasks added successfully, ${overrideCount} tasks overridden`;
+                    } else {
+                      message = `${successCount}/${phaseResults_slice.length} tasks added successfully`;
+                    }
+                  }
+
                   phaseResults.push({
                     type:
                       successCount === phaseResults_slice.length
                         ? "success"
                         : "error",
                     phase: phaseData.phase_title,
-                    message: `${successCount}/${phaseResults_slice.length} tasks added successfully`,
+                    message,
                     taskIds: phaseData.tasks
                       .slice(0, successCount)
                       .map((task) => task.task_id || "Unknown"),
@@ -291,12 +306,36 @@ const EditorTaskUpload = () => {
           );
 
           const successCount = results.filter((r) => r.success).length;
-          setUploadStatus({
-            type: successCount === allTasks.length ? "success" : "warning",
-            message: `Added ${successCount}/${allTasks.length} tasks to ${
+          const overrideCount = results.filter(
+            (r) => r.success && r.isOverride
+          ).length;
+          const addCount = successCount - overrideCount;
+
+          let message;
+          if (overrideCount > 0 && addCount > 0) {
+            message = `Added ${addCount}/${
+              allTasks.length
+            } tasks, overridden ${overrideCount} tasks in ${
               phases.find((p) => p.phase_id === selectedPhase)?.phase_title ||
               selectedPhase
-            }.`,
+            }.`;
+          } else if (overrideCount > 0) {
+            message = `Overridden ${overrideCount}/${
+              allTasks.length
+            } tasks in ${
+              phases.find((p) => p.phase_id === selectedPhase)?.phase_title ||
+              selectedPhase
+            }.`;
+          } else {
+            message = `Added ${successCount}/${allTasks.length} tasks to ${
+              phases.find((p) => p.phase_id === selectedPhase)?.phase_title ||
+              selectedPhase
+            }.`;
+          }
+
+          setUploadStatus({
+            type: successCount === allTasks.length ? "success" : "warning",
+            message,
             details: fileResults,
           });
         }

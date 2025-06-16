@@ -95,6 +95,53 @@ class RoadmapPersistence {
   }
 
   /**
+   * Update existing roadmap data in place
+   */
+  static updateRoadmapData(roadmapId, updatedData) {
+    try {
+      const roadmapKey = `roadmap-data-${roadmapId}`;
+      const stored = localStorage.getItem(roadmapKey);
+
+      if (!stored) {
+        throw new Error("Roadmap not found");
+      }
+
+      const roadmapInfo = JSON.parse(stored);
+      const timestamp = new Date().toISOString();
+
+      // Update the roadmap data while preserving original data and metadata
+      const updatedRoadmapInfo = {
+        ...roadmapInfo,
+        data: updatedData,
+        lastAccessed: timestamp,
+        lastModified: timestamp,
+      };
+
+      // Save updated roadmap data
+      localStorage.setItem(roadmapKey, JSON.stringify(updatedRoadmapInfo));
+
+      // Update metadata with new counts
+      const metadata = {
+        id: roadmapId,
+        title: updatedData.title,
+        description: updatedData.description || "",
+        project_level: updatedData.project_level || "beginner",
+        tags: updatedData.tags || [],
+        lastAccessed: timestamp,
+        totalPhases: this.calculateTotalPhases(updatedData),
+        totalTasks: this.calculateTotalTasks(updatedData),
+      };
+
+      this.updateRoadmapMetadata(metadata);
+
+      return true;
+    } catch (error) {
+      console.error("Error updating roadmap data:", error);
+      return false;
+    }
+  }
+
+  /**
    * Get all roadmap metadata
    */
   static getAllRoadmapMetadata() {

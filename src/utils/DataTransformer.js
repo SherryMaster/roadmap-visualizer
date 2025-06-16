@@ -270,6 +270,19 @@ class DataTransformer {
       transformed.task_detail = this.transformTaskDetailToSchema(
         task.task_detail
       );
+    } else {
+      // Provide default task_detail structure if missing
+      transformed.task_detail = {
+        explanation: { content: "", format: "plaintext" },
+        difficulty: {
+          level: "normal",
+          reason_of_difficulty: "",
+          prerequisites_needed: [],
+        },
+        est_time: { factors_affecting_time: [] },
+        code_blocks: [],
+        resource_links: [],
+      };
     }
 
     return transformed;
@@ -292,6 +305,13 @@ class DataTransformer {
       transformed.difficulty = this.transformDifficultyToSchema(
         detail.difficulty
       );
+    } else {
+      // Provide default difficulty if missing
+      transformed.difficulty = {
+        level: "normal",
+        reason_of_difficulty: "",
+        prerequisites_needed: [],
+      };
     }
 
     // Transform estimated time back to schema format
@@ -299,6 +319,11 @@ class DataTransformer {
       transformed.est_time = this.transformEstimatedTimeToSchema(
         detail.est_time
       );
+    } else {
+      // Provide default est_time if missing
+      transformed.est_time = {
+        factors_affecting_time: [],
+      };
     }
 
     return transformed;

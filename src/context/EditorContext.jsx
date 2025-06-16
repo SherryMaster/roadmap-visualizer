@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import RoadmapEditor from "../utils/RoadmapEditor";
+import RoadmapPersistence from "../utils/RoadmapPersistence";
 
 const EditorContext = createContext();
 
@@ -129,7 +130,15 @@ export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
           ]);
         }
 
-        return { success: validation.isValid, roadmap: newRoadmap, validation };
+        // Include override information for addTask operations
+        const operationInfo = newRoadmap._operationInfo || {};
+        return {
+          success: validation.isValid,
+          roadmap: newRoadmap,
+          validation,
+          isOverride: operationInfo.isOverride,
+          taskId: operationInfo.taskId,
+        };
       } catch (error) {
         console.error(`Error executing operation ${operation}:`, error);
         return { success: false, error: error.message };
@@ -253,7 +262,16 @@ export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
 
             if (validation.isValid) {
               workingRoadmap = newRoadmap; // Update working roadmap for next iteration
-              results.push({ success: true, roadmap: newRoadmap, validation });
+
+              // Include override information in the result
+              const operationInfo = newRoadmap._operationInfo || {};
+              results.push({
+                success: true,
+                roadmap: newRoadmap,
+                validation,
+                isOverride: operationInfo.isOverride,
+                taskId: operationInfo.taskId,
+              });
             } else {
               results.push({
                 success: false,
@@ -309,32 +327,46 @@ export const EditorProvider = ({ children, initialRoadmap, roadmapId }) => {
 
     setIsSaving(true);
     try {
-      // Transform to schema format and trigger download
-      const schemaData = RoadmapEditor.transformToSchema(currentRoadmap);
-      const blob = new Blob([JSON.stringify(schemaData, null, 2)], {
-        type: "application/json",
-      });
+      if (roadmapId) {
+        // Update existing roadmap in place
+        const success = RoadmapPersistence.updateRoadmapData(
+          roadmapId,
+          currentRoadmap
+        );
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${currentRoadmap.title.replace(
-        /\s+/g,
-        "_"
-      )}_edited.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+        if (success) {
+          return { success: true };
+        } else {
+          throw new Error("Failed to update roadmap in storage");
+        }
+      } else {
+        // Fallback to download if no roadmapId (shouldn't happen in normal editor flow)
+        const schemaData = RoadmapEditor.transformToSchema(currentRoadmap);
+        const blob = new Blob([JSON.stringify(schemaData, null, 2)], {
+          type: "application/json",
+        });
 
-      return { success: true };
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${currentRoadmap.title.replace(
+          /\s+/g,
+          "_"
+        )}_edited.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        return { success: true };
+      }
     } catch (error) {
       console.error("Error saving roadmap:", error);
       return { success: false, error: error.message };
     } finally {
       setIsSaving(false);
     }
-  }, [currentRoadmap, validationStatus]);
+  }, [currentRoadmap, validationStatus, roadmapId]);
 
   const value = {
     // State
