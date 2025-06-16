@@ -21,8 +21,8 @@ class RoadmapEditor {
     try {
       const newRoadmap = JSON.parse(JSON.stringify(roadmap));
       const phases = newRoadmap.roadmap.phases || newRoadmap.roadmap;
-      
-      const targetPhase = phases.find(phase => phase.phase_id === phaseId);
+
+      const targetPhase = phases.find((phase) => phase.phase_id === phaseId);
       if (!targetPhase) {
         throw new Error(`Phase ${phaseId} not found`);
       }
@@ -30,20 +30,30 @@ class RoadmapEditor {
       // Validate task data
       const taskValidation = this.validateTask(taskData);
       if (!taskValidation.isValid) {
-        throw new Error(`Invalid task data: ${taskValidation.errors.join(", ")}`);
+        throw new Error(
+          `Invalid task data: ${taskValidation.errors.join(", ")}`
+        );
       }
 
       // Ensure unique task ID within the phase
-      const existingTaskIds = targetPhase.phase_tasks.map(task => task.task_id);
+      const existingTaskIds = targetPhase.phase_tasks.map(
+        (task) => task.task_id
+      );
       if (existingTaskIds.includes(taskData.task_id)) {
-        throw new Error(`Task ID ${taskData.task_id} already exists in phase ${phaseId}`);
+        throw new Error(
+          `Task ID ${taskData.task_id} already exists in phase ${phaseId}`
+        );
       }
 
       // Transform task data to UI format
       const transformedTask = this.transformTaskToUI(taskData, phaseId);
-      
+
       // Add task at specified position or end
-      if (position !== null && position >= 0 && position <= targetPhase.phase_tasks.length) {
+      if (
+        position !== null &&
+        position >= 0 &&
+        position <= targetPhase.phase_tasks.length
+      ) {
         targetPhase.phase_tasks.splice(position, 0, transformedTask);
       } else {
         targetPhase.phase_tasks.push(transformedTask);
@@ -70,21 +80,30 @@ class RoadmapEditor {
     try {
       const newRoadmap = JSON.parse(JSON.stringify(roadmap));
       const phases = newRoadmap.roadmap.phases || newRoadmap.roadmap;
-      
-      const targetPhase = phases.find(phase => phase.phase_id === phaseId);
+
+      const targetPhase = phases.find((phase) => phase.phase_id === phaseId);
       if (!targetPhase) {
         throw new Error(`Phase ${phaseId} not found`);
       }
 
-      const taskIndex = targetPhase.phase_tasks.findIndex(task => task.task_id === taskId);
+      const taskIndex = targetPhase.phase_tasks.findIndex(
+        (task) => task.task_id === taskId
+      );
       if (taskIndex === -1) {
         throw new Error(`Task ${taskId} not found in phase ${phaseId}`);
       }
 
       // Check for dependencies before removing
-      const dependentTasks = this.findDependentTasks(newRoadmap, phaseId, taskId);
+      const dependentTasks = this.findDependentTasks(
+        newRoadmap,
+        phaseId,
+        taskId
+      );
       if (dependentTasks.length > 0) {
-        console.warn(`Removing task ${taskId} will break dependencies for:`, dependentTasks);
+        console.warn(
+          `Removing task ${taskId} will break dependencies for:`,
+          dependentTasks
+        );
         // Remove the dependencies or handle as needed
         this.removeDependencies(newRoadmap, phaseId, taskId);
       }
@@ -114,13 +133,15 @@ class RoadmapEditor {
     try {
       const newRoadmap = JSON.parse(JSON.stringify(roadmap));
       const phases = newRoadmap.roadmap.phases || newRoadmap.roadmap;
-      
-      const targetPhase = phases.find(phase => phase.phase_id === phaseId);
+
+      const targetPhase = phases.find((phase) => phase.phase_id === phaseId);
       if (!targetPhase) {
         throw new Error(`Phase ${phaseId} not found`);
       }
 
-      const taskIndex = targetPhase.phase_tasks.findIndex(task => task.task_id === taskId);
+      const taskIndex = targetPhase.phase_tasks.findIndex(
+        (task) => task.task_id === taskId
+      );
       if (taskIndex === -1) {
         throw new Error(`Task ${taskId} not found in phase ${phaseId}`);
       }
@@ -128,7 +149,9 @@ class RoadmapEditor {
       // Validate new task data
       const taskValidation = this.validateTask(newTaskData);
       if (!taskValidation.isValid) {
-        throw new Error(`Invalid task data: ${taskValidation.errors.join(", ")}`);
+        throw new Error(
+          `Invalid task data: ${taskValidation.errors.join(", ")}`
+        );
       }
 
       // Preserve original task index and phase_id
@@ -160,29 +183,35 @@ class RoadmapEditor {
     try {
       const newRoadmap = JSON.parse(JSON.stringify(roadmap));
       const phases = newRoadmap.roadmap.phases || newRoadmap.roadmap;
-      
-      const fromPhase = phases.find(phase => phase.phase_id === fromPhaseId);
-      const toPhase = phases.find(phase => phase.phase_id === toPhaseId);
-      
+
+      const fromPhase = phases.find((phase) => phase.phase_id === fromPhaseId);
+      const toPhase = phases.find((phase) => phase.phase_id === toPhaseId);
+
       if (!fromPhase || !toPhase) {
         throw new Error("Source or target phase not found");
       }
 
-      const taskIndex = fromPhase.phase_tasks.findIndex(task => task.task_id === taskId);
+      const taskIndex = fromPhase.phase_tasks.findIndex(
+        (task) => task.task_id === taskId
+      );
       if (taskIndex === -1) {
         throw new Error(`Task ${taskId} not found in phase ${fromPhaseId}`);
       }
 
       // Get the task and remove from source
       const task = fromPhase.phase_tasks.splice(taskIndex, 1)[0];
-      
+
       // Update phase_id if moving between phases
       if (fromPhaseId !== toPhaseId) {
         task.phase_id = toPhaseId;
       }
 
       // Add to target phase
-      if (position !== null && position >= 0 && position <= toPhase.phase_tasks.length) {
+      if (
+        position !== null &&
+        position >= 0 &&
+        position <= toPhase.phase_tasks.length
+      ) {
         toPhase.phase_tasks.splice(position, 0, task);
       } else {
         toPhase.phase_tasks.push(task);
@@ -214,21 +243,23 @@ class RoadmapEditor {
     try {
       const newRoadmap = JSON.parse(JSON.stringify(roadmap));
       const phases = newRoadmap.roadmap.phases || newRoadmap.roadmap;
-      
-      const targetPhase = phases.find(phase => phase.phase_id === phaseId);
+
+      const targetPhase = phases.find((phase) => phase.phase_id === phaseId);
       if (!targetPhase) {
         throw new Error(`Phase ${phaseId} not found`);
       }
 
-      const task = targetPhase.phase_tasks.find(task => task.task_id === taskId);
+      const task = targetPhase.phase_tasks.find(
+        (task) => task.task_id === taskId
+      );
       if (!task) {
         throw new Error(`Task ${taskId} not found in phase ${phaseId}`);
       }
 
       // Update the property
-      if (property.includes('.')) {
+      if (property.includes(".")) {
         // Handle nested properties
-        const parts = property.split('.');
+        const parts = property.split(".");
         let current = task;
         for (let i = 0; i < parts.length - 1; i++) {
           if (!current[parts[i]]) current[parts[i]] = {};
@@ -330,11 +361,11 @@ class RoadmapEditor {
     const dependentTasks = [];
     const phases = roadmap.roadmap.phases || roadmap.roadmap;
 
-    phases.forEach(phase => {
-      phase.phase_tasks.forEach(task => {
+    phases.forEach((phase) => {
+      phase.phase_tasks.forEach((task) => {
         if (task.task_dependencies) {
-          const hasDependency = task.task_dependencies.some(dep => 
-            dep.phase_id === phaseId && dep.task_id === taskId
+          const hasDependency = task.task_dependencies.some(
+            (dep) => dep.phase_id === phaseId && dep.task_id === taskId
           );
           if (hasDependency) {
             dependentTasks.push({
@@ -359,11 +390,11 @@ class RoadmapEditor {
   static removeDependencies(roadmap, phaseId, taskId) {
     const phases = roadmap.roadmap.phases || roadmap.roadmap;
 
-    phases.forEach(phase => {
-      phase.phase_tasks.forEach(task => {
+    phases.forEach((phase) => {
+      phase.phase_tasks.forEach((task) => {
         if (task.task_dependencies) {
-          task.task_dependencies = task.task_dependencies.filter(dep => 
-            !(dep.phase_id === phaseId && dep.task_id === taskId)
+          task.task_dependencies = task.task_dependencies.filter(
+            (dep) => !(dep.phase_id === phaseId && dep.task_id === taskId)
           );
         }
       });
