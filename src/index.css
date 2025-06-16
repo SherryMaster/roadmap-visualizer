@@ -224,6 +224,65 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
+
+  /* Professional compact design utilities */
+  .compact-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200;
+  }
+
+  .compact-header {
+    @apply flex items-center space-x-2 mb-3;
+  }
+
+  .compact-icon {
+    @apply w-6 h-6 rounded-md flex items-center justify-center shadow-sm;
+  }
+
+  .compact-title {
+    @apply text-sm font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .compact-subtitle {
+    @apply text-xs text-gray-600 dark:text-gray-400;
+  }
+
+  .compact-button {
+    @apply inline-flex items-center px-3 py-1.5 text-xs rounded-lg transition-all duration-200;
+  }
+
+  .compact-stats {
+    @apply flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700;
+  }
+
+  .compact-indicator {
+    @apply w-1.5 h-1.5 rounded-full;
+  }
+
+  /* Enhanced professional animations */
+  .professional-hover {
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .professional-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .professional-hover:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Subtle glass effect for modern UI */
+  .glass-effect {
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-effect {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.2);
+  }
 }
 
 @keyframes spin {

@@ -169,16 +169,16 @@ const FileUploadZone = ({
   };
 
   const getZoneClasses = () => {
-    let classes = `border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer relative overflow-hidden ${className}`;
+    let classes = `border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 cursor-pointer relative overflow-hidden ${className}`;
 
     if (disabled || isProcessing) {
       classes += " opacity-50 cursor-not-allowed";
     } else if (isDragging) {
       classes +=
-        " border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 scale-[1.02] shadow-lg";
+        " border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 scale-[1.01] shadow-md";
     } else {
       classes +=
-        " border-gray-300 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gradient-to-br hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800/50 dark:hover:to-blue-900/20 hover:shadow-md";
+        " border-gray-300 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 hover:bg-gradient-to-br hover:from-gray-50 hover:to-blue-50 dark:hover:from-gray-800/50 dark:hover:to-blue-900/20 hover:shadow-sm";
     }
 
     return classes;
@@ -202,18 +202,18 @@ const FileUploadZone = ({
         disabled={disabled || isProcessing}
       />
 
-      <div className="flex flex-col items-center space-y-6">
+      <div className="flex flex-col items-center space-y-4">
         {isProcessing ? (
           <>
             <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 dark:border-blue-800"></div>
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent absolute top-0 left-0"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-3 border-blue-200 dark:border-blue-800"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-3 border-blue-600 border-t-transparent absolute top-0 left-0"></div>
             </div>
             <div className="text-center">
-              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 Processing files...
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Validating and preparing your upload
               </p>
             </div>
@@ -221,36 +221,36 @@ const FileUploadZone = ({
         ) : (
           <>
             <div className="relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center shadow-md">
                 {multiple ? (
-                  <UploadIcons.Folder className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                  <UploadIcons.Folder className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 ) : (
-                  <UploadIcons.Document className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                  <UploadIcons.Document className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 )}
               </div>
               {isDragging && (
-                <div className="absolute inset-0 bg-blue-500/20 rounded-2xl animate-pulse"></div>
+                <div className="absolute inset-0 bg-blue-500/20 rounded-xl animate-pulse"></div>
               )}
             </div>
 
-            <div className="text-center space-y-2">
-              <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+            <div className="text-center space-y-1">
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                 {title || (multiple ? "Drop files here" : "Drop file here")}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {description || "or click to browse"}
               </p>
               {multiple && (
-                <div className="flex items-center justify-center space-x-2 mt-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex items-center justify-center space-x-1.5 mt-2">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                   <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                     Multiple files supported
                   </span>
                 </div>
               )}
 
-              {/* Enhanced visual feedback */}
-              <div className="flex items-center justify-center space-x-4 mt-4 text-xs text-gray-400 dark:text-gray-500">
+              {/* Compact visual feedback */}
+              <div className="flex items-center justify-center space-x-3 mt-3 text-xs text-gray-400 dark:text-gray-500">
                 <div className="flex items-center space-x-1">
                   <UploadIcons.Upload className="w-3 h-3" />
                   <span>Drag & Drop</span>
